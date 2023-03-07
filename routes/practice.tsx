@@ -1,4 +1,4 @@
-import Game from "../islands/game.tsx";
+import Game from "@/islands/game.tsx";
 
 export default function Page() {
   return (

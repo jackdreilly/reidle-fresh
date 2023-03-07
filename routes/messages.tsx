@@ -1,8 +1,8 @@
 import { Handlers, PageProps } from "$fresh/server.ts";
 import { WithSession } from "https://deno.land/x/fresh_session@0.2.0/mod.ts";
-import ReidleTemplate from "../components/reidle_template.tsx";
-import { db, Message } from "../db.ts";
-import { getName } from "../utils.ts";
+import ReidleTemplate from "@/components/reidle_template.tsx";
+import { db, Message } from "@/db.ts";
+import { getName } from "@/utils.ts";
 
 export const handler: Handlers<unknown, WithSession> = {
   async POST(req, ctx) {
