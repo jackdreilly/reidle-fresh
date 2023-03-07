@@ -1,4 +1,4 @@
-import { Handlers } from "https://deno.land/x/fresh@1.1.3/server.ts";
+import { Handlers } from "$fresh/server.ts";
 import { WithSession } from "https://deno.land/x/fresh_session@0.2.0/mod.ts";
 import { db } from "@/db.ts";
 import { getName } from "@/utils.ts";

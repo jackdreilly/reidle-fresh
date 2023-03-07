@@ -1,4 +1,4 @@
-import { HandlerContext } from "https://deno.land/x/fresh@1.0.1/src/server/mod.ts";
+import { HandlerContext } from "$fresh/server.ts";
 import { WithSession } from "https://deno.land/x/fresh_session@0.2.0/mod.ts";
 
 const nameKey = "name";
