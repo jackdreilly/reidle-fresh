@@ -1,5 +1,5 @@
 import { useEffect, useState } from "preact/hooks";
-import { ScoredWord, Scoring, ScoringHistory, Wordle } from "../wordle.ts";
+import { ScoredWord, Scoring, ScoringHistory, Wordle } from "@/wordle.ts";
 interface GameProperties {
   startingWord?: string;
   startingFirstWord?: string;
