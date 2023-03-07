@@ -1,31 +1,28 @@
-import { Handlers, PageProps } from "$fresh/server.ts";
+import { Handlers } from "$fresh/server.ts";
 import { WithSession } from "https://deno.land/x/fresh_session@0.2.0/mod.ts";
-
-interface Data {
-  name: string
-}
+import { setName } from "../utils.ts";
 
 export const handler: Handlers<
-  Data,
+  unknown,
   WithSession
 > = {
-  GET(req, ctx) {
-    const name = (new URL(req.url)).searchParams.get("name");
+  async POST(req, ctx) {
+    const name = (await req.formData()).get("name") as string ?? "";
     if (name) {
-      ctx.state.session.set('name', name);
+      setName(ctx, name);
       return new Response("", {
-        status: 307,
+        status: 303,
         headers: { Location: "/" },
       });
     }
-    return ctx.render({ name: "" });
-  }
+    return ctx.render();
+  },
 };
 
-export default function Page({ data: { name } }: PageProps<Data>) {
+export default function Page() {
   return (
-    <form>
-      <input type="text" placeholder="Your name" name="name" value={name} />
+    <form method="POST">
+      <input autoFocus={true} type="text" placeholder="Your name" name="name" />
       <button type="submit">Set Name</button>
     </form>
   );

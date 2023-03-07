@@ -1,31 +1,37 @@
-import {
-    Database,
-    DataTypes,
-    Model,
-    SQLite3Connector,
-} from "https://deno.land/x/denodb@v1.2.0/mod.ts";
+import { DB } from "https://deno.land/x/sqlite@v3.7.0/mod.ts";
+export const db = new DB("test.db");
+db.execute(`
+DROP TABLE IF EXISTS submissions; 
+DROP TABLE IF EXISTS messages; 
+`);
+db.execute(`
+CREATE TABLE submissions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  date TIMESTAMP,
+  name TEXT,
+  time REAL,
+  penalty REAL,
+  paste TEXT
+);
+CREATE TABLE messages (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  date TIMESTAMP,
+  name TEXT,
+  message TEXT
+);
+`);
 
-export class Submission extends Model {
-    static table = 'submissions';
-    static timestamps = true;
-
-    static fields = {
-        id: { primaryKey: true, autoIncrement: true },
-        name: DataTypes.STRING,
-        time: DataTypes.FLOAT,
-        penalties: DataTypes.FLOAT,
-        events: DataTypes.JSONB,
-    };
-
-    static defaults = {
-        penalties: 0,
-        events: "[]",
-    };
+interface BaseModel {
+  id: number,
+  date: string,
+  name: string,
 }
 
-
-const db = new Database(new SQLite3Connector({
-    filepath: "./db.db"
-}));
-db.link([Submission]);
-await db.sync({ drop: true });
+export interface Submission extends BaseModel {
+  time: number,
+  penalty: number,
+  paste: string,
+}
+export interface Message extends BaseModel {
+  message: string,
+}
