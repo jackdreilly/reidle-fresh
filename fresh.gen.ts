@@ -7,8 +7,9 @@ import * as $0 from "./routes/_middleware.tsx";
 import * as $1 from "./routes/index.tsx";
 import * as $2 from "./routes/messages.tsx";
 import * as $3 from "./routes/messages/[message_id]/delete.tsx";
-import * as $4 from "./routes/practice.tsx";
-import * as $5 from "./routes/set-name.tsx";
+import * as $4 from "./routes/play.tsx";
+import * as $5 from "./routes/practice.tsx";
+import * as $6 from "./routes/set-name.tsx";
 import * as $$0 from "./islands/game.tsx";
 
 const manifest = {
@@ -17,8 +18,9 @@ const manifest = {
     "./routes/index.tsx": $1,
     "./routes/messages.tsx": $2,
     "./routes/messages/[message_id]/delete.tsx": $3,
-    "./routes/practice.tsx": $4,
-    "./routes/set-name.tsx": $5,
+    "./routes/play.tsx": $4,
+    "./routes/practice.tsx": $5,
+    "./routes/set-name.tsx": $6,
   },
   islands: {
     "./islands/game.tsx": $$0,

@@ -1,8 +1,8 @@
 import { useEffect, useState } from "preact/hooks";
 import { ScoredWord, Scoring, ScoringHistory, Wordle } from "@/utils/wordle.ts";
 interface GameProperties {
-  startingWord?: string;
-  startingFirstWord?: string;
+  word: string;
+  startingWord: string;
   onFinish(time: number, penalty: number, scoring: ScoringHistory): void;
 }
 function scoreColor(score: Scoring): string | null {
@@ -18,29 +18,17 @@ function scoreColor(score: Scoring): string | null {
   }
 }
 export default function Game(
-  { startingWord, startingFirstWord, onFinish }: GameProperties,
+  { word, startingWord, onFinish }: GameProperties,
 ) {
-  const [currentWord, setCurrentWord] = useState("");
-  const [previousWords, setPreviousWords] = useState<ScoringHistory>([]);
   const [error, setError] = useState("");
   const [wordle, setWordle] = useState<Wordle>();
-  const [word, setWord] = useState(startingWord);
-  const [firstWord, setFirstWord] = useState(startingFirstWord);
+  const [currentWord, setCurrentWord] = useState(startingWord);
+  const [previousWords, setPreviousWords] = useState<ScoringHistory>([]);
   const [won, setWon] = useState(false);
   useEffect(() => {
-    Wordle.make().then((wordle) => {
-      setWordle((s) => wordle);
-      const theWord = word ?? wordle.randomAnswer();
-      if (!word) {
-        setWord(theWord);
-      }
-      if (!firstWord) {
-        const newFirstWord = wordle.randomWord();
-        setFirstWord(newFirstWord);
-        scoreWord(wordle, theWord, newFirstWord, []);
-      }
-    });
+    Wordle.make(false).then(setWordle);
   }, []);
+  useEffect(() => wordle && scoreWord(), [wordle]);
   const keyboardLookup: Record<string, Scoring> = {};
   previousWords.forEach((w) =>
     w.forEach(({ letter, score }) => {
@@ -71,7 +59,7 @@ export default function Game(
       return;
     }
     if (key === "ENTER") {
-      scoreWord(wordle, word ?? "", currentWord, previousWords);
+      scoreWord(wordle);
       return;
     }
     if ("ABCDEFGHIJKLMNOPQRSTUVWXYZ -".includes(key)) {
@@ -111,11 +99,18 @@ export default function Game(
         style={{
           height: 50,
           textAlign: "center",
-          fontSize: 30,
+          fontSize: 20,
           fontFamily: "sans-serif",
           color: "red",
         }}
       >
+        {won
+          ? (
+            <>
+              "You won!" <a href="practice" style={{fontSize: 10}}>Practice again?</a>
+            </>
+          )
+          : null}
         {error}
         {error
           ? (
@@ -148,47 +143,48 @@ export default function Game(
             boxSizing: "border-box",
           }}
         >
-          {[0, 1, 2, 3, 4, 5].map((row) => (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(5, 1fr)",
-                gridGap: 5,
-              }}
-              class="row"
-              key={row}
-            >
-              {[0, 1, 2, 3, 4].map((column) => (
-                <div
-                  style={{
-                    margin: "3px",
-                    padding: "5px",
-                    borderColor: row < previousWords.length
-                      ? "transparent"
-                      : row === activeRow && column < activeCol
-                      ? "#878a8c"
-                      : "#d3d6da",
-                    borderStyle: "solid",
-                    borderWidth: "2px",
-                    width: "45px",
-                    height: "45px",
-                    backgroundColor: row < previousWords.length
-                      ? scoreColor(previousWords[row][column].score)
-                      : null,
-                    color: row < previousWords.length ? "white" : null,
-                  }}
-                  class="col"
-                  key={column}
-                >
-                  {row === activeRow && column < activeCol
-                    ? currentWord[column]
-                    : row < previousWords.length
-                    ? previousWords[row][column].letter
-                    : null}
-                </div>
-              ))}
-            </div>
-          ))}
+          {[0, 1, 2, 3, 4, 5].filter((i) => i < previousWords.length || !won)
+            .map((row) => (
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(5, 1fr)",
+                  gridGap: 5,
+                }}
+                class="row"
+                key={row}
+              >
+                {[0, 1, 2, 3, 4].map((column) => (
+                  <div
+                    style={{
+                      margin: "3px",
+                      padding: "5px",
+                      borderColor: row < previousWords.length
+                        ? "transparent"
+                        : row === activeRow && column < activeCol
+                        ? "#878a8c"
+                        : "#d3d6da",
+                      borderStyle: "solid",
+                      borderWidth: "2px",
+                      width: "45px",
+                      height: "45px",
+                      backgroundColor: row < previousWords.length
+                        ? scoreColor(previousWords[row][column].score)
+                        : null,
+                      color: row < previousWords.length ? "white" : null,
+                    }}
+                    class="col"
+                    key={column}
+                  >
+                    {row === activeRow && column < activeCol
+                      ? currentWord[column]
+                      : row < previousWords.length
+                      ? previousWords[row][column].letter
+                      : null}
+                  </div>
+                ))}
+              </div>
+            ))}
         </div>
       </div>
       <div
@@ -250,12 +246,18 @@ export default function Game(
       </div>
     </div>
   );
-  function scoreWord(
-    wordle: Wordle,
-    word: string,
-    currentWord: string,
-    previousWords: ScoredWord[],
-  ) {
+  function scoreWord() {
+    if (currentWord === word) {
+      setPreviousWords(
+        (s) => [
+          ...s,
+          word.split("").map((letter) => ({ letter, score: Scoring.green })),
+        ],
+      );
+      setCurrentWord("");
+      setError("");
+      setWon(true);
+    }
     if (currentWord.length < 5) {
       setError("Need 5 letters");
       return;

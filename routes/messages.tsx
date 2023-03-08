@@ -17,20 +17,26 @@ export const handler: Handlers<Data, WithSession> = {
     const name = getName(ctx);
     const message = (await req.formData()).get("message") ?? "";
     const cxn = await pool.connect();
-    await cxn.queryObject<{ message: string; name: string }>`
-        INSERT INTO
-            messages (
-                name,
-                message
-            )
+    const response = await cxn
+      .queryObject`select * from messages ORDER BY created_at DESC`;
+    const messages = [{ message, name, id: -1 }, ...response.rows as Message[]];
+    async function create() {
+      await cxn.queryObject<{ message: string; name: string }>`
+      INSERT INTO
+      messages (
+        name,
+        message
+        )
         VALUES (
-            ${name},
-            ${message}
-    )`;
-    cxn.release();
-    return new Response("", {
-      status: 303,
-      headers: { location: "/messages" },
+          ${name},
+          ${message}
+          )`;
+      cxn.release();
+    }
+    create();
+    return ctx.render({
+      messages,
+      name,
     });
   },
   async GET(req, ctx) {
@@ -51,8 +57,9 @@ export default function Page(
 ) {
   return (
     <div>
-      <form method="POST" style={{marginBottom: 10}}>
+      <form method="POST" style={{ marginBottom: 10 }}>
         <input
+          autoFocus={true}
           style={{ width: "80%", marginRight: 10 }}
           type="text"
           name="message"
