@@ -1,7 +1,7 @@
 import { Handlers, PageProps } from "$fresh/server.ts";
 import { WithSession } from "https://deno.land/x/fresh_session@0.2.0/mod.ts";
 import ReidleTemplate from "@/components/reidle_template.tsx";
-import { getName } from "@/utils.ts";
+import { getName } from "@/utils/utils.ts";
 
 export const handler: Handlers<
   string,

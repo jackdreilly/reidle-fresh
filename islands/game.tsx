@@ -1,5 +1,5 @@
 import { useEffect, useState } from "preact/hooks";
-import { ScoredWord, Scoring, ScoringHistory, Wordle } from "@/wordle.ts";
+import { ScoredWord, Scoring, ScoringHistory, Wordle } from "@/utils/wordle.ts";
 interface GameProperties {
   startingWord?: string;
   startingFirstWord?: string;
@@ -17,22 +17,16 @@ function scoreColor(score: Scoring): string | null {
       return null;
   }
 }
-interface State {
-  previousWords: ScoredWord[];
-  currentWord: string;
-  result?: boolean;
-}
 export default function Game(
   { startingWord, startingFirstWord, onFinish }: GameProperties,
 ) {
-  const [{ currentWord, previousWords }, setState] = useState<State>({
-    previousWords: [],
-    currentWord: "",
-  });
+  const [currentWord, setCurrentWord] = useState("");
+  const [previousWords, setPreviousWords] = useState<ScoringHistory>([]);
   const [error, setError] = useState("");
   const [wordle, setWordle] = useState<Wordle>();
   const [word, setWord] = useState(startingWord);
   const [firstWord, setFirstWord] = useState(startingFirstWord);
+  const [won, setWon] = useState(false);
   useEffect(() => {
     Wordle.make().then((wordle) => {
       setWordle((s) => wordle);
@@ -73,12 +67,7 @@ export default function Game(
       return;
     }
     if (key === "BACKSPACE") {
-      setState((s) => ({
-        ...s,
-        currentWord: superPressed
-          ? ""
-          : currentWord.slice(0, currentWord.length - 1),
-      }));
+      setCurrentWord((w) => superPressed ? "" : w.slice(0, w.length - 1));
       return;
     }
     if (key === "ENTER") {
@@ -86,8 +75,7 @@ export default function Game(
       return;
     }
     if ("ABCDEFGHIJKLMNOPQRSTUVWXYZ -".includes(key)) {
-      const nextWord = currentWord.slice(0, 4) + key;
-      setState((s) => ({ ...s, currentWord: nextWord }));
+      setCurrentWord((w) => w + key);
     }
   }
   function onKeyDownWrapper(event: KeyboardEvent) {
@@ -319,11 +307,8 @@ export default function Game(
       setError(error);
       return;
     }
-    setState((s) => ({
-      ...s,
-      currentWord: "",
-      previousWords: guesses,
-    }));
+    setPreviousWords(guesses);
+    setCurrentWord("");
     setError("");
   }
 }
