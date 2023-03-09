@@ -7,10 +7,20 @@ export default async function runDb<T>(
     client: postgres.PoolClient,
     cleanup: (cleanup: Cleanup) => void,
   ) => T | Promise<T>,
-): Promise<T> {
-  const cxn = await pool.connect();
-  const cleanups = [] as Cleanup[];
-  const returnValue = await runner(cxn, (x) => cleanups.push(x));
-  Promise.all(cleanups.map((x) => x())).then(() => cxn.release());
-  return returnValue;
+): Promise<T | null> {
+  try {
+    const cxn = await pool.connect();
+    const cleanups = [] as Cleanup[];
+    const returnValue = await runner(cxn, (x) => cleanups.push(x));
+    await pool.end();
+    await pool.connect();
+    Promise.all(cleanups.map((x) => x())).then(() => cxn.release());
+    return returnValue;
+  } catch (e) {
+    if (e instanceof postgres.ConnectionError) {
+      await pool.end();
+      await pool.connect();
+    }
+    return null;
+  }
 }

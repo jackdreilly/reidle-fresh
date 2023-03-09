@@ -192,7 +192,7 @@ export default function Game(
     clearError();
   }
   const totalSeconds = penalties + Math.round(
-    (new Date().getTime() - startTime.getTime()) / 1000,
+    ((won ?? new Date()).getTime() - startTime.getTime()) / 1000,
   );
   return (
     <>

@@ -47,9 +47,15 @@ export const handler: Handlers<Data, WithSession> = {
   async GET(req, ctx) {
     const name = getName(ctx);
     const messages = await runDb((connection) =>
-      connection.queryObject(
-        "select * from messages ORDER BY created_at DESC",
-      ).then((x) => x.rows as Message[])
+      connection.queryObject`
+        SELECT
+          *
+        FROM
+          messages
+        ORDER BY
+          created_at
+            DESC
+        `.then((x) => x.rows as Message[])
     );
     return ctx.render({
       messages,
