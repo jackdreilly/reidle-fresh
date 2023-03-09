@@ -17,10 +17,8 @@ export default async function runDb<T>(
     Promise.all(cleanups.map((x) => x())).then(() => cxn.release());
     return returnValue;
   } catch (e) {
-    if (e instanceof postgres.ConnectionError) {
-      await pool.end();
-      await pool.connect();
-    }
+    console.log(e);
+    await pool.end();
     return null;
   }
 }

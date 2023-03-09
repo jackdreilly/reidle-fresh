@@ -29,8 +29,9 @@ export const handler: Handlers<Data, WithSession> = {
         *
       FROM
         submissions
+      WHERE
+        TIMEZONE('UTC',NOW())::DATE = TIMEZONE('UTC', created_at)::DATE
       ORDER BY
-        DATE(created_at),
         rank
       LIMIT
         100
