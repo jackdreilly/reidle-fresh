@@ -9,6 +9,7 @@ export const handler: SessionHandler<null> = {
       const priorPlay = (await cxn
         .queryObject`select id from submissions where name = ${name} AND created_at::DATE >= TIMEZONE('UTC',NOW())::DATE`)
         .rows.length;
+      console.log({ name, priorPlay });
       if (priorPlay > 0) {
         return new Response(`${name} already played today`, { status: 400 });
       }
