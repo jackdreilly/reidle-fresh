@@ -89,8 +89,8 @@ export async function fetchWeek(thisWeek: boolean): Promise<WeekData> {
     FROM
         totals
     NATURAL INNER JOIN expanded ORDER BY play_date, total_score, total_time    
-      `.then((x) => x.rows as Submission[])
-  );
+      `.then((x) => (x?.rows ?? []) as Submission[])
+  ) ?? [];
   const dates = Array.from(
     new Set<number>(submissions.map((s) => s.play_date)),
   ).toSorted();

@@ -116,7 +116,9 @@ export default function Game(
           w.map(({ score }) => ["🟩", "🟨", "⬜"][score]).join("")
         ).join("\n"),
       }),
-    });
+    }).then((a) =>
+      a.status !== 200 ? setErrorPrivate("You already played today") : null
+    ).catch(() => setErrorPrivate("An error occurred, play again"));
   }, [won]);
   const activeRow = previousWords.length;
   const activeCol = currentWord.length;
@@ -228,10 +230,10 @@ export default function Game(
               textAlign: "center",
               fontSize: 20,
               fontFamily: "sans-serif",
-              color: won ? "green" : "red",
+              color: won && !error ? "green" : "red",
             }}
           >
-            {won
+            {won && !error
               ? (
                 <>
                   You won in <TimerText seconds={totalSeconds} />!

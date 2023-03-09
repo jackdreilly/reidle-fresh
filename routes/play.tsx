@@ -20,18 +20,6 @@ export const handler: SessionHandler<PracticeData> = {
         headers: { Location: "/set-name" },
       });
     }
-    if (
-      await runDb(async (cxn) =>
-        (await cxn
-          .queryObject`select id from submissions where name = ${name} AND created_at::DATE >= TIMEZONE('UTC',NOW())::DATE`)
-          .rows.length
-      )
-    ) {
-      return new Response("", {
-        status: 307,
-        headers: { Location: "/" },
-      });
-    }
     const wordle = await wordlePromise;
     const word = wordle.todaysAnswer();
     const startingWord = wordle.todaysWord();

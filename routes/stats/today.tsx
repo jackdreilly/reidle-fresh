@@ -36,7 +36,7 @@ export const handler: Handlers<Data, WithSession> = {
       LIMIT
         100
       `.then((x) => x.rows as Submission[])
-    );
+    ) ?? [];
     return ctx.render({
       submissions,
       name,

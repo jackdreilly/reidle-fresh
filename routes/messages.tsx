@@ -38,7 +38,7 @@ export const handler: Handlers<Data, WithSession> = {
         { message, name, id: -1 },
         ...response.rows as Message[],
       ];
-    });
+    }) ?? [];
     return ctx.render({
       messages,
       name,
@@ -56,7 +56,7 @@ export const handler: Handlers<Data, WithSession> = {
           created_at
             DESC
         `.then((x) => x.rows as Message[])
-    );
+    ) ?? [];
     return ctx.render({
       messages,
       name,

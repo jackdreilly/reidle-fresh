@@ -5,8 +5,14 @@ export const handler: SessionHandler<null> = {
   async POST(req, ctx) {
     const { time, penalty, playback, word, paste } = await req.json();
     const name = getName(ctx);
-    runDb((cxn) => {
-      cxn.queryObject<
+    const response = await runDb(async (cxn) => {
+      const priorPlay = (await cxn
+        .queryObject`select id from submissions where name = ${name} AND created_at::DATE >= TIMEZONE('UTC',NOW())::DATE`)
+        .rows.length;
+      if (priorPlay > 0) {
+        return new Response(`${name} already played today`, { status: 400 });
+      }
+      await cxn.queryObject<
         {
           name: string;
           time: number;
@@ -96,7 +102,8 @@ FROM
 WHERE
     id IS NULL
       `;
+      return new Response();
     });
-    return new Response();
+    return response as Response;
   },
 };

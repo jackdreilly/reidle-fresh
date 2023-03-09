@@ -17,6 +17,6 @@ export default async function runDb<T>(
   } catch (e) {
     console.error(e);
     await pool.end();
-    return null;
   }
+  return null;
 }
