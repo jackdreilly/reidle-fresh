@@ -12,8 +12,6 @@ export default async function runDb<T>(
     const cxn = await pool.connect();
     const cleanups = [] as Cleanup[];
     const returnValue = await runner(cxn, (x) => cleanups.push(x));
-    await pool.end();
-    await pool.connect();
     Promise.all(cleanups.map((x) => x())).then(() => cxn.release());
     return returnValue;
   } catch (e) {
