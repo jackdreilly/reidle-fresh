@@ -1,7 +1,5 @@
 import { ReidleHeader } from "@/components/reidle_template.tsx";
 import TimerText from "@/components/timer_text.tsx";
-import Timer from "@/islands/timer.tsx";
-import { timerTime } from "@/utils/utils.ts";
 import { Scoring, ScoringHistory, Wordle } from "@/utils/wordle.ts";
 import { useEffect, useState } from "preact/hooks";
 interface GameProperties {
@@ -32,6 +30,7 @@ export default function Game(
   const [currentWord, setCurrentWord] = useState(startingWord);
   const [previousWords, setPreviousWords] = useState<ScoringHistory>([]);
   const [won, setWon] = useState<Date | null>(null);
+  const [__, setTicks] = useState(0);
   useEffect(() => {
     Wordle.make(false).then(setWordle);
   }, []);
@@ -42,6 +41,10 @@ export default function Game(
       setPenalties((p) => p + penalty);
     }
   }
+  useEffect(() => {
+    const interval = setInterval(() => setTicks((s) => s + 1), 1000);
+    return () => clearInterval(interval);
+  }, []);
   function clearError() {
     addError("");
   }
@@ -238,7 +241,7 @@ export default function Game(
                     href="practice"
                     style={{ fontSize: "12px" }}
                   >
-                    Practice again?
+                    Practice{isPractice ? " again" : null}?
                   </a>
                 </>
               )

@@ -16,7 +16,6 @@ import * as $9 from "./routes/stats/previous_winners.tsx";
 import * as $10 from "./routes/stats/this_week.tsx";
 import * as $11 from "./routes/stats/today.tsx";
 import * as $$0 from "./islands/game.tsx";
-import * as $$1 from "./islands/timer.tsx";
 
 const manifest = {
   routes: {
@@ -35,7 +34,6 @@ const manifest = {
   },
   islands: {
     "./islands/game.tsx": $$0,
-    "./islands/timer.tsx": $$1,
   },
   baseUrl: import.meta.url,
   config,
