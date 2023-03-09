@@ -19,3 +19,17 @@ export async function readAsset(
     ? Deno.readTextFile("static/" + path)
     : (await fetch(asset(path))).text();
 }
+
+export function timerTime(totalSeconds: number): string {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds - 60 * minutes;
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+}
+
+export default function html(
+  strings: TemplateStringsArray,
+  ...values: unknown[]
+) {
+  const body = String.raw({ raw: strings }, ...values);
+  return new Response(body, { headers: { "Content-Type": "text/html" } });
+}

@@ -4,26 +4,38 @@
 
 import config from "./deno.json" assert { type: "json" };
 import * as $0 from "./routes/_middleware.tsx";
-import * as $1 from "./routes/index.tsx";
-import * as $2 from "./routes/messages.tsx";
-import * as $3 from "./routes/messages/[message_id]/delete.tsx";
-import * as $4 from "./routes/play.tsx";
-import * as $5 from "./routes/practice.tsx";
-import * as $6 from "./routes/set-name.tsx";
+import * as $1 from "./routes/api/submit.tsx";
+import * as $2 from "./routes/index.tsx";
+import * as $3 from "./routes/messages.tsx";
+import * as $4 from "./routes/messages/[message_id]/delete.tsx";
+import * as $5 from "./routes/play.tsx";
+import * as $6 from "./routes/practice.tsx";
+import * as $7 from "./routes/set-name.tsx";
+import * as $8 from "./routes/stats/last_week.tsx";
+import * as $9 from "./routes/stats/previous_winners.tsx";
+import * as $10 from "./routes/stats/this_week.tsx";
+import * as $11 from "./routes/stats/today.tsx";
 import * as $$0 from "./islands/game.tsx";
+import * as $$1 from "./islands/timer.tsx";
 
 const manifest = {
   routes: {
     "./routes/_middleware.tsx": $0,
-    "./routes/index.tsx": $1,
-    "./routes/messages.tsx": $2,
-    "./routes/messages/[message_id]/delete.tsx": $3,
-    "./routes/play.tsx": $4,
-    "./routes/practice.tsx": $5,
-    "./routes/set-name.tsx": $6,
+    "./routes/api/submit.tsx": $1,
+    "./routes/index.tsx": $2,
+    "./routes/messages.tsx": $3,
+    "./routes/messages/[message_id]/delete.tsx": $4,
+    "./routes/play.tsx": $5,
+    "./routes/practice.tsx": $6,
+    "./routes/set-name.tsx": $7,
+    "./routes/stats/last_week.tsx": $8,
+    "./routes/stats/previous_winners.tsx": $9,
+    "./routes/stats/this_week.tsx": $10,
+    "./routes/stats/today.tsx": $11,
   },
   islands: {
     "./islands/game.tsx": $$0,
+    "./islands/timer.tsx": $$1,
   },
   baseUrl: import.meta.url,
   config,

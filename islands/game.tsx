@@ -1,7 +1,12 @@
+import { ReidleHeader } from "@/components/reidle_template.tsx";
+import TimerText from "@/components/timer_text.tsx";
+import Timer from "@/islands/timer.tsx";
+import { timerTime } from "@/utils/utils.ts";
+import { Scoring, ScoringHistory, Wordle } from "@/utils/wordle.ts";
 import { useEffect, useState } from "preact/hooks";
-import { ScoredWord, Scoring, ScoringHistory, Wordle } from "@/utils/wordle.ts";
 interface GameProperties {
   word: string;
+  isPractice: boolean;
   startingWord: string;
   onFinish(time: number, penalty: number, scoring: ScoringHistory): void;
 }
@@ -18,17 +23,28 @@ function scoreColor(score: Scoring): string | null {
   }
 }
 export default function Game(
-  { word, startingWord, onFinish }: GameProperties,
+  { word, startingWord, onFinish, isPractice }: GameProperties,
 ) {
-  const [error, setError] = useState("");
+  const [penalties, setPenalties] = useState(0);
+  const [startTime, _] = useState(new Date());
+  const [error, setErrorPrivate] = useState("");
   const [wordle, setWordle] = useState<Wordle>();
   const [currentWord, setCurrentWord] = useState(startingWord);
   const [previousWords, setPreviousWords] = useState<ScoringHistory>([]);
-  const [won, setWon] = useState(false);
+  const [won, setWon] = useState<Date | null>(null);
   useEffect(() => {
     Wordle.make(false).then(setWordle);
   }, []);
   useEffect(() => wordle && scoreWord(), [wordle]);
+  function addError(error: string, penalty: number | undefined = undefined) {
+    setErrorPrivate(error);
+    if (penalty) {
+      setPenalties((p) => p + penalty);
+    }
+  }
+  function clearError() {
+    addError("");
+  }
   const keyboardLookup: Record<string, Scoring> = {};
   previousWords.forEach((w) =>
     w.forEach(({ letter, score }) => {
@@ -59,11 +75,11 @@ export default function Game(
       return;
     }
     if (key === "ENTER") {
-      scoreWord(wordle);
+      scoreWord();
       return;
     }
     if ("ABCDEFGHIJKLMNOPQRSTUVWXYZ -".includes(key)) {
-      setCurrentWord((w) => w + key);
+      setCurrentWord((w) => w.slice(0, 4) + key);
     }
   }
   function onKeyDownWrapper(event: KeyboardEvent) {
@@ -79,173 +95,33 @@ export default function Game(
 
     return () => self.removeEventListener("keydown", onKeyDownWrapper);
   }, [onKeyDownWrapper]);
+  useEffect(() => {
+    if (!won || isPractice) {
+      return;
+    }
+    fetch("/api/submit", {
+      method: "POST",
+      headers: {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        time: totalSeconds,
+        penalty: penalties,
+        word,
+        playback: [],
+        paste: previousWords.map((w) =>
+          w.map(({ score }) => ["🟩", "🟨", "⬜"][score]).join("")
+        ).join("\n"),
+      }),
+    });
+  }, [won]);
   const activeRow = previousWords.length;
   const activeCol = currentWord.length;
   function keyColor(c: string): string {
     return scoreColor(keyboardLookup[c]) ?? "#d3d6da";
   }
-  return (
-    <div
-      style={{
-        width: "100%",
-        maxWidth: 800,
-        margin: "0 auto",
-        display: "flex",
-        flexDirection: "column",
-        height: "100%",
-      }}
-    >
-      <div
-        style={{
-          height: 50,
-          textAlign: "center",
-          fontSize: 20,
-          fontFamily: "sans-serif",
-          color: "red",
-        }}
-      >
-        {won
-          ? (
-            <>
-              "You won!" <a href="practice" style={{fontSize: 10}}>Practice again?</a>
-            </>
-          )
-          : null}
-        {error}
-        {error
-          ? (
-            <button style={{ margin: 5 }} onClick={() => setError("")}>
-              Dismiss
-            </button>
-          )
-          : null}
-      </div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          flexGrow: 1,
-          overflow: "hidden",
-        }}
-      >
-        <div
-          id="board"
-          style={{
-            fontFamily: "sans-serif",
-            fontWeight: "bold",
-            textAlign: "center",
-            fontSize: "40px",
-            display: "grid",
-            gridTemplateRows: "repeat(6, 1fr)",
-            gridGap: 5,
-            padding: 10,
-            boxSizing: "border-box",
-          }}
-        >
-          {[0, 1, 2, 3, 4, 5].filter((i) => i < previousWords.length || !won)
-            .map((row) => (
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(5, 1fr)",
-                  gridGap: 5,
-                }}
-                class="row"
-                key={row}
-              >
-                {[0, 1, 2, 3, 4].map((column) => (
-                  <div
-                    style={{
-                      margin: "3px",
-                      padding: "5px",
-                      borderColor: row < previousWords.length
-                        ? "transparent"
-                        : row === activeRow && column < activeCol
-                        ? "#878a8c"
-                        : "#d3d6da",
-                      borderStyle: "solid",
-                      borderWidth: "2px",
-                      width: "45px",
-                      height: "45px",
-                      backgroundColor: row < previousWords.length
-                        ? scoreColor(previousWords[row][column].score)
-                        : null,
-                      color: row < previousWords.length ? "white" : null,
-                    }}
-                    class="col"
-                    key={column}
-                  >
-                    {row === activeRow && column < activeCol
-                      ? currentWord[column]
-                      : row < previousWords.length
-                      ? previousWords[row][column].letter
-                      : null}
-                  </div>
-                ))}
-              </div>
-            ))}
-        </div>
-      </div>
-      <div
-        style={{ height: 200, margin: "0 8px", userSelect: "none" }}
-        id="keyboard"
-      >
-        {"QWERTYUIOP,ASDFGHJKL,↵ZXCVBNM␡".split(",").map((row) => (
-          <div
-            style={{
-              display: "flex",
-              touchAction: "manipulation",
-              width: "100%",
-              margin: "0 auto 8px",
-              justifyContent: "center",
-            }}
-            key={row}
-          >
-            {row.split("").map((c) => (
-              <button
-                style={{
-                  fontFamily: "sans-serif",
-                  fontSize: "1.25em",
-                  fontWeight: "bold",
-                  maxWidth: 40,
-                  border: "0",
-                  padding: "0",
-                  margin: "0 6px 0 0",
-                  height: "58px",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                  webkitUserSelect: "none",
-                  mozUserSelect: "none",
-                  userSelect: "none",
-                  backgroundColor: keyColor(c),
-                  color: keyColor(c) === "#d3d6da" ? "black" : "white",
-                  flex: "1",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  textTransform: "uppercase",
-                  webkitTapHighlightColor: "rgba(0,0,0,.3)",
-                }}
-                class="col"
-                key={c}
-                onClick={() =>
-                  onKeyDown(
-                    c === "↵"
-                      ? "ENTER"
-                      : c === "␡"
-                      ? "BACKSPACE"
-                      : c.toUpperCase(),
-                  )}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+  const title = isPractice ? "Practice" : "Play";
   function scoreWord() {
     if (currentWord === word) {
       setPreviousWords(
@@ -255,19 +131,19 @@ export default function Game(
         ],
       );
       setCurrentWord("");
-      setError("");
-      setWon(true);
+      clearError();
+      setWon(new Date());
     }
     if (currentWord.length < 5) {
-      setError("Need 5 letters");
+      addError("Need 5 letters");
       return;
     }
     if (currentWord.includes(" ") || currentWord.includes("-")) {
-      setError("Includes space or -");
+      addError("Includes space or -");
       return;
     }
     if (!wordle?.isWord(currentWord)) {
-      setError("Not a word");
+      addError("Not a word", 5);
       return;
     }
     const scoring = [
@@ -306,11 +182,209 @@ export default function Game(
     ];
     const error = wordle?.error(guesses);
     if (error) {
-      setError(error);
+      addError(error, 10);
       return;
     }
     setPreviousWords(guesses);
     setCurrentWord("");
-    setError("");
+    clearError();
   }
+  const totalSeconds = penalties + Math.round(
+    (new Date().getTime() - startTime.getTime()) / 1000,
+  );
+  return (
+    <>
+      <ReidleHeader />
+      <div class="m-3 flex">
+        <h2 class="text-center mr-10 text-xl">{title}</h2>
+        {!won
+          ? (
+            <TimerText
+              seconds={totalSeconds}
+              class="text-gray text-lg"
+            />
+          )
+          : null}
+        {penalties
+          ? <TimerText seconds={penalties} class="mx-10 text-red-400 text-lg" />
+          : null}
+      </div>
+      <div style={{ flexGrow: 1 }}>
+        <div
+          style={{
+            width: "100%",
+            maxWidth: 800,
+            margin: "0 auto",
+            display: "flex",
+            flexDirection: "column",
+            height: "100%",
+          }}
+        >
+          <div
+            style={{
+              height: 30,
+              textAlign: "center",
+              fontSize: 20,
+              fontFamily: "sans-serif",
+              color: won ? "green" : "red",
+            }}
+          >
+            {won
+              ? (
+                <>
+                  You won in <TimerText seconds={totalSeconds} />!
+                  <a
+                    class="px-3 py-2 bg-white rounded border(gray-500 2) hover:bg-gray-200 active:bg-gray-300 disabled:(opacity-50 cursor-not-allowed) m-5"
+                    href="practice"
+                    style={{ fontSize: "12px" }}
+                  >
+                    Practice again?
+                  </a>
+                </>
+              )
+              : null}
+            {error}
+            {error
+              ? (
+                <button
+                  onClick={clearError}
+                  class="ml-3 px-1 py-1 text-sm bg-white rounded border(gray-500 2) hover:bg-gray-200 active:bg-gray-300 disabled:(opacity-50 cursor-not-allowed)"
+                >
+                  Dismiss
+                </button>
+              )
+              : null}
+          </div>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              flexGrow: 1,
+              overflow: "hidden",
+            }}
+          >
+            <div
+              id="board"
+              style={{
+                fontFamily: "sans-serif",
+                fontWeight: "bold",
+                textAlign: "center",
+                fontSize: "40px",
+                display: "grid",
+                gridTemplateRows: "repeat(6, 1fr)",
+                gridGap: 5,
+                padding: 10,
+                boxSizing: "border-box",
+              }}
+            >
+              {[0, 1, 2, 3, 4, 5].filter((i) =>
+                i < previousWords.length || !won
+              )
+                .map((row) => (
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(5, 1fr)",
+                      gridGap: 5,
+                    }}
+                    class="row"
+                    key={row}
+                  >
+                    {[0, 1, 2, 3, 4].map((column) => (
+                      <div
+                        style={{
+                          boxSizing: "unset",
+                          lineHeight: "50px",
+                          margin: "3px",
+                          padding: "5px",
+                          borderColor: row < previousWords.length
+                            ? "transparent"
+                            : row === activeRow && column < activeCol
+                            ? "#878a8c"
+                            : "#d3d6da",
+                          borderStyle: "solid",
+                          borderWidth: "2px",
+                          width: "45px",
+                          height: "45px",
+                          backgroundColor: row < previousWords.length
+                            ? scoreColor(previousWords[row][column].score)
+                            : null,
+                          color: row < previousWords.length ? "white" : null,
+                        }}
+                        class="col"
+                        key={column}
+                      >
+                        {row === activeRow && column < activeCol
+                          ? currentWord[column]
+                          : row < previousWords.length
+                          ? previousWords[row][column].letter
+                          : null}
+                      </div>
+                    ))}
+                  </div>
+                ))}
+            </div>
+          </div>
+          <div
+            style={{ height: 200, margin: "0 8px", userSelect: "none" }}
+            id="keyboard"
+          >
+            {"QWERTYUIOP,ASDFGHJKL,↵ZXCVBNM␡".split(",").map((row) => (
+              <div
+                style={{
+                  display: "flex",
+                  touchAction: "manipulation",
+                  width: "100%",
+                  margin: "0 auto 8px",
+                  justifyContent: "center",
+                }}
+                key={row}
+              >
+                {row.split("").map((c) => (
+                  <button
+                    style={{
+                      fontFamily: "sans-serif",
+                      fontSize: "1.25em",
+                      fontWeight: "bold",
+                      maxWidth: 40,
+                      border: "0",
+                      padding: "0",
+                      margin: "0 6px 0 0",
+                      height: "58px",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                      webkitUserSelect: "none",
+                      mozUserSelect: "none",
+                      userSelect: "none",
+                      backgroundColor: keyColor(c),
+                      color: keyColor(c) === "#d3d6da" ? "black" : "white",
+                      flex: "1",
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      textTransform: "uppercase",
+                      webkitTapHighlightColor: "rgba(0,0,0,.3)",
+                    }}
+                    class="col"
+                    key={c}
+                    onClick={() =>
+                      onKeyDown(
+                        c === "↵"
+                          ? "ENTER"
+                          : c === "␡"
+                          ? "BACKSPACE"
+                          : c.toUpperCase(),
+                      )}
+                  >
+                    {c}
+                  </button>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </>
+  );
 }

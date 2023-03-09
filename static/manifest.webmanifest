@@ -1,0 +1,28 @@
+{
+    "name": "Reidle",
+    "short_name": "Reidle",
+    "theme_color": "#ff0000",
+    "background_color": "#00ff00",
+    "display": "fullscreen",
+    "scope": "/",
+    "start_url": "/",
+    "orientation": "any",
+    "icons": [
+        {
+            "src": "/android-chrome-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "/android-chrome-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/mstile-150x150.png",
+            "sizes": "150x150",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}
