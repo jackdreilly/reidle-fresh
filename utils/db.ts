@@ -15,7 +15,7 @@ export default async function runDb<T>(
     Promise.all(cleanups.map((x) => x())).then(() => cxn.release());
     return returnValue;
   } catch (e) {
-    console.log(e);
+    console.error(e);
     await pool.end();
     return null;
   }
