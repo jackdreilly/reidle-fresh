@@ -2,7 +2,7 @@ import runDb from "@/utils/db.ts";
 
 interface Submission {
   name: string;
-  play_date: string;
+  play_date: number;
   score: number;
   total_score: number;
   total_time: number;
@@ -33,7 +33,10 @@ export async function fetchWeek(thisWeek: boolean): Promise<WeekData> {
     ),
     
     last_week AS (
-        SELECT
+        SELECT DISTINCT ON (
+          name,
+          DATE(TIMEZONE('UTC', created_at))
+        )
             name,
             time,
             score,
@@ -89,12 +92,12 @@ export async function fetchWeek(thisWeek: boolean): Promise<WeekData> {
       `.then((x) => x.rows as Submission[])
   );
   const dates = Array.from(
-    new Set<number>(submissions.map((s) => parseInt(s.play_date))),
+    new Set<number>(submissions.map((s) => s.play_date)),
   ).toSorted();
   const names = [] as string[];
   for (const { name } of submissions) {
     if (names.includes(name)) {
-      break;
+      continue;
     }
     names.push(name);
   }
@@ -104,9 +107,12 @@ export async function fetchWeek(thisWeek: boolean): Promise<WeekData> {
   for (
     const { play_date, score, total_score, name, total_time } of submissions
   ) {
-    table[nameLookup[name]][dateLookup[parseInt(play_date)]] = score;
-    table[nameLookup[name]][0] = total_score;
-    table[nameLookup[name]][1] = total_time;
+    const name_index = nameLookup[name];
+    const date_index = dateLookup[play_date.toString()];
+    const row = table[name_index];
+    row[date_index] = score;
+    row[0] = total_score;
+    row[1] = total_time;
   }
   return {
     dates,

@@ -1,8 +1,9 @@
 import { PageProps } from "$fresh/server.ts";
-import Game from "@/islands/game.tsx";
-import { SessionHandler } from "@/utils/utils.ts";
-import { Wordle } from "@/utils/wordle.ts";
 import GameTemplate from "@/components/game_template.tsx";
+import Game from "@/islands/game.tsx";
+import { getName, SessionHandler } from "@/utils/utils.ts";
+import { Wordle } from "@/utils/wordle.ts";
+import runDb from "@/utils/db.ts";
 
 interface PracticeData {
   word: string;
@@ -12,6 +13,25 @@ interface PracticeData {
 const wordlePromise = Wordle.make(true);
 export const handler: SessionHandler<PracticeData> = {
   async GET(req, ctx) {
+    const name = getName(ctx);
+    if (!name) {
+      return new Response("", {
+        status: 307,
+        headers: { Location: "/set-name" },
+      });
+    }
+    if (
+      await runDb(async (cxn) =>
+        (await cxn
+          .queryObject`select id from submissions where name = ${name} AND created_at::DATE >= TIMEZONE('UTC',NOW())::DATE`)
+          .rows.length
+      )
+    ) {
+      return new Response("", {
+        status: 307,
+        headers: { Location: "/" },
+      });
+    }
     const wordle = await wordlePromise;
     const word = wordle.todaysAnswer();
     const startingWord = wordle.todaysWord();
@@ -28,8 +48,6 @@ export default function Page(
         isPractice={false}
         word={word}
         startingWord={startingWord}
-        onFinish={(time, penalty, scoring) =>
-          console.log(time, penalty, scoring)}
       />
     </GameTemplate>
   );

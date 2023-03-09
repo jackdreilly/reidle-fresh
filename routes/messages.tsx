@@ -1,7 +1,7 @@
 import { Handlers, PageProps } from "$fresh/server.ts";
 import { WithSession } from "https://deno.land/x/fresh_session@0.2.0/mod.ts";
 import { getName } from "@/utils/utils.ts";
-import ReidleTemplate from "../components/reidle_template.tsx";
+import ReidleTemplate from "@/components/reidle_template.tsx";
 import Button from "@/components/button.tsx";
 import Input from "@/components/input.tsx";
 import runDb from "@/utils/db.ts";
@@ -65,6 +65,7 @@ export default function Page(
     <ReidleTemplate title="Messages">
       <form method="POST" style={{ marginBottom: 10 }}>
         <Input
+          autocomplete="off"
           autoFocus={true}
           style={{ width: "80%", marginRight: 10 }}
           type="text"

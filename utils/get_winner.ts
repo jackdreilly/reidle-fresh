@@ -91,6 +91,6 @@ FROM
     last_day
 RETURNING
     name
-        `.then((s) => (s.rows as Result[])[0].name);
+        `.then((s) => (s.rows as Result[])[0]?.name ?? "no winner");
   });
 }

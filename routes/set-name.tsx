@@ -10,7 +10,7 @@ export const handler: Handlers<
   WithSession
 > = {
   async POST(req, ctx) {
-    const name = (await req.formData()).get("name") as string ?? "";
+    const name = ((await req.formData()).get("name") as string ?? "").trim();
     if (name) {
       setName(ctx, name);
       return new Response("", {

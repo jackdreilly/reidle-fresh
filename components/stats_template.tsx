@@ -15,15 +15,15 @@ export default function StatsTemplate(
         </a>
         <a
           class="text-sm underline mx-3 hover:text-blue-700 hover:font-bold"
-          href="/stats/last_week"
-        >
-          Last Week
-        </a>
-        <a
-          class="text-sm underline mx-3 hover:text-blue-700 hover:font-bold"
           href="/stats/this_week"
         >
           This Week
+        </a>
+        <a
+          class="text-sm underline mx-3 hover:text-blue-700 hover:font-bold"
+          href="/stats/last_week"
+        >
+          Last Week
         </a>
         <a
           class="text-sm underline mx-3 hover:text-blue-700 hover:font-bold"

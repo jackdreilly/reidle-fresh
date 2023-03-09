@@ -6,7 +6,6 @@ interface GameProperties {
   word: string;
   isPractice: boolean;
   startingWord: string;
-  onFinish(time: number, penalty: number, scoring: ScoringHistory): void;
 }
 function scoreColor(score: Scoring): string | null {
   switch (score) {
@@ -21,7 +20,7 @@ function scoreColor(score: Scoring): string | null {
   }
 }
 export default function Game(
-  { word, startingWord, onFinish, isPractice }: GameProperties,
+  { word, startingWord, isPractice }: GameProperties,
 ) {
   const [penalties, setPenalties] = useState(0);
   const [startTime, _] = useState(new Date());

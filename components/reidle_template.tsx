@@ -49,9 +49,10 @@ export default function ReidleTemplate(
 }
 
 export function ReidleHeader() {
-  const linkClass = "text-lg underline p-5 hover:text-blue-700 hover:font-bold";
+  const linkClass =
+    "text-lg underline p-5 hover:text-blue-700 hover:font-bold whitespace-nowrap";
   return (
-    <div class="m-4 flex flex-wrap">
+    <div class="m-4 flex overflow-scroll">
       <h1 class="text-2xl mr-0 hover:text-blue-700 hover:font-bold">
         <a href="/">Reidle</a>
       </h1>

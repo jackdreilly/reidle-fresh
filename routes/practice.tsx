@@ -28,8 +28,6 @@ export default function Page(
         isPractice={true}
         word={word}
         startingWord={startingWord}
-        onFinish={(time, penalty, scoring) =>
-          console.log(time, penalty, scoring)}
       />
     </GameTemplate>
   );

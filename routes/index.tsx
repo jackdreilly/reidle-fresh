@@ -1,8 +1,8 @@
 import { Handlers, PageProps } from "$fresh/server.ts";
-import { WithSession } from "https://deno.land/x/fresh_session@0.2.0/mod.ts";
 import ReidleTemplate from "@/components/reidle_template.tsx";
-import { getName } from "@/utils/utils.ts";
 import getWinner from "@/utils/get_winner.ts";
+import { getName } from "@/utils/utils.ts";
+import { WithSession } from "https://deno.land/x/fresh_session@0.2.0/mod.ts";
 
 interface Data {
   name: string;
@@ -14,7 +14,14 @@ export const handler: Handlers<
   WithSession
 > = {
   async GET(_req, ctx) {
-    return ctx.render({ name: getName(ctx), winner: await getWinner() });
+    const name = getName(ctx);
+    if (!name) {
+      return new Response("", {
+        status: 307,
+        headers: { Location: "/set-name" },
+      });
+    }
+    return ctx.render({ name, winner: await getWinner() });
   },
 };
 
