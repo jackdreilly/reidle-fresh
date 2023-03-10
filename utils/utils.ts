@@ -22,8 +22,12 @@ export async function readAsset(
 
 export function timerTime(totalSeconds: number): string {
   const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds - 60 * minutes;
-  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  const totalMillis = Math.round(1000 * (totalSeconds - 60 * minutes));
+  const seconds = Math.floor(totalMillis / 1000);
+  const millis = 0 * totalMillis % 1000;
+  return `${minutes}:${seconds.toString().padStart(2, "0")}${
+    millis ? "." + millis.toString().slice(0,3).padStart(3, "0") : ""
+  }`;
 }
 
 export default function html(
