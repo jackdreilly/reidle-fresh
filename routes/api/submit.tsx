@@ -1,17 +1,24 @@
-import { getName, SessionHandler } from "@/utils/utils.ts";
-import runDb from "@/utils/db.ts";
+import { getName, SessionHandler, timerTime } from "@/utils/utils.ts";
+import run from "../../utils/db.ts";
+import sendEmail from "../../utils/mail.ts";
 
 export const handler: SessionHandler<null> = {
   async POST(req, ctx) {
     const { time, penalty, playback, word, paste } = await req.json();
     const name = getName(ctx);
-    const response = await runDb(async (cxn) => {
-      const priorPlay = (await cxn
-        .queryObject`select id from submissions where name = ${name} AND created_at::DATE >= TIMEZONE('UTC',NOW())::DATE`)
-        .rows.length;
-      console.log({ name, priorPlay });
-      if (priorPlay > 0) {
-        return new Response(`${name} already played today`, { status: 400 });
+    const success = await run(async (cxn) => {
+      const response = await cxn.queryObject<{ name: string; count: number }>`
+        SELECT
+            id, name
+        FROM
+            submissions
+        WHERE
+            name = ${name}
+        AND
+            day = CURRENT_DATE
+        `;
+      if (response.rowCount ?? 0) {
+        return false;
       }
       await cxn.queryObject<
         {
@@ -30,9 +37,9 @@ WITH existing AS (
     FROM
         submissions
     WHERE
-        DATE(TIMEZONE('UTC', NOW()))
+        CURRENT_DATE
         =
-        DATE(TIMEZONE('UTC', created_at))
+        day
 ),
 
 previous AS (
@@ -103,8 +110,18 @@ FROM
 WHERE
     id IS NULL
       `;
-      return new Response();
+
+      await sendEmail(
+        `${new Date().getUTCFullYear()}-${
+          new Date().getUTCMonth().toString().padStart(2, "0")
+        }-${new Date().getUTCDate().toString().padStart(2, "0")}`,
+        `${name}: ${timerTime(time)}`,
+      );
+      return true;
     });
-    return response as Response;
+    if (success) {
+      return new Response();
+    }
+    return new Response(`${name} already played`, { status: 400 });
   },
 };

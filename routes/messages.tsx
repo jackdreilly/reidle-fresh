@@ -1,10 +1,11 @@
 import { Handlers, PageProps } from "$fresh/server.ts";
-import { WithSession } from "https://deno.land/x/fresh_session@0.2.0/mod.ts";
-import { getName } from "@/utils/utils.ts";
-import ReidleTemplate from "@/components/reidle_template.tsx";
 import Button from "@/components/button.tsx";
 import Input from "@/components/input.tsx";
-import runDb from "@/utils/db.ts";
+import ReidleTemplate from "@/components/reidle_template.tsx";
+import sendEmail from "@/utils/mail.ts";
+import { getName } from "@/utils/utils.ts";
+import { WithSession } from "https://deno.land/x/fresh_session@0.2.0/mod.ts";
+import run from "../utils/db.ts";
 interface Message {
   message: string;
   name: string;
@@ -19,11 +20,8 @@ export const handler: Handlers<Data, WithSession> = {
   async POST(req, ctx) {
     const name = getName(ctx);
     const message = (await req.formData()).get("message") as string ?? "";
-    const messages = await runDb(async (cxn, cleanup) => {
-      const response = await cxn
-        .queryObject`select * from messages ORDER BY created_at DESC`;
-      cleanup(() => {
-        cxn.queryObject<{ message: string; name: string }>`
+    await run((cxn) =>
+      cxn.queryObject<{ message: string; name: string }>`
         INSERT INTO
         messages (
           name,
@@ -32,31 +30,35 @@ export const handler: Handlers<Data, WithSession> = {
           VALUES (
             ${name},
             ${message}
-            )`;
-      });
-      return [
-        { message, name, id: -1 },
-        ...response.rows as Message[],
-      ];
-    }) ?? [];
-    return ctx.render({
-      messages,
-      name,
+            )`
+    );
+    await sendEmail(
+      `${name}: ${message}`,
+      `Message From ${name}: ${message}`,
+      `
+          <h1>Message From ${name}</h1>
+          <blockquote>${message}</blockquote>
+`,
+    );
+    return new Response("", {
+      status: 303,
+      headers: { location: "/messages" },
     });
   },
-  async GET(req, ctx) {
+  async GET(_, ctx) {
     const name = getName(ctx);
-    const messages = await runDb((connection) =>
-      connection.queryObject`
-        SELECT
-          *
-        FROM
-          messages
-        ORDER BY
-          created_at
-            DESC
-        `.then((x) => x.rows as Message[])
-    ) ?? [];
+    const messages = await run(async (cxn) => {
+      const response = await cxn.queryObject`
+      SELECT
+        *
+      FROM
+        messages
+      ORDER BY
+        created_at
+          DESC
+      `;
+      return response.rows as Message[];
+    }) ?? [];
     return ctx.render({
       messages,
       name,

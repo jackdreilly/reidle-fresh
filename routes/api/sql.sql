@@ -1,14 +1,10 @@
 WITH last_day AS (
     SELECT
-        TIMEZONE(
-            'UTC', NOW()
-        )::DATE - EXTRACT(
-            DOW FROM TIMEZONE('UTC', NOW())::DATE
+        CURRENT_DATE - EXTRACT(
+            DOW FROM CURRENT_DATE
         )::INTEGER AS last_day,
-        TIMEZONE(
-            'UTC', NOW()
-        )::DATE - EXTRACT(
-            DOW FROM TIMEZONE('UTC', NOW())::DATE
+        CURRENT_DATE - EXTRACT(
+            DOW FROM CURRENT_DATE
         )::INTEGER - 6::INTEGER AS start_day
 
 ),
@@ -18,15 +14,15 @@ last_week AS (
         name,
         time,
         score,
-        TIMEZONE('UTC', created_at)::DATE AS play_date
+        day
     FROM
         submissions, last_day
     WHERE
-        TIMEZONE('UTC', created_at)::DATE BETWEEN start_day AND last_day
+        day BETWEEN start_day AND last_day
 ),
 
 all_days AS (
-    SELECT DISTINCT play_date
+    SELECT DISTINCT day
     FROM last_week
     ORDER BY 1
 ),

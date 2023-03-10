@@ -3,6 +3,7 @@ import StatsTemplate from "@/components/stats_template.tsx";
 import runDb from "@/utils/db.ts";
 import { getName } from "@/utils/utils.ts";
 import { WithSession } from "https://deno.land/x/fresh_session@0.2.0/mod.ts";
+import getWinner from "../../utils/get_winner.ts";
 interface Submission {
   name: string;
   week: Date;
@@ -15,6 +16,7 @@ interface Data {
 export const handler: Handlers<Data, WithSession> = {
   async GET(req, ctx) {
     const name = getName(ctx);
+    await getWinner();
     const submissions = await runDb((connection) =>
       connection.queryObject`
       SELECT

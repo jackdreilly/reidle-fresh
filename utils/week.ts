@@ -2,7 +2,7 @@ import runDb from "@/utils/db.ts";
 
 interface Submission {
   name: string;
-  play_date: number;
+  day: number;
   score: number;
   total_score: number;
   total_time: number;
@@ -19,36 +19,29 @@ export async function fetchWeek(thisWeek: boolean): Promise<WeekData> {
     connection.queryObject`
       WITH last_day AS (
         SELECT
-            TIMEZONE(
-                'UTC', NOW()
-            )::DATE + ${offsetDays}::INTEGER - EXTRACT(
-                DOW FROM TIMEZONE('UTC', NOW())::DATE
+            CURRENT_DATE + ${offsetDays}::INTEGER - EXTRACT(
+                DOW FROM CURRENT_DATE
             )::INTEGER AS last_day,
-            TIMEZONE(
-                'UTC', NOW()
-            )::DATE + ${offsetDays}::INTEGER - EXTRACT(
-                DOW FROM TIMEZONE('UTC', NOW())::DATE
+            CURRENT_DATE + ${offsetDays}::INTEGER - EXTRACT(
+                DOW FROM CURRENT_DATE
             )::INTEGER - 6 AS start_day
     
     ),
     
     last_week AS (
-        SELECT DISTINCT ON (
-          name,
-          DATE(TIMEZONE('UTC', created_at))
-        )
+        SELECT
             name,
             time,
             score,
-            EXTRACT(ISODOW FROM TIMEZONE('UTC', created_at)::DATE)::INT AS play_date
+            EXTRACT(ISODOW FROM day)::INT AS day
         FROM
             submissions, last_day
         WHERE
-            TIMEZONE('UTC', created_at)::DATE BETWEEN start_day AND last_day
+            day BETWEEN start_day AND last_day
     ),
     
     all_days AS (
-        SELECT DISTINCT play_date
+        SELECT DISTINCT day
         FROM last_week
     ),
     
@@ -81,18 +74,18 @@ export async function fetchWeek(thisWeek: boolean): Promise<WeekData> {
     )
     
     SELECT
-        play_date,
+        day,
         name,
         score_filled AS score,
         total_score::INT AS total_score,
         total_time::INT AS total_time
     FROM
         totals
-    NATURAL INNER JOIN expanded ORDER BY play_date, total_score, total_time    
+    NATURAL INNER JOIN expanded ORDER BY day, total_score, total_time    
       `.then((x) => (x?.rows ?? []) as Submission[])
   ) ?? [];
   const dates = Array.from(
-    new Set<number>(submissions.map((s) => s.play_date)),
+    new Set<number>(submissions.map((s) => s.day)),
   ).toSorted();
   const names = [] as string[];
   for (const { name } of submissions) {
@@ -105,10 +98,10 @@ export async function fetchWeek(thisWeek: boolean): Promise<WeekData> {
   const nameLookup = Object.fromEntries(names.map((d, i) => [d, i]));
   const table = names.map((_) => ["", "", ...dates].map((_) => 0));
   for (
-    const { play_date, score, total_score, name, total_time } of submissions
+    const { day, score, total_score, name, total_time } of submissions
   ) {
     const name_index = nameLookup[name];
-    const date_index = dateLookup[play_date.toString()];
+    const date_index = dateLookup[day];
     const row = table[name_index];
     row[date_index] = score;
     row[0] = total_score;

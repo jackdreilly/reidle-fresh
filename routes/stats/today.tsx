@@ -6,7 +6,7 @@ import { WithSession } from "https://deno.land/x/fresh_session@0.2.0/mod.ts";
 import StatsTemplate from "@/components/stats_template.tsx";
 interface Submission {
   name: string;
-  created_at: Date;
+  day: Date;
   id: number;
   time: number;
   penalty: number;
@@ -21,7 +21,7 @@ interface Data {
 }
 
 export const handler: Handlers<Data, WithSession> = {
-  async GET(req, ctx) {
+  async GET(_, ctx) {
     const name = getName(ctx);
     const submissions = await runDb((connection) =>
       connection.queryObject`
@@ -30,7 +30,7 @@ export const handler: Handlers<Data, WithSession> = {
       FROM
         submissions
       WHERE
-        TIMEZONE('UTC',NOW())::DATE = TIMEZONE('UTC', created_at)::DATE
+        CURRENT_DATE = day
       ORDER BY
         rank
       LIMIT
@@ -63,7 +63,7 @@ export default function Page(
         </thead>
         <tbody>
           {submissions.map((
-            { name, time, penalty, score, paste, created_at, id },
+            { name, time, penalty, score, paste, day, id },
           ) => (
             <tr key={id}>
               <td
@@ -79,7 +79,7 @@ export default function Page(
               <td class="px-2">{score}</td>
               <td class="px-2 whitespace-pre-wrap text-[7px]">{paste}</td>
               <td class="px-2">
-                {created_at.getUTCMonth()}/{created_at.getUTCDate()}
+                {day.getUTCMonth()}/{day.getUTCDate()}
               </td>
             </tr>
           ))}
