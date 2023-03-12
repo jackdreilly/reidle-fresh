@@ -15,21 +15,15 @@ export default function StatsTemplate(
         </a>
         <a
           class="text-sm underline mx-3 hover:text-blue-700 hover:font-bold"
-          href="/stats/this_week"
+          href={`/stats/weekly/${new Date().toISOString().slice(0, 10)}`}
         >
           This Week
         </a>
         <a
           class="text-sm underline mx-3 hover:text-blue-700 hover:font-bold"
-          href="/stats/last_week"
+          href="/stats/past_winners"
         >
-          Last Week
-        </a>
-        <a
-          class="text-sm underline mx-3 hover:text-blue-700 hover:font-bold"
-          href="/stats/previous_winners"
-        >
-          Previous Winners
+          Past Winners
         </a>
       </div>
       {children}

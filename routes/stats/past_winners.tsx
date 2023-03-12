@@ -3,10 +3,10 @@ import StatsTemplate from "@/components/stats_template.tsx";
 import runDb from "@/utils/db.ts";
 import { getName } from "@/utils/utils.ts";
 import { WithSession } from "https://deno.land/x/fresh_session@0.2.0/mod.ts";
-import getWinner from "../../utils/get_winner.ts";
+import getWinner from "@/utils/get_winner.ts";
 interface Submission {
   name: string;
-  week: Date;
+  week: string;
 }
 interface Data {
   submissions: Submission[];
@@ -17,17 +17,18 @@ export const handler: Handlers<Data, WithSession> = {
   async GET(req, ctx) {
     const name = getName(ctx);
     await getWinner();
-    const submissions = await runDb((connection) =>
-      connection.queryObject`
-      SELECT
-        name,
-        week
-      FROM
-        winners
-      ORDER BY
-        week DESC
-      `.then((x) => x.rows as Submission[])
-    );
+    const submissions = await runDb(async (cxn) => {
+      const { rows } = await cxn.queryObject<Submission>`
+        SELECT
+          name,
+          week::TEXT AS week
+        FROM
+          winners
+        ORDER BY
+          week DESC
+        `;
+      return rows;
+    }) ?? [];
     return ctx.render({
       submissions,
       name,
@@ -61,7 +62,12 @@ export default function Page(
                 {name.slice(0, 13)}
               </td>
               <td class="px-2">
-                {week.toISOString().slice(0, 10)}
+                <a
+                  class="font-medium text-blue-600 dark:text-blue-500 hover:underline"
+                  href={`/stats/weekly/${week}`}
+                >
+                  {week}
+                </a>
               </td>
             </tr>
           ))}

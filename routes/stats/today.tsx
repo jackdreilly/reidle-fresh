@@ -1,9 +1,9 @@
 import { Handlers, PageProps } from "$fresh/server.ts";
-import TimerText from "@/components/timer_text.tsx";
-import runDb from "@/utils/db.ts";
-import { getName } from "@/utils/utils.ts";
-import { WithSession } from "https://deno.land/x/fresh_session@0.2.0/mod.ts";
 import StatsTemplate from "@/components/stats_template.tsx";
+import runDb from "@/utils/db.ts";
+import { getName, timerTime } from "@/utils/utils.ts";
+import { WithSession } from "https://deno.land/x/fresh_session@0.2.0/mod.ts";
+import { Table } from "../../components/tables.tsx";
 interface Submission {
   name: string;
   day: Date;
@@ -50,41 +50,20 @@ export default function Page(
   return (
     <StatsTemplate>
       <h2 class="text-2xl">Today</h2>
-      <table class="table-auto">
-        <thead>
-          <tr class="text-xs">
-            <th>Name</th>
-            <th>Time</th>
-            <th>Pen</th>
-            <th>Score</th>
-            <th>Paste</th>
-            <th>Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          {submissions.map((
-            { name, time, penalty, score, paste, day, id },
-          ) => (
-            <tr key={id}>
-              <td
-                class="px-2"
-                style={name === myName ? { fontWeight: "bold" } : {}}
-              >
-                {name.slice(0, 13)}
-              </td>
-              <td class="px-2">
-                <TimerText seconds={time} />
-              </td>
-              <td class="px-2">{penalty}</td>
-              <td class="px-2">{score}</td>
-              <td class="px-2 whitespace-pre-wrap text-[7px]">{paste}</td>
-              <td class="px-2">
-                {day.getUTCMonth()}/{day.getUTCDate()}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <Table
+        columns={["Name", "Time", "Pen", "Score", "Paste", "Date"]}
+        rows={submissions.map((
+          { name, time, penalty, score, paste, day },
+        ) => [
+          name.slice(0, 13),
+          timerTime(time),
+          penalty,
+          score,
+          paste,
+          `${day.getUTCMonth()}/${day.getUTCDate()}`,
+        ])}
+        columnStyles={{ Paste: "whitespace-pre-wrap text-[7px] leading-[4px]" }}
+      />
     </StatsTemplate>
   );
 }

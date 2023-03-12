@@ -11,33 +11,25 @@ export interface WeekData {
   dates: number[];
   names: string[];
   table: number[][];
-  thisWeek: boolean;
+  startDay: Date;
 }
-export async function fetchWeek(thisWeek: boolean): Promise<WeekData> {
-  const offsetDays = thisWeek ? 7 : 0;
+export async function fetchWeek(startDay: Date): Promise<WeekData> {
+  startDay = new Date(startDay);
+  startDay.setDate(startDay.getDate() - startDay.getDay() + 1);
+  const endDay = new Date(startDay);
+  endDay.setDate(endDay.getDate() + 6);
   const submissions = await runDb((connection) =>
     connection.queryObject`
-      WITH last_day AS (
-        SELECT
-            CURRENT_DATE + ${offsetDays}::INTEGER - EXTRACT(
-                DOW FROM CURRENT_DATE
-            )::INTEGER AS last_day,
-            CURRENT_DATE + ${offsetDays}::INTEGER - EXTRACT(
-                DOW FROM CURRENT_DATE
-            )::INTEGER - 6 AS start_day
-    
-    ),
-    
-    last_week AS (
+    WITH last_week AS (
         SELECT
             name,
             time,
             score,
             EXTRACT(ISODOW FROM day)::INT AS day
         FROM
-            submissions, last_day
+            submissions
         WHERE
-            day BETWEEN start_day AND last_day
+            day BETWEEN ${startDay} AND ${endDay}
     ),
     
     all_days AS (
@@ -111,6 +103,6 @@ export async function fetchWeek(thisWeek: boolean): Promise<WeekData> {
     dates,
     table,
     names,
-    thisWeek,
+    startDay,
   };
 }
