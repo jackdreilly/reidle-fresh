@@ -405,7 +405,7 @@ export default function Game(
                     }}
                     class="col"
                     key={c}
-                    onClick={() =>
+                    onPointerDown={() =>
                       onKeyDown(
                         c === "↵"
                           ? "ENTER"
