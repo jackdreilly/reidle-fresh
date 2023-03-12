@@ -94,6 +94,7 @@ export default function Page(
                   action={`/messages/${id}/delete`}
                 >
                   <input
+                    class="cursor-pointer"
                     type="submit"
                     value="🗑️"
                     style={{ fontSize: 8, marginLeft: 5 }}

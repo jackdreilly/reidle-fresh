@@ -44,7 +44,7 @@ export default function Home(
             ].map(([link, text]) => (
               <li>
                 <a
-                  class="font-medium text-blue-600 dark:text-blue-500 hover:underline"
+                  class="font-medium text-3xl text-blue-600 dark:text-blue-500 hover:underline"
                   href={"/" + link}
                 >
                   {text}
