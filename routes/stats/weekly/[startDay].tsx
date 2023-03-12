@@ -7,6 +7,7 @@ import { WithSession } from "https://deno.land/x/fresh_session@0.2.0/mod.ts";
 export const handler: Handlers<WeekTableData, WithSession> = {
   async GET(_, ctx) {
     const startDay = new Date(ctx.params["startDay"]);
+    startDay.setDate(startDay.getDate() - (startDay.getDay() + 6) % 7);
     return ctx.render({
       ...await fetchWeek(startDay),
       name: getName(ctx),

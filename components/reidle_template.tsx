@@ -1,14 +1,19 @@
+import { asset, Head } from "$fresh/runtime.ts";
 import { ComponentChildren } from "preact";
-import { Head } from "$fresh/runtime.ts";
-import html from "../utils/utils.ts";
 
 export default function ReidleTemplate(
-  { children, title }: { children: ComponentChildren; title?: string },
+  { children, title }: {
+    children: ComponentChildren;
+    title?: string;
+    fullPage?: boolean;
+  },
 ) {
   return (
     <html>
       <Head>
         <title>{title ?? "Reidle"}</title>
+        <link rel="prefetch" href={asset("/words.csv")} sizes="any" />
+        <link rel="prefetch" href={asset("/answers.csv")} sizes="any" />
         <meta
           name="description"
           content="Reidle is a Wordle clone with a leaderboard, a forced starting word, and very strict rules."
@@ -41,26 +46,27 @@ export default function ReidleTemplate(
         <script src="/worker.js" type="module" />
       </Head>
       <body>
-        {ReidleHeader()}
-        <div class="m-4">{children}</div>
+        <ReidleHeader />
+        <div class="m-4">
+          {children}
+        </div>
       </body>
     </html>
   );
 }
 
-export function ReidleHeader() {
-  const linkClass =
-    "text-lg underline p-5 hover:text-blue-700 hover:font-bold whitespace-nowrap";
+export function ReidleHeader({ children }: { children?: ComponentChildren }) {
   return (
-    <div class="m-4 flex overflow-scroll">
-      <h1 class="text-2xl mr-0 hover:text-blue-700 hover:font-bold">
-        <a href="/">Reidle</a>
+    <nav class="h-[2.5rem] flex items-center">
+      <h1 class="m-2 text-2xl">
+        <a
+          class="font-medium text-blue-600 dark:text-blue-500 hover:underline"
+          href="/"
+        >
+          Reidle
+        </a>
       </h1>
-      <a class={linkClass} href="/play">Play</a>
-      <a class={linkClass} href="/practice">Practice</a>
-      <a class={linkClass} href="/stats/today">Stats</a>
-      <a class={linkClass} href="/messages">Messages</a>
-      <a class={linkClass} href="/set-name">Set Name</a>
-    </div>
+      {children}
+    </nav>
   );
 }

@@ -14,8 +14,6 @@ export interface WeekData {
   startDay: Date;
 }
 export async function fetchWeek(startDay: Date): Promise<WeekData> {
-  startDay = new Date(startDay);
-  startDay.setDate(startDay.getDate() - startDay.getDay() + 1);
   const endDay = new Date(startDay);
   endDay.setDate(endDay.getDate() + 6);
   const submissions = await runDb((connection) =>

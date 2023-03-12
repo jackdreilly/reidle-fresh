@@ -2,11 +2,6 @@ import { ReidleHeader } from "@/components/reidle_template.tsx";
 import TimerText from "@/components/timer_text.tsx";
 import { Scoring, ScoringHistory, Wordle } from "@/utils/wordle.ts";
 import { useEffect, useState } from "preact/hooks";
-interface GameProperties {
-  word: string;
-  isPractice: boolean;
-  startingWord: string;
-}
 function scoreColor(score: Scoring): string | null {
   switch (score) {
     case Scoring.gray:
@@ -19,8 +14,14 @@ function scoreColor(score: Scoring): string | null {
       return null;
   }
 }
+interface GameProperties {
+  word: string;
+  isPractice: boolean;
+  startingWord: string;
+  winnersTime?: number | null;
+}
 export default function Game(
-  { word, startingWord, isPractice }: GameProperties,
+  { word, startingWord, isPractice, winnersTime }: GameProperties,
 ) {
   const [penalties, setPenalties] = useState(0);
   const [startTime, _] = useState(new Date());
@@ -30,6 +31,29 @@ export default function Game(
   const [previousWords, setPreviousWords] = useState<ScoringHistory>([]);
   const [won, setWon] = useState<Date | null>(null);
   const [__, setTicks] = useState(0);
+  const [played, setPlayed] = useState(false);
+  useEffect(() => {
+    if (isPractice) {
+      return;
+    }
+    async function helper() {
+      const response = await fetch("/api/played", {
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+        },
+      });
+      const played = await response.json();
+      if (!played) {
+        return;
+      }
+      addError("You already played! This game won't count", 120);
+      setPlayed(true);
+      await new Promise((r) => setTimeout(r, 100));
+      addError("You already played! This game won't count");
+    }
+    helper();
+  }, []);
   useEffect(() => {
     Wordle.make(false).then(setWordle);
   }, []);
@@ -98,7 +122,7 @@ export default function Game(
     return () => self.removeEventListener("keydown", onKeyDownWrapper);
   }, [onKeyDownWrapper]);
   useEffect(() => {
-    if (!won || isPractice) {
+    if (!won || isPractice || played) {
       return;
     }
     fetch("/api/submit", {
@@ -198,9 +222,7 @@ export default function Game(
   );
   return (
     <>
-      <ReidleHeader />
-      <div class="m-3 flex">
-        <h2 class="text-center mr-10 text-xl">{title}</h2>
+      <ReidleHeader>
         {!won
           ? (
             <TimerText
@@ -210,14 +232,25 @@ export default function Game(
           )
           : null}
         {penalties
-          ? <TimerText seconds={penalties} class="mx-10 text-red-400 text-lg" />
+          ? (
+            <TimerText
+              seconds={penalties}
+              class="mx-10 text-red-400 text-lg"
+            />
+          )
           : null}
-      </div>
+        {winnersTime && (
+          <TimerText
+            seconds={winnersTime}
+            class="mx-10 text-green-400 text-lg"
+          />
+        )}
+      </ReidleHeader>
       <div style={{ flexGrow: 1 }}>
         <div
           style={{
             width: "100%",
-            maxWidth: 800,
+            maxWidth: 1200,
             margin: "0 auto",
             display: "flex",
             flexDirection: "column",
@@ -226,9 +259,9 @@ export default function Game(
         >
           <div
             style={{
-              height: 30,
+              height: 20,
               textAlign: "center",
-              fontSize: 20,
+              fontSize: 12,
               fontFamily: "sans-serif",
               color: won && !error ? "green" : "red",
             }}
@@ -252,7 +285,7 @@ export default function Game(
               ? (
                 <button
                   onClick={clearError}
-                  class="ml-3 px-1 py-1 text-sm bg-white rounded border(gray-500 2) hover:bg-gray-200 active:bg-gray-300 disabled:(opacity-50 cursor-not-allowed)"
+                  class="ml-3 px-1 py-1 text-[12px] bg-white rounded border(gray-500 2) hover:bg-gray-200 active:bg-gray-300 disabled:(opacity-50 cursor-not-allowed)"
                 >
                   Dismiss
                 </button>
@@ -351,7 +384,7 @@ export default function Game(
                       fontFamily: "sans-serif",
                       fontSize: "1.25em",
                       fontWeight: "bold",
-                      maxWidth: 40,
+                      maxWidth: 50,
                       border: "0",
                       padding: "0",
                       margin: "0 6px 0 0",

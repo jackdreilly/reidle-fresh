@@ -1,5 +1,5 @@
-import { HandlerContext, Handlers } from "$fresh/server.ts";
 import { asset } from "$fresh/runtime.ts";
+import { HandlerContext, Handlers } from "$fresh/server.ts";
 import { WithSession } from "https://deno.land/x/fresh_session@0.2.0/mod.ts";
 
 const nameKey = "name";
@@ -26,14 +26,6 @@ export function timerTime(totalSeconds: number): string {
   const seconds = Math.floor(totalMillis / 1000);
   const millis = 0 * totalMillis % 1000;
   return `${minutes}:${seconds.toString().padStart(2, "0")}${
-    millis ? "." + millis.toString().slice(0,3).padStart(3, "0") : ""
+    millis ? "." + millis.toString().slice(0, 3).padStart(3, "0") : ""
   }`;
-}
-
-export default function html(
-  strings: TemplateStringsArray,
-  ...values: unknown[]
-) {
-  const body = String.raw({ raw: strings }, ...values);
-  return new Response(body, { headers: { "Content-Type": "text/html" } });
 }

@@ -1,13 +1,14 @@
 import { PageProps } from "$fresh/server.ts";
-import GameTemplate from "@/components/game_template.tsx";
 import Game from "@/islands/game.tsx";
 import { getName, SessionHandler } from "@/utils/utils.ts";
 import { Wordle } from "@/utils/wordle.ts";
-import runDb from "@/utils/db.ts";
+import GameTemplate from "../components/game_template.tsx";
+import run from "../utils/db.ts";
 
 interface PracticeData {
   word: string;
   startingWord: string;
+  winnersTime?: number | null;
 }
 
 const wordlePromise = Wordle.make(true);
@@ -23,19 +24,26 @@ export const handler: SessionHandler<PracticeData> = {
     const wordle = await wordlePromise;
     const word = wordle.todaysAnswer();
     const startingWord = wordle.todaysWord();
-    return ctx.render({ word, startingWord });
+    const winnersTime = await run(async (cxn) =>
+      (await cxn.queryObject<
+        { time: number }
+      >`select time from submissions where day = CURRENT_DATE order by time limit 1`)
+        .rows[0]?.time
+    );
+    return ctx.render({ word, startingWord, winnersTime });
   },
 };
 
 export default function Page(
-  { data: { word, startingWord } }: PageProps<PracticeData>,
+  { data: { word, startingWord, winnersTime } }: PageProps<PracticeData>,
 ) {
   return (
-    <GameTemplate title="Play">
+    <GameTemplate isPractice={false}>
       <Game
         isPractice={false}
         word={word}
         startingWord={startingWord}
+        winnersTime={winnersTime}
       />
     </GameTemplate>
   );

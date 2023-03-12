@@ -1,9 +1,22 @@
+import { JSX } from "preact";
 import { ComponentChildren } from "preact";
 
-export function TableHead({ columns }: { columns: any[] }) {
+export function HeadColumn(
+  { "class": classValue, children }: {
+    class?: string;
+    children?: ComponentChildren;
+  },
+) {
+  return <th scope="col" class={`px-4 py-2 ${classValue ?? ""}`}>{children}
+  </th>;
+}
+export function TableHead(
+  { columns, children }: { columns?: any[]; children?: ComponentChildren },
+) {
   return (
     <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-      {columns.map((c) => <th scope="col" class="px-6 py-3">{c}</th>)}
+      {columns?.map((c) => <HeadColumn>{c}</HeadColumn>)}
+      {children}
     </thead>
   );
 }
@@ -12,23 +25,31 @@ export function TableRow(
 ) {
   return (
     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-      {header ? <TableRowHeader value={header} /> : null}
+      {header && <TableRowHeader>{header}</TableRowHeader>}
       {children}
     </tr>
   );
 }
-export function TableRowHeader({ value }: { value: string }) {
+export function TableRowHeader({ children }: { children?: ComponentChildren }) {
   return (
     <th
       scope="row"
-      class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+      class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white"
     >
-      {value}
+      {children}
     </th>
   );
 }
-export function TableCell(props: { value: any; "class"?: string }) {
-  return <td class={"px-6 py-4 " + (props["class"] ?? "")}>{props.value}</td>;
+export function TableCell(
+  { "class": myClass, children, style }: {
+    children?: ComponentChildren;
+    "class"?: string;
+    style?: JSX.CSSProperties;
+  },
+) {
+  return (
+    <td style={style} class={"px-4 py-2 " + (myClass ?? "")}>{children}</td>
+  );
 }
 export function TableBody(
   { rows, children, columnStyles }: {
@@ -42,7 +63,9 @@ export function TableBody(
       {(rows ?? []).map((row) => (
         <TableRow header={row[0]}>
           {row.slice(1).map((cell, i) => (
-            <TableCell class={(columnStyles ?? {})[i + 1] ?? ""} value={cell} />
+            <TableCell class={(columnStyles ?? {})[i + 1] ?? ""}>
+              {cell}
+            </TableCell>
           ))}
           {children}
         </TableRow>

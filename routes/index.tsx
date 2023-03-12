@@ -31,9 +31,28 @@ export default function Home(
   return (
     <ReidleTemplate>
       Welcome to Reidle, <strong>{name}</strong>!
-      {!name ? "Make sure to set your name to play" : null}
+      <p>Last week's winner: {winner}</p>
       <div>
-        Last week's winner: {winner}
+        <nav class="m-4">
+          <ul>
+            {[
+              ["play", "Play"],
+              ["practice", "Practice"],
+              ["stats/today", "Stats"],
+              ["messages", "Messages"],
+              ["set-name", "Set Name"],
+            ].map(([link, text]) => (
+              <li>
+                <a
+                  class="font-medium text-blue-600 dark:text-blue-500 hover:underline"
+                  href={"/" + link}
+                >
+                  {text}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
       </div>
     </ReidleTemplate>
   );
