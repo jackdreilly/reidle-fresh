@@ -15,7 +15,7 @@ export interface WeekTableData extends WeekData {
   startDay: Date;
 }
 export default function WeekTable(
-  { data: { names, dates, table, startDay } }: { data: WeekTableData },
+  { data: { names, dates, ids, table, startDay } }: { data: WeekTableData },
 ) {
   function getDay(dow: number): string {
     const day = new Date(startDay);
@@ -55,11 +55,17 @@ export default function WeekTable(
           {names.map((name, i) => (
             <TableRow>
               <TableRowHeader>{name}</TableRowHeader>
-              {table[i].slice(2).map((v) => (
-                <TableCell style={{ backgroundColor: getColor(v) }}>
-                  {v}
-                </TableCell>
-              ))}
+              {table[i].slice(2).map((v, j) => {
+                const id = ids[i][j + 2] ?? -1;
+                console.log({ id, v, i, j });
+                return (
+                  <TableCell style={{ backgroundColor: getColor(v) }}>
+                    {id < 0
+                      ? v
+                      : <a href={`/submissions/${id}/playback`}>{v}</a>}
+                  </TableCell>
+                );
+              })}
               <TableCell>
                 {table[i][0] < 1000
                   ? table[i][0]

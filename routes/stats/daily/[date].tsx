@@ -1,9 +1,15 @@
 import { Handlers, PageProps } from "$fresh/server.ts";
 import StatsTemplate from "@/components/stats_template.tsx";
-import { Table } from "@/components/tables.tsx";
+import {
+  Table,
+  TableBody,
+  TableCell, TableRow,
+  TableRowHeader
+} from "@/components/tables.tsx";
 import runDb from "@/utils/db.ts";
-import { timerTime } from "@/utils/utils.ts";
 import { WithSession } from "https://deno.land/x/fresh_session@0.2.0/mod.ts";
+import TimerText from "@/components/timer_text.tsx";
+import { Playback } from "../../../utils/playback.ts";
 interface Submission {
   name: string;
   day: Date;
@@ -13,7 +19,7 @@ interface Submission {
   score: number;
   rank: number;
   paste: number;
-  playback: Record<string, unknown>[];
+  playback: Playback;
 }
 interface Data {
   submissions: Submission[];
@@ -22,18 +28,19 @@ interface Data {
 export const handler: Handlers<Data, WithSession> = {
   async GET(_, ctx) {
     const day = new Date(ctx.params["date"]).toISOString().slice(0, 10);
-    const submissions = await runDb((connection) =>
-      connection.queryObject`
+    const submissions = await runDb(async (cxn) => {
+      const response = await cxn.queryObject<Submission>`
       SELECT
-        *
+        name, time, penalty, paste, id
       FROM
         submissions
       WHERE
         day = ${day}
       ORDER BY
         rank
-      `.then((x) => x.rows as Submission[])
-    ) ?? [];
+      `;
+      return response.rows;
+    }) ?? [];
     return ctx.render({
       submissions,
     });
@@ -47,16 +54,26 @@ export default function Page(
     <StatsTemplate>
       <Table
         columns={["Name", "Time", "Pen", "Paste"]}
-        rows={submissions.map((
-          { name, time, penalty, paste },
-        ) => [
-          name.slice(0, 13),
-          timerTime(time),
-          penalty,
-          paste,
-        ])}
-        columnStyles={{ Paste: "whitespace-pre-wrap text-[7px] leading-[4px]" }}
-      />
+      >
+        <TableBody>
+          {submissions.map((
+            { name, time, penalty, paste, id },
+          ) => (
+            <TableRow>
+              <TableRowHeader>
+                <a href={`/submissions/${id}/playback`}>{name.slice(0, 13)}</a>
+              </TableRowHeader>
+              <TableCell>
+                <TimerText seconds={time} />
+              </TableCell>
+              <TableCell>{penalty}</TableCell>
+              <TableCell class="whitespace-pre-wrap text-[7px] leading-[4px]">
+                {paste}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </StatsTemplate>
   );
 }

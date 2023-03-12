@@ -1,6 +1,7 @@
 import runDb from "@/utils/db.ts";
 
 interface Submission {
+  id: number;
   name: string;
   day: number;
   score: number;
@@ -10,6 +11,7 @@ interface Submission {
 export interface WeekData {
   dates: number[];
   names: string[];
+  ids: number[][];
   table: number[][];
   startDay: Date;
 }
@@ -17,9 +19,19 @@ export async function fetchWeek(startDay: Date): Promise<WeekData> {
   const endDay = new Date(startDay);
   endDay.setDate(endDay.getDate() + 6);
   const submissions = await runDb((connection) =>
-    connection.queryObject`
+    connection.queryObject<
+      {
+        name: string;
+        day: number;
+        id: number;
+        score: number;
+        total_score: number;
+        total_time: number;
+      }
+    >`
     WITH last_week AS (
         SELECT
+            id,
             name,
             time,
             score,
@@ -28,6 +40,10 @@ export async function fetchWeek(startDay: Date): Promise<WeekData> {
             submissions
         WHERE
             day BETWEEN ${startDay} AND ${endDay}
+    ),
+
+    name_day_ids AS (
+      SELECT DISTINCT id, name, day FROM last_week
     ),
     
     all_days AS (
@@ -64,6 +80,7 @@ export async function fetchWeek(startDay: Date): Promise<WeekData> {
     )
     
     SELECT
+        id,
         day,
         name,
         score_filled AS score,
@@ -71,7 +88,10 @@ export async function fetchWeek(startDay: Date): Promise<WeekData> {
         total_time::INT AS total_time
     FROM
         totals
-    NATURAL INNER JOIN expanded ORDER BY day, total_score, total_time    
+    NATURAL INNER JOIN expanded
+    NATURAL INNER JOIN name_day_ids
+    ORDER BY
+      day, total_score, total_time
       `.then((x) => (x?.rows ?? []) as Submission[])
   ) ?? [];
   const dates = Array.from(
@@ -86,9 +106,10 @@ export async function fetchWeek(startDay: Date): Promise<WeekData> {
   }
   const dateLookup = Object.fromEntries(dates.map((d, i) => [d, i + 2]));
   const nameLookup = Object.fromEntries(names.map((d, i) => [d, i]));
-  const table = names.map((_) => ["", "", ...dates].map((_) => 0));
+  const table = names.map((_) => ["", "", ...dates].map((_) => 5));
+  const ids = names.map((_) => ["", "", ...dates].map((_) => -1));
   for (
-    const { day, score, total_score, name, total_time } of submissions
+    const { day, score, total_score, name, total_time, id } of submissions
   ) {
     const name_index = nameLookup[name];
     const date_index = dateLookup[day];
@@ -96,11 +117,13 @@ export async function fetchWeek(startDay: Date): Promise<WeekData> {
     row[date_index] = score;
     row[0] = total_score;
     row[1] = total_time;
+    ids[name_index][date_index] = id;
   }
   return {
     dates,
     table,
     names,
     startDay,
+    ids,
   };
 }

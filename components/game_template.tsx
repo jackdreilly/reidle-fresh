@@ -1,12 +1,13 @@
 import { asset, Head } from "$fresh/runtime.ts";
 import { ComponentChildren } from "preact";
 export default function GameTemplate(
-  { isPractice, children }: {
+  { isPractice, children, title }: {
     isPractice: boolean;
     children?: ComponentChildren;
+    title?: string;
   },
 ) {
-  const title = isPractice ? "Practice" : "Play";
+  title ??= isPractice ? "Practice" : "Play";
   return (
     <html class="h-full">
       <Head>

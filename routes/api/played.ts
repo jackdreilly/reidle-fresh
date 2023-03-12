@@ -4,7 +4,7 @@ import run from "../../utils/db.ts";
 const jsonHeaders = { headers: { "Content-Type": "application/json" } };
 
 export const handler: SessionHandler<null> = {
-  async GET(req, ctx) {
+  async GET(_, ctx) {
     const count = await run(async (cxn) => {
       const response = await cxn.queryObject<{ name: string; count: number }>`
             select

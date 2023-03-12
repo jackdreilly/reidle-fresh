@@ -11,20 +11,26 @@ export function HeadColumn(
   </th>;
 }
 export function TableHead(
-  { columns, children }: { columns?: any[]; children?: ComponentChildren },
+  { columns, children }: {
+    columns?: ComponentChildren[];
+    children?: ComponentChildren;
+  },
 ) {
   return (
-    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
       {columns?.map((c) => <HeadColumn>{c}</HeadColumn>)}
       {children}
     </thead>
   );
 }
 export function TableRow(
-  { header, children }: { header?: string; children?: ComponentChildren },
+  { header, children }: {
+    header?: ComponentChildren;
+    children?: ComponentChildren;
+  },
 ) {
   return (
-    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+    <tr class="bg-white border-b">
       {header && <TableRowHeader>{header}</TableRowHeader>}
       {children}
     </tr>
@@ -34,7 +40,7 @@ export function TableRowHeader({ children }: { children?: ComponentChildren }) {
   return (
     <th
       scope="row"
-      class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+      class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap"
     >
       {children}
     </th>
@@ -52,10 +58,9 @@ export function TableCell(
   );
 }
 export function TableBody(
-  { rows, children, columnStyles }: {
-    rows?: any[][];
+  { rows, children }: {
+    rows?: ComponentChildren[][];
     children?: ComponentChildren;
-    columnStyles?: Record<number, string>;
   },
 ) {
   return (
@@ -63,7 +68,7 @@ export function TableBody(
       {(rows ?? []).map((row) => (
         <TableRow header={row[0]}>
           {row.slice(1).map((cell, i) => (
-            <TableCell class={(columnStyles ?? {})[i + 1] ?? ""}>
+            <TableCell>
               {cell}
             </TableCell>
           ))}
@@ -76,25 +81,19 @@ export function TableBody(
 }
 
 export function Table(
-  { columns, rows, children, columnStyles }: {
-    columns?: any[];
-    rows?: any[][];
+  { columns, rows, children }: {
+    columns?: ComponentChildren[];
+    rows?: ComponentChildren[][];
     children?: ComponentChildren;
-    columnStyles?: Record<string, string>;
   },
 ) {
   return (
     <div class="relative overflow-x-auto">
-      <table class="text-sm text-left text-gray-500 dark:text-gray-400">
+      <table class="text-sm text-left text-gray-500">
         {columns ? <TableHead columns={columns} /> : null}
         {rows
           ? (
             <TableBody
-              columnStyles={Object.fromEntries(
-                Object.entries(columnStyles ?? {}).map((
-                  [key, value],
-                ) => [(columns ?? []).indexOf(key), value]),
-              )}
               rows={rows}
             />
           )

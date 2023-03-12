@@ -4,6 +4,13 @@ import runDb from "@/utils/db.ts";
 import { getName } from "@/utils/utils.ts";
 import { WithSession } from "https://deno.land/x/fresh_session@0.2.0/mod.ts";
 import getWinner from "@/utils/get_winner.ts";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableRow,
+  TableRowHeader,
+} from "@/components/tables.tsx";
 interface Submission {
   name: string;
   week: string;
@@ -37,42 +44,27 @@ export const handler: Handlers<Data, WithSession> = {
 };
 
 export default function Page(
-  { data: { submissions, name: myName } }: PageProps<Data>,
+  { data: { submissions } }: PageProps<Data>,
 ) {
   return (
     <StatsTemplate>
-      <h2 class="text-2xl">Past Winners</h2>
-      <table class="table-auto">
-        <thead>
-          <tr class="text-xs">
-            <th>Name</th>
-            <th>Week</th>
-          </tr>
-        </thead>
-        <tbody>
-          {submissions.map((
-            { name, week },
-            i,
-          ) => (
-            <tr key={i}>
-              <td
-                class="px-2"
-                style={name === myName ? { fontWeight: "bold" } : {}}
-              >
-                {name.slice(0, 13)}
-              </td>
-              <td class="px-2">
+      <Table columns={["Name", "Week"]}>
+        <TableBody>
+          {submissions.map(({ name, week }, i) => (
+            <TableRow>
+              <TableRowHeader>{name}</TableRowHeader>
+              <TableCell>
                 <a
                   class="font-medium text-blue-600 dark:text-blue-500 hover:underline"
                   href={`/stats/weekly/${week}`}
                 >
                   {week}
                 </a>
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </StatsTemplate>
   );
 }

@@ -1,19 +1,8 @@
 import { ReidleHeader } from "@/components/reidle_template.tsx";
 import TimerText from "@/components/timer_text.tsx";
-import { Scoring, ScoringHistory, Wordle } from "@/utils/wordle.ts";
+import { Playback, PlaybackEvent, scoreColor } from "@/utils/playback.ts";
+import { ScoredWord, Scoring, ScoringHistory, Wordle } from "@/utils/wordle.ts";
 import { useEffect, useState } from "preact/hooks";
-function scoreColor(score: Scoring): string | null {
-  switch (score) {
-    case Scoring.gray:
-      return "#787c7e";
-    case Scoring.orange:
-      return "#c9b458";
-    case Scoring.green:
-      return "#6aaa64";
-    default:
-      return null;
-  }
-}
 interface GameProperties {
   word: string;
   isPractice: boolean;
@@ -23,15 +12,64 @@ interface GameProperties {
 export default function Game(
   { word, startingWord, isPractice, winnersTime }: GameProperties,
 ) {
+  const [playback, setPlayback] = useState<Playback>({ events: [] });
   const [penalties, setPenalties] = useState(0);
   const [startTime, _] = useState(new Date());
-  const [error, setErrorPrivate] = useState("");
+  const [error, setErrorPrivatePrivate] = useState("");
   const [wordle, setWordle] = useState<Wordle>();
-  const [currentWord, setCurrentWord] = useState(startingWord);
-  const [previousWords, setPreviousWords] = useState<ScoringHistory>([]);
+  const [currentWord, setCurrentWordPrivate] = useState(startingWord);
+  const [previousWords, setPreviousWordsPrivate] = useState<ScoringHistory>([]);
   const [won, setWon] = useState<Date | null>(null);
   const [__, setTicks] = useState(0);
   const [played, setPlayed] = useState(false);
+  function addPlayback(
+    { l, b, c, s, e }: {
+      l?: string;
+      b?: boolean;
+      c?: boolean;
+      s?: ScoredWord;
+      e?: { m: string; p: number };
+    },
+  ) {
+    const event: PlaybackEvent = {
+      time: (new Date().getTime() - startTime.getTime()),
+      ...(l
+        ? { letter: l }
+        : b
+        ? { backspace: true }
+        : c
+        ? { clear: true }
+        : s
+        ? { score: s }
+        : e
+        ? { error: { message: e.m, penalty: e.p } }
+        : {}),
+    };
+    setPlayback((v) => {
+      v.events.push(event);
+      return v;
+    });
+  }
+  function setCurrentWord(input: string | ((word: string) => string)) {
+    const word = typeof input === "string" ? input : input(currentWord);
+    setCurrentWordPrivate((oldWord) => {
+      if (!word.length) {
+        addPlayback({ c: true });
+      } else if (word.length < currentWord.length) {
+        addPlayback({ b: true });
+      } else {
+        addPlayback({ l: word.slice(word.length - 1) });
+      }
+      return word;
+    });
+  }
+  function setPreviousWords(
+    input: ScoringHistory | ((word: ScoringHistory) => ScoringHistory),
+  ) {
+    const words = typeof input === "object" ? input : input(previousWords);
+    addPlayback({ s: words[words.length - 1] });
+    setPreviousWordsPrivate(words);
+  }
   useEffect(() => {
     if (isPractice) {
       return;
@@ -59,9 +97,12 @@ export default function Game(
   }, []);
   useEffect(() => wordle && scoreWord(), [wordle]);
   function addError(error: string, penalty: number | undefined = undefined) {
-    setErrorPrivate(error);
+    setErrorPrivatePrivate(error);
     if (penalty) {
       setPenalties((p) => p + penalty);
+    }
+    if (error) {
+      addPlayback({ e: { m: error, p: penalty ?? 0 } });
     }
   }
   useEffect(() => {
@@ -135,21 +176,20 @@ export default function Game(
         time: totalSeconds,
         penalty: penalties,
         word,
-        playback: [],
+        playback,
         paste: previousWords.map((w) =>
           w.map(({ score }) => ["🟩", "🟨", "⬜"][score]).join("")
         ).join("\n"),
       }),
     }).then((a) =>
-      a.status !== 200 ? setErrorPrivate("You already played today") : null
-    ).catch(() => setErrorPrivate("An error occurred, play again"));
+      a.status !== 200 ? addError("You already played today", 0) : null
+    ).catch(() => addError("An error occurred, play again", 0));
   }, [won]);
   const activeRow = previousWords.length;
   const activeCol = currentWord.length;
   function keyColor(c: string): string {
     return scoreColor(keyboardLookup[c]) ?? "#d3d6da";
   }
-  const title = isPractice ? "Practice" : "Play";
   function scoreWord() {
     if (currentWord === word) {
       setPreviousWords(

@@ -17,7 +17,9 @@ import * as $10 from "./routes/stats/past_winners.tsx";
 import * as $11 from "./routes/stats/this_week.tsx";
 import * as $12 from "./routes/stats/today.tsx";
 import * as $13 from "./routes/stats/weekly/[startDay].tsx";
+import * as $14 from "./routes/submissions/[id]/playback.tsx";
 import * as $$0 from "./islands/game.tsx";
+import * as $$1 from "./islands/playback.tsx";
 
 const manifest = {
   routes: {
@@ -35,9 +37,11 @@ const manifest = {
     "./routes/stats/this_week.tsx": $11,
     "./routes/stats/today.tsx": $12,
     "./routes/stats/weekly/[startDay].tsx": $13,
+    "./routes/submissions/[id]/playback.tsx": $14,
   },
   islands: {
     "./islands/game.tsx": $$0,
+    "./islands/playback.tsx": $$1,
   },
   baseUrl: import.meta.url,
   config,
