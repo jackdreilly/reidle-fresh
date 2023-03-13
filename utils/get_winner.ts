@@ -1,26 +1,26 @@
 import run from "@/utils/db.ts";
+import { PoolClient } from "https://deno.land/x/postgres@v0.14.0/mod.ts";
 
 interface Result {
   name: string;
 }
 
-export default function getWinner(): Promise<string> {
-  return run(async (cxn) => {
-    const name = await cxn
-      .queryObject<{ name: string }>`
+export default async function getWinner(cxn?: PoolClient): Promise<string> {
+  const result = await run(async (cxn) => {
+    const name = await cxn.queryObject<Result>`
             SELECT
                 name
             FROM
                 winners
             WHERE
-                week = DATE_TRUNC('week', CURRENT_DATE)
+                week = DATE_TRUNC('week', CURRENT_DATE) - INTERVAL '7' day
             LIMIT
                 1`
       .then((x) => x.rows[0]?.name);
     if (name) {
       return name;
     }
-    return cxn.queryObject<{ name: string }>`
+    return cxn.queryObject<Result>`
 WITH last_day AS (
     SELECT
         CURRENT_DATE - EXTRACT(
@@ -93,6 +93,7 @@ FROM
     last_day
 RETURNING
     name
-        `.then((x) => x.rows[0]?.name);
-  }).then((x) => x ?? "...");
+        `.then((x_1) => x_1.rows[0]?.name);
+  }, cxn);
+  return result ?? "...";
 }

@@ -69,7 +69,7 @@ export default function Page(
   { data: { messages, name: myName } }: PageProps<Data>,
 ) {
   return (
-    <ReidleTemplate title="Messages">
+    <ReidleTemplate route="/messages" title="Messages">
       <form method="POST" style={{ marginBottom: 10 }}>
         <Input
           autocomplete="off"

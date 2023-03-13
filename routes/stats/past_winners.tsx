@@ -1,16 +1,16 @@
 import { Handlers, PageProps } from "$fresh/server.ts";
 import StatsTemplate from "@/components/stats_template.tsx";
-import run from "@/utils/db.ts";
-import { getName } from "@/utils/utils.ts";
-import { WithSession } from "https://deno.land/x/fresh_session@0.2.0/mod.ts";
-import getWinner from "@/utils/get_winner.ts";
 import {
   Table,
   TableBody,
   TableCell,
   TableRow,
-  TableRowHeader,
+  TableRowHeader
 } from "@/components/tables.tsx";
+import run from "@/utils/db.ts";
+import getWinner from "@/utils/get_winner.ts";
+import { getName } from "@/utils/utils.ts";
+import { WithSession } from "https://deno.land/x/fresh_session@0.2.0/mod.ts";
 interface Submission {
   name: string;
   week: string;
@@ -46,7 +46,7 @@ export default function Page(
   { data: { submissions } }: PageProps<Data>,
 ) {
   return (
-    <StatsTemplate>
+    <StatsTemplate route="past_winners">
       <Table columns={["Name", "Week"]}>
         <TableBody>
           {submissions.map(({ name, week }, i) => (

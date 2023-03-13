@@ -1,70 +1,67 @@
-WITH last_day AS (
-    SELECT
-        CURRENT_DATE - EXTRACT(
-            DOW FROM CURRENT_DATE
-        )::INTEGER AS last_day,
-        CURRENT_DATE - EXTRACT(
-            DOW FROM CURRENT_DATE
-        )::INTEGER - 6::INTEGER AS start_day
-
+with MYSUBMISSIONS as (
+    select
+        TIME,
+        PENALTY,
+        SCORE,
+        "rank"
+    from SUBMISSIONS where NAME = 'jack'
 ),
 
-last_week AS (
-    SELECT
-        name,
-        time,
-        score,
-        day
-    FROM
-        submissions, last_day
-    WHERE
-        day BETWEEN start_day AND last_day
+TOTAL_SUBMISSIONS as (
+    select count(*) as TOTAL from MYSUBMISSIONS
 ),
 
-all_days AS (
-    SELECT DISTINCT day
-    FROM last_week
-    ORDER BY 1
+BY_SCORE as (
+    select
+        SCORE,
+        count(*) as SCORE_COUNT
+    from MYSUBMISSIONS group by 1
 ),
 
-all_names AS (
-    SELECT DISTINCT name FROM last_week
+BY_TIME as (
+    select
+        width_bucket(TIME, 0, 300, 20) as BUCKET,
+        count(*) as C
+    from MYSUBMISSIONS group by 1
 ),
 
-crossed AS (
-    SELECT * FROM all_days, all_names
+BY_TIME_JSON as (
+    select json_agg(json_build_object('bucket', BUCKET, 'count', C)) as BY_TIME
+    from BY_TIME
 ),
 
-expanded AS (
-    SELECT
-        *,
-        COALESCE(score, 5) AS score_filled,
-        COALESCE(time, 300) AS time_filled
-    FROM
-        last_week NATURAL FULL OUTER JOIN crossed
+BY_PENALTY as (
+    select
+        PENALTY,
+        count(*) as PENALTY_COUNT
+    from MYSUBMISSIONS group by 1
 ),
 
-winner AS (
-    SELECT name
-    FROM
-        expanded
-    GROUP BY
-        1
-    ORDER BY
-        EXP(SUM(LN(score_filled))),
-        SUM(time_filled)
-    LIMIT
-        1
+BY_PENALTY_JSON as (
+    select json_agg(
+            json_build_object('bucket', PENALTY, 'count', PENALTY_COUNT)
+        ) as BY_PENALTY
+    from BY_PENALTY
+),
+
+BY_SCORE_JSON as (
+    select json_agg(
+            json_build_object('bucket', SCORE, 'count', SCORE_COUNT)
+        ) as BY_SCORE
+    from BY_SCORE
 )
 
-INSERT INTO
-winners(
-    name,
-    week
+select json_build_object(
+        'total', TOTAL_SUBMISSIONS.TOTAL,
+        'score', BY_SCORE_JSON.BY_SCORE,
+        'penalty', BY_PENALTY_JSON.BY_PENALTY,
+        'time', BY_TIME_JSON.BY_TIME
 )
-SELECT
-    name,
-    start_day
-FROM
-    winner,
-    last_day
+from
+    BY_SCORE_JSON
+full outer join
+    BY_PENALTY_JSON
+full outer join
+    BY_TIME_JSON
+full outer join
+    TOTAL_SUBMISSIONS

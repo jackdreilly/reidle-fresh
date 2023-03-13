@@ -50,20 +50,21 @@ export default function PlaybackComponent(
   const totalSeconds = event.time / 1000;
   return (
     <>
-      <ReidleHeader>
+      <ReidleHeader />
+      <div class="m-1 text-center">
         <TimerText
           seconds={totalSeconds}
-          class="text-gray text-lg"
+          class="mx-2 text-gray"
         />
         {penalties
           ? (
             <TimerText
               seconds={penalties}
-              class="mx-10 text-red-400 text-lg"
+              class="mx-2 text-red-400"
             />
           )
           : null}
-      </ReidleHeader>
+      </div>
       <div style={{ flexGrow: 1 }}>
         <div
           style={{

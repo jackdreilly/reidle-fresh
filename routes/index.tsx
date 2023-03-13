@@ -1,5 +1,8 @@
 import { Handlers, PageProps } from "$fresh/server.ts";
+import { DailyTable } from "@/components/daily_table.tsx";
 import ReidleTemplate from "@/components/reidle_template.tsx";
+import { DailySubmission, fetchDay } from "@/utils/daily.ts";
+import run from "@/utils/db.ts";
 import getWinner from "@/utils/get_winner.ts";
 import { getName } from "@/utils/utils.ts";
 import { WithSession } from "https://deno.land/x/fresh_session@0.2.0/mod.ts";
@@ -7,6 +10,7 @@ import { WithSession } from "https://deno.land/x/fresh_session@0.2.0/mod.ts";
 interface Data {
   name: string;
   winner: string;
+  submissions: DailySubmission[];
 }
 
 export const handler: Handlers<
@@ -21,38 +25,30 @@ export const handler: Handlers<
         headers: { Location: "/set-name" },
       });
     }
-    return ctx.render({ name, winner: await getWinner() });
+    const result = await run(async (cxn) => {
+      return {
+        winner: await getWinner(cxn),
+        submissions: await fetchDay(new Date(), cxn),
+      };
+    });
+    const { winner, submissions } = result ??
+      { winner: "...", submissions: [] };
+    return ctx.render({ submissions, winner, name });
   },
 };
 
 export default function Home(
-  { data: { name, winner } }: PageProps<Data>,
+  { data: { name, winner, submissions } }: PageProps<Data>,
 ) {
   return (
-    <ReidleTemplate>
-      Welcome to Reidle, <strong>{name}</strong>!
-      <p>Last week's winner: {winner}</p>
+    <ReidleTemplate route="/">
+      Welcome to Reidle, {name}!
+      <p>
+        Last week's winner: <strong class="text-purple-900">{winner}</strong>
+      </p>
       <div>
-        <nav class="m-4">
-          <ul>
-            {[
-              ["play", "Play"],
-              ["practice", "Practice"],
-              ["stats/today", "Stats"],
-              ["messages", "Messages"],
-              ["set-name", "Set Name"],
-            ].map(([link, text]) => (
-              <li>
-                <a
-                  class="font-medium text-3xl text-blue-600 dark:text-blue-500 hover:underline"
-                  href={"/" + link}
-                >
-                  {text}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
+        <h2 class="m-4">Today</h2>
+        <DailyTable submissions={submissions} />
       </div>
     </ReidleTemplate>
   );

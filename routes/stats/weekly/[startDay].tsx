@@ -19,7 +19,7 @@ export default function Page(
   { data }: PageProps<WeekTableData>,
 ) {
   return (
-    <StatsTemplate>
+    <StatsTemplate route="this_week">
       <WeekTablePage data={data} />
     </StatsTemplate>
   );

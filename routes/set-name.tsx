@@ -25,7 +25,7 @@ export const handler: Handlers<
 
 export default function Page() {
   return (
-    <ReidleTemplate title="Set Name">
+    <ReidleTemplate route="/set-name" title="Set Name">
       <form method="POST">
         <Input
           autoFocus={true}

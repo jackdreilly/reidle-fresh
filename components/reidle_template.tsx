@@ -2,7 +2,8 @@ import { asset, Head } from "$fresh/runtime.ts";
 import { ComponentChildren } from "preact";
 
 export default function ReidleTemplate(
-  { children, title }: {
+  { children, title, route }: {
+    route?: string;
     children: ComponentChildren;
     title?: string;
     fullPage?: boolean;
@@ -46,7 +47,7 @@ export default function ReidleTemplate(
         <script src="/worker.js" type="module" />
       </Head>
       <body>
-        <ReidleHeader />
+        <ReidleHeader route={route} />
         <div class="m-4">
           {children}
         </div>
@@ -55,18 +56,57 @@ export default function ReidleTemplate(
   );
 }
 
-export function ReidleHeader({ children }: { children?: ComponentChildren }) {
+import NavDrawerIcon from "@/components/NavDrawerIcon.tsx";
+import Drawer from "../islands/drawer.tsx";
+interface Link {
+  text: string;
+  link: string;
+  matches?(other: string): boolean;
+  show?: boolean;
+}
+export const reidleHeaderLinks: Link[] = [
+  {
+    text: "Reidle",
+    link: "/",
+    show: true,
+  },
+  { text: "Play", link: "/play", show: true },
+  { text: "Practice", link: "/practice", show: true },
+  {
+    text: "Stats",
+    link: "/stats/today",
+    matches(o) {
+      return o.startsWith("/stats");
+    },
+    show: true,
+  },
+  { text: "Messages", link: "/messages" },
+  { text: "Account", link: "/set-name" },
+];
+export function ReidleHeader(
+  { route }: { route?: string },
+) {
   return (
-    <nav class="h-[2.5rem] flex items-center">
-      <h1 class="m-2 text-2xl">
-        <a
-          class="font-medium text-blue-600 dark:text-blue-500 hover:underline"
-          href="/"
-        >
-          Reidle
-        </a>
-      </h1>
-      {children}
+    <nav class="mb-3">
+      <div class="bg-purple-900 flex justify-between items-center">
+        <div id="navigation-bar" class="flex">
+          {reidleHeaderLinks.map(({ show, link, text, matches }) => (
+            <a
+              class={(show ? "block" : "hidden") +
+                " text-white hover:text-purple-300 p-3 cursor-pointer md:block " +
+                (((matches ?? ((x) => x === link))(route ?? ""))
+                  ? "bg-purple-600"
+                  : "")}
+              href={link}
+            >
+              {text}
+            </a>
+          ))}
+        </div>
+        <div class="md:hidden">
+          <Drawer />
+        </div>
+      </div>
     </nav>
   );
 }

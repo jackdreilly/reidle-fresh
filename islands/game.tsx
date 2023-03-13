@@ -262,12 +262,13 @@ export default function Game(
   );
   return (
     <>
-      <ReidleHeader>
+      <ReidleHeader route={isPractice ? "/practice" : "/play"} />
+      <div class="m-1 text-center">
         {!won
           ? (
             <TimerText
               seconds={totalSeconds}
-              class="text-gray text-lg"
+              class="mx-2 text-gray"
             />
           )
           : null}
@@ -275,17 +276,17 @@ export default function Game(
           ? (
             <TimerText
               seconds={penalties}
-              class="mx-10 text-red-400 text-lg"
+              class="mx-2 text-red-400"
             />
           )
           : null}
         {winnersTime && (
           <TimerText
             seconds={winnersTime}
-            class="mx-10 text-green-400 text-lg"
+            class="mx-2 text-green-400"
           />
         )}
-      </ReidleHeader>
+      </div>
       <div style={{ flexGrow: 1 }}>
         <div
           style={{
@@ -308,16 +309,9 @@ export default function Game(
           >
             {won && !error
               ? (
-                <>
+                <span>
                   You won in <TimerText seconds={totalSeconds} />!
-                  <a
-                    class="px-3 py-2 bg-white rounded border(gray-500 2) hover:bg-gray-200 active:bg-gray-300 disabled:(opacity-50 cursor-not-allowed) m-5"
-                    href="practice"
-                    style={{ fontSize: "12px" }}
-                  >
-                    Practice{isPractice ? " again" : null}?
-                  </a>
-                </>
+                </span>
               )
               : null}
             {error}
@@ -332,64 +326,31 @@ export default function Game(
               )
               : null}
           </div>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              flexGrow: 1,
-              overflow: "hidden",
-            }}
-          >
-            <div
-              id="board"
-              style={{
-                fontFamily: "sans-serif",
-                fontWeight: "bold",
-                textAlign: "center",
-                fontSize: "40px",
-                display: "grid",
-                gridTemplateRows: "repeat(6, 1fr)",
-                gridGap: 5,
-                padding: 10,
-                boxSizing: "border-box",
-              }}
-            >
+          <div class="flex justify-center items-center flex-grow overflow-hidden">
+            <div class="font-bold text-center text-[30px] sm:text-[40px] grid grid-rows-6 sm:gap-[5px] sm:p-[10px] gap-[3px] p-[5px] box-border">
               {[0, 1, 2, 3, 4, 5].filter((i) =>
                 i < previousWords.length || !won
               )
                 .map((row) => (
                   <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "repeat(5, 1fr)",
-                      gridGap: 5,
-                    }}
-                    class="row"
+                    class="grid grid-cols-5 sm:gap-[5px] gap-[3px]"
                     key={row}
                   >
                     {[0, 1, 2, 3, 4].map((column) => (
                       <div
+                        class="sm:m-[3px] m-[2px] sm:p-[5px] p-[3px] border-solid border-2 sm:w-[45px] sm:h-[45px] sm:leading-[50px] w-[35px] h-[35px] leading-[40px]"
                         style={{
-                          boxSizing: "unset",
-                          lineHeight: "50px",
-                          margin: "3px",
-                          padding: "5px",
+                          boxSizing: 'unset',
                           borderColor: row < previousWords.length
                             ? "transparent"
                             : row === activeRow && column < activeCol
                             ? "#878a8c"
                             : "#d3d6da",
-                          borderStyle: "solid",
-                          borderWidth: "2px",
-                          width: "45px",
-                          height: "45px",
                           backgroundColor: row < previousWords.length
                             ? scoreColor(previousWords[row][column].score)
                             : null,
                           color: row < previousWords.length ? "white" : null,
                         }}
-                        class="col"
                         key={column}
                       >
                         {row === activeRow && column < activeCol

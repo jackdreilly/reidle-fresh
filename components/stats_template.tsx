@@ -1,30 +1,24 @@
 import ReidleTemplate from "@/components/reidle_template.tsx";
 import { ComponentChildren } from "preact";
 export default function StatsTemplate(
-  { children }: { children?: ComponentChildren },
+  { children, route }: {
+    children?: ComponentChildren;
+    route?: "today" | "this_week" | "past_winners";
+  },
 ) {
   return (
-    <ReidleTemplate title="Stats">
-      <h1 class="text-3xl">Stats</h1>
+    <ReidleTemplate route="/stats" title="Stats">
       <div class="inline">
-        <a
-          class="text-sm underline mx-3 hover:text-blue-700 hover:font-bold"
-          href="/stats/today"
-        >
-          Today
-        </a>
-        <a
-          class="text-sm underline mx-3 hover:text-blue-700 hover:font-bold"
-          href={`/stats/this_week`}
-        >
-          This Week
-        </a>
-        <a
-          class="text-sm underline mx-3 hover:text-blue-700 hover:font-bold"
-          href="/stats/past_winners"
-        >
-          Past Winners
-        </a>
+        {[["Today", "today"], ["Week", "this_week"], ["Past", "past_winners"]]
+          .map(([text, link]) => (
+            <a
+              class={"text-blue-600 dark:text-blue-500 hover:underline m-3 p-3 " +
+                (route === link ? "text-blue-900" : "")}
+              href={`/stats/${link}`}
+            >
+              {text}
+            </a>
+          ))}
       </div>
       {children}
     </ReidleTemplate>

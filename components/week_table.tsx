@@ -1,5 +1,3 @@
-import TimerText from "@/components/timer_text.tsx";
-import { WeekData } from "@/utils/week.ts";
 import {
   HeadColumn,
   Table,
@@ -10,6 +8,7 @@ import {
   TableRowHeader,
 } from "@/components/tables.tsx";
 import { timerTime } from "@/utils/utils.ts";
+import { WeekData } from "@/utils/week.ts";
 export interface WeekTableData extends WeekData {
   name: string;
   startDay: Date;
@@ -54,7 +53,14 @@ export default function WeekTable(
         <TableBody>
           {names.map((name, i) => (
             <TableRow>
-              <TableRowHeader>{name}</TableRowHeader>
+              <TableRowHeader>
+                <a
+                  class="text-blue-600 dark:text-blue-500 hover:underline"
+                  href={`/players/${name}`}
+                >
+                  {name}
+                </a>
+              </TableRowHeader>
               {table[i].slice(2).map((v, j) => {
                 const id = ids[i][j + 2] ?? -1;
                 return (
