@@ -9,7 +9,7 @@ import {
   TableRow,
   TableRowHeader,
 } from "@/components/tables.tsx";
-import { timerTime } from "../utils/utils.ts";
+import { timerTime } from "@/utils/utils.ts";
 export interface WeekTableData extends WeekData {
   name: string;
   startDay: Date;
@@ -57,7 +57,6 @@ export default function WeekTable(
               <TableRowHeader>{name}</TableRowHeader>
               {table[i].slice(2).map((v, j) => {
                 const id = ids[i][j + 2] ?? -1;
-                console.log({ id, v, i, j });
                 return (
                   <TableCell style={{ backgroundColor: getColor(v) }}>
                     {id < 0

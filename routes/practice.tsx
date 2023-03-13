@@ -2,8 +2,8 @@ import { PageProps } from "$fresh/server.ts";
 import Game from "@/islands/game.tsx";
 import { SessionHandler } from "@/utils/utils.ts";
 import { Wordle } from "@/utils/wordle.ts";
-import GameTemplate from "../components/game_template.tsx";
-import ReidleTemplate from "../components/reidle_template.tsx";
+import GameTemplate from "@/components/game_template.tsx";
+import ReidleTemplate from "@/components/reidle_template.tsx";
 
 interface PracticeData {
   word: string;

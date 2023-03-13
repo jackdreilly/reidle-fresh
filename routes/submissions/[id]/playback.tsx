@@ -1,9 +1,9 @@
 import { PageProps } from "$fresh/server.ts";
 import { Playback } from "@/utils/playback.ts";
 import { SessionHandler } from "@/utils/utils.ts";
-import GameTemplate from "../../../components/game_template.tsx";
-import PlaybackComponent from "../../../islands/playback.tsx";
-import run from "../../../utils/db.ts";
+import GameTemplate from "@/components/game_template.tsx";
+import PlaybackComponent from "@/islands/playback.tsx";
+import run from "@/utils/db.ts";
 interface Data {
   playback: Playback;
 }

@@ -2,8 +2,8 @@ import { Handlers } from "$fresh/server.ts";
 import { WithSession } from "https://deno.land/x/fresh_session@0.2.0/mod.ts";
 import { setName } from "@/utils/utils.ts";
 import Input from "@/components/input.tsx";
-import ReidleTemplate from "../components/reidle_template.tsx";
-import Button from "../components/button.tsx";
+import ReidleTemplate from "@/components/reidle_template.tsx";
+import Button from "@/components/button.tsx";
 
 export const handler: Handlers<
   unknown,

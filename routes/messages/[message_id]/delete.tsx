@@ -1,11 +1,11 @@
 import { SessionHandler } from "@/utils/utils.ts";
-import run from "../../../utils/db.ts";
+import run from "@/utils/db.ts";
 
 export const handler: SessionHandler<null> = {
-  async POST(req, ctx) {
+  async POST(_, ctx) {
     const id = parseInt(ctx.params.message_id);
     await run((cxn) =>
-      cxn.queryObject<{ id: number }>`
+      cxn.queryArray`
         DELETE FROM
             messages
         WHERE

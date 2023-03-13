@@ -1,35 +1,27 @@
+import run from "@/utils/db.ts";
+import sendEmail from "@/utils/mail.ts";
 import { getName, SessionHandler, timerTime } from "@/utils/utils.ts";
-import run from "../../utils/db.ts";
-import sendEmail from "../../utils/mail.ts";
 
 export const handler: SessionHandler<null> = {
   async POST(req, ctx) {
     const { time, penalty, playback, word, paste } = await req.json();
     const name = getName(ctx);
     const success = await run(async (cxn) => {
-      const response = await cxn.queryObject<{ name: string; count: number }>`
-        SELECT
-            id, name
-        FROM
-            submissions
-        WHERE
-            name = ${name}
-        AND
-            day = CURRENT_DATE
-        `;
-      if (response.rowCount ?? 0) {
+      if (
+        (await cxn.queryObject<{ name: string; count: number }>`
+      SELECT
+          count(*) as count
+      FROM
+          submissions
+      WHERE
+          name = ${name}
+      AND
+          day = CURRENT_DATE
+      `).rows[0].count ?? 0
+      ) {
         return false;
       }
-      await cxn.queryObject<
-        {
-          name: string;
-          time: number;
-          penalty: number;
-          playback: Record<string, unknown>[];
-          word: string;
-          paste: string;
-        }
-      >`
+      await cxn.queryArray`
 WITH existing AS (
     SELECT
         id,
@@ -60,7 +52,7 @@ ranked AS (
         ROW_NUMBER() OVER (
             ORDER BY
                 "time"
-        ) AS rank
+        ) AS "rank"
     FROM
         unioned
 ),
@@ -68,7 +60,7 @@ ranked AS (
 scored AS (
     SELECT
         *,
-        LEAST(rank, 5) AS score
+        LEAST("rank", 5) AS score
     FROM
         ranked
 ),
@@ -77,7 +69,7 @@ updates AS (
     UPDATE
     submissions
     SET
-        rank = scored.rank,
+        "rank" = scored."rank",
         score = scored.score
     FROM
         scored
@@ -94,7 +86,7 @@ submissions(
     word,
     paste,
     score,
-    rank
+    "rank"
 )
 SELECT
     ${name} AS "name",
@@ -104,7 +96,7 @@ SELECT
     ${word} AS word,
     ${paste} AS paste,
     score AS score,
-    rank AS rank
+    "rank" AS "rank"
 FROM
     scored
 WHERE

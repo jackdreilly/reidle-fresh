@@ -1,20 +1,26 @@
-import runDb from "@/utils/db.ts";
+import run from "@/utils/db.ts";
 
 interface Result {
   name: string;
 }
 
 export default function getWinner(): Promise<string> {
-  return runDb(async (cxn) => {
-    const d = new Date();
-    d.setDate(d.getDate() - 14);
-    const results = (await cxn
-      .queryObject`select name from winners where week > ${d} limit 1`)
-      .rows as Result[];
-    if (results.length) {
-      return results[0].name;
+  return run(async (cxn) => {
+    const name = await cxn
+      .queryObject<{ name: string }>`
+            SELECT
+                name
+            FROM
+                winners
+            WHERE
+                week = DATE_TRUNC('week', CURRENT_DATE)
+            LIMIT
+                1`
+      .then((x) => x.rows[0]?.name);
+    if (name) {
+      return name;
     }
-    return cxn.queryObject`
+    return cxn.queryObject<{ name: string }>`
 WITH last_day AS (
     SELECT
         CURRENT_DATE - EXTRACT(
@@ -87,6 +93,6 @@ FROM
     last_day
 RETURNING
     name
-        `.then((s) => (s.rows as Result[])[0]?.name);
-  }).then((s) => s ?? "...");
+        `.then((x) => x.rows[0]?.name);
+  }).then((x) => x ?? "...");
 }

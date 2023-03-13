@@ -2,8 +2,8 @@ import { PageProps } from "$fresh/server.ts";
 import Game from "@/islands/game.tsx";
 import { getName, SessionHandler } from "@/utils/utils.ts";
 import { Wordle } from "@/utils/wordle.ts";
-import GameTemplate from "../components/game_template.tsx";
-import run from "../utils/db.ts";
+import GameTemplate from "@/components/game_template.tsx";
+import run from "@/utils/db.ts";
 
 interface PracticeData {
   word: string;
@@ -24,12 +24,11 @@ export const handler: SessionHandler<PracticeData> = {
     const wordle = await wordlePromise;
     const word = wordle.todaysAnswer();
     const startingWord = wordle.todaysWord();
-    const winnersTime = await run(async (cxn) =>
-      (await cxn.queryObject<
+    const winnersTime = await run((cxn) =>
+      cxn.queryObject<
         { time: number }
-      >`select time from submissions where day = CURRENT_DATE order by time limit 1`)
-        .rows[0]?.time
-    );
+      >`select time from submissions where day = CURRENT_DATE order by time limit 1`
+    ).then((x) => x?.rows[0].time ?? 0);
     return ctx.render({ word, startingWord, winnersTime });
   },
 };

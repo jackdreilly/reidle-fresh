@@ -1,4 +1,4 @@
-import runDb from "@/utils/db.ts";
+import run from "@/utils/db.ts";
 
 interface Submission {
   id: number;
@@ -18,17 +18,9 @@ export interface WeekData {
 export async function fetchWeek(startDay: Date): Promise<WeekData> {
   const endDay = new Date(startDay);
   endDay.setDate(endDay.getDate() + 6);
-  const submissions = await runDb((connection) =>
-    connection.queryObject<
-      {
-        name: string;
-        day: number;
-        id: number;
-        score: number;
-        total_score: number;
-        total_time: number;
-      }
-    >`
+  const submissions =
+    await run((connection) =>
+      connection.queryObject<Submission>`
     WITH last_week AS (
         SELECT
             id,
@@ -92,8 +84,8 @@ export async function fetchWeek(startDay: Date): Promise<WeekData> {
     NATURAL INNER JOIN name_day_ids
     ORDER BY
       day, total_score, total_time
-      `.then((x) => (x?.rows ?? []) as Submission[])
-  ) ?? [];
+      `.then((x) => x.rows)
+    ) ?? [];
   const dates = Array.from(
     new Set<number>(submissions.map((s) => s.day)),
   ).toSorted();

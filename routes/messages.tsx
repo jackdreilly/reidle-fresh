@@ -5,7 +5,7 @@ import ReidleTemplate from "@/components/reidle_template.tsx";
 import sendEmail from "@/utils/mail.ts";
 import { getName } from "@/utils/utils.ts";
 import { WithSession } from "https://deno.land/x/fresh_session@0.2.0/mod.ts";
-import run from "../utils/db.ts";
+import run from "@/utils/db.ts";
 interface Message {
   message: string;
   name: string;
@@ -21,7 +21,7 @@ export const handler: Handlers<Data, WithSession> = {
     const name = getName(ctx);
     const message = (await req.formData()).get("message") as string ?? "";
     await run((cxn) =>
-      cxn.queryObject<{ message: string; name: string }>`
+      cxn.queryArray`
         INSERT INTO
         messages (
           name,
@@ -47,18 +47,17 @@ export const handler: Handlers<Data, WithSession> = {
   },
   async GET(_, ctx) {
     const name = getName(ctx);
-    const messages = await run(async (cxn) => {
-      const response = await cxn.queryObject`
-      SELECT
-        *
-      FROM
-        messages
-      ORDER BY
-        created_at
-          DESC
-      `;
-      return response.rows as Message[];
-    }) ?? [];
+    const messages = await run((cxn) =>
+      cxn.queryObject<Message>`
+    SELECT
+      message, name, id
+    FROM
+      messages
+    ORDER BY
+      created_at
+        DESC
+    `
+    ).then((x) => x?.rows ?? []);
     return ctx.render({
       messages,
       name,
