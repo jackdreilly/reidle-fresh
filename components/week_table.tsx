@@ -64,10 +64,23 @@ export default function WeekTable(
               {table[i].slice(2).map((v, j) => {
                 const id = ids[i][j + 2] ?? -1;
                 return (
-                  <TableCell style={{ backgroundColor: getColor(v) }}>
+                  <TableCell
+                    style={{
+                      backgroundColor: getColor(v),
+                      padding: 0,
+                      textAlign: "center",
+                    }}
+                  >
                     {id < 0
                       ? v
-                      : <a href={`/submissions/${id}/playback`}>{v}</a>}
+                      : (
+                        <a
+                          class="leading-[35px] w-full block"
+                          href={`/submissions/${id}/playback`}
+                        >
+                          {v}
+                        </a>
+                      )}
                   </TableCell>
                 );
               })}
