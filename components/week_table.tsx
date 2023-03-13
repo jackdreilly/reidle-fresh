@@ -71,16 +71,14 @@ export default function WeekTable(
                       textAlign: "center",
                     }}
                   >
-                    {id < 0
-                      ? v
-                      : (
-                        <a
-                          class="leading-[35px] w-full block"
-                          href={`/submissions/${id}/playback`}
-                        >
-                          {v}
-                        </a>
-                      )}
+                    {id < 0 ? v : (
+                      <a
+                        class="leading-[35px] w-full block"
+                        href={`/submissions/${id}/playback`}
+                      >
+                        {v}
+                      </a>
+                    )}
                   </TableCell>
                 );
               })}

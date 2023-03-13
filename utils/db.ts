@@ -14,7 +14,7 @@ export default async function run<T>(
     doClose && connection?.release();
   } catch (e) {
     console.error(e, e.stack);
-    await pool.end();
+    doClose && await pool.end();
   }
   return result;
 }
