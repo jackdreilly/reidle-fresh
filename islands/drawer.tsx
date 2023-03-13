@@ -5,7 +5,7 @@ import { reidleHeaderLinks } from "../components/reidle_template.tsx";
 export default function Drawer() {
   const [show, setShow] = useState(false);
   return (
-    <button class="z-10 p-3 mr-2" onClick={() => setShow((s) => !s)}>
+    <button class="p-3 mr-2" onClick={() => setShow((s) => !s)}>
       <NavDrawerIcon />
       <nav
         class={"bg-[#3b0057] p-5 absolute top-[45px] shadow-2xl rounded-md right-0 " +

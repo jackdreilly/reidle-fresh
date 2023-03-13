@@ -103,7 +103,7 @@ export function ReidleHeader(
             </a>
           ))}
         </div>
-        <div class="md:hidden">
+        <div class="md:hidden z-10">
           <Drawer />
         </div>
       </div>
