@@ -28,7 +28,7 @@ export const handler: SessionHandler<PracticeData> = {
       cxn.queryObject<
         { time: number }
       >`select time from submissions where day = CURRENT_DATE order by time limit 1`
-    ).then((x) => x?.rows[0].time ?? 0);
+    ).then((x) => x?.rows[0]?.time ?? 0);
     return ctx.render({ word, startingWord, winnersTime });
   },
 };
