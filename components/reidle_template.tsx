@@ -1,4 +1,5 @@
 import { asset, Head } from "$fresh/runtime.ts";
+import Drawer from "@/islands/drawer.tsx";
 import { ComponentChildren } from "preact";
 
 export default function ReidleTemplate(
@@ -56,8 +57,6 @@ export default function ReidleTemplate(
   );
 }
 
-import NavDrawerIcon from "@/components/NavDrawerIcon.tsx";
-import Drawer from "../islands/drawer.tsx";
 interface Link {
   text: string;
   link: string;

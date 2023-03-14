@@ -35,7 +35,13 @@ export default function Home(
     <ReidleTemplate route="/">
       Welcome to Reidle, {name}!
       <p>
-        Last week's winner: <strong class="text-purple-900">{winner}</strong>
+        Last week's winner:{" "}
+        <a
+          href={`/players/${winner}`}
+          class="text-blue-600 dark:text-blue-500 hover:underline"
+        >
+          {winner}
+        </a>
       </p>
       <div>
         <h2 class="m-4">Today</h2>
