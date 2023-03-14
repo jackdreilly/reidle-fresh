@@ -5,7 +5,7 @@ export default {
   theme: {
     extend: {
       screens: {
-        "sm": "370px",
+        "sm": { "raw": "(min-height: 800px)" },
       },
     },
   },
