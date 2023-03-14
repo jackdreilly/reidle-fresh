@@ -17,7 +17,7 @@ export async function fetchDay(date: Date, cxn?: PoolClient): Promise<Data> {
       DailySubmission
     >`
         SELECT
-          name, time, penalty, paste, id 
+          id, name, time, penalty, paste
         FROM
           submissions
         WHERE
