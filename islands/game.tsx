@@ -328,9 +328,9 @@ export default function Game(
           </div>
           <div class="flex justify-center items-center flex-grow overflow-hidden">
             <div class="font-bold text-center text-[30px] sm:text-[40px] grid grid-rows-6 sm:gap-[5px] sm:p-[10px] gap-[3px] p-[5px] box-border">
-              {[0, 1, 2, 3, 4, 5].filter((i) =>
-                i < previousWords.length || !won
-              )
+              {[...Array(Math.max(6, previousWords.length + 1)).keys()].filter((
+                i,
+              ) => i < previousWords.length || !won)
                 .map((row) => (
                   <div
                     class="grid grid-cols-5 sm:gap-[5px] gap-[3px]"
@@ -340,7 +340,7 @@ export default function Game(
                       <div
                         class="sm:m-[3px] m-[2px] sm:p-[5px] p-[3px] border-solid border-2 sm:w-[45px] sm:h-[45px] sm:leading-[50px] w-[35px] h-[35px] leading-[40px]"
                         style={{
-                          boxSizing: 'unset',
+                          boxSizing: "unset",
                           borderColor: row < previousWords.length
                             ? "transparent"
                             : row === activeRow && column < activeCol

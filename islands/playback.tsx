@@ -117,7 +117,9 @@ export default function PlaybackComponent(
                 boxSizing: "border-box",
               }}
             >
-              {[0, 1, 2, 3, 4, 5].filter((i) => i < history.length || !won)
+              {[...Array(Math.max(6, history.length + 1)).keys()].filter((i) =>
+                i < history.length || !won
+              )
                 .map((row) => (
                   <div
                     style={{
