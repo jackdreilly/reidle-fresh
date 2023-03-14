@@ -1,6 +1,5 @@
 import { PageProps } from "$fresh/server.ts";
 import ReidleTemplate from "@/components/reidle_template.tsx";
-import run from "@/utils/db.ts";
 import { SessionHandler, timerTime } from "@/utils/utils.ts";
 import { Chart } from "https://deno.land/x/fresh_charts@0.2.1/mod.ts";
 type Buckets = { bucket: number; count: number }[];
@@ -19,8 +18,7 @@ interface Data {
 export const handler: SessionHandler<Data> = {
   async GET(_, ctx) {
     const name = ctx.params.name ?? "";
-    const response = await run(async (cxn) => {
-      const query = await cxn.queryObject<{ stats: Stats }>`
+    const stats = await ctx.state.connection.queryObject<{ stats: Stats }>`
         with MYSUBMISSIONS as (
     select
         TIME,
@@ -43,15 +41,15 @@ BY_SCORE as (
 
 BY_TIME as (
     select
-        width_bucket(TIME, array[5, 10, 15,20,30,40,50,60,80,100,120,180,240,300,360,420,480,540,600]) as BUCKET,
+        width_bucket(TIME, array[0, 5, 10, 15,20,30,40,50,60,80,100,120,180,240,300,360,420,480,540,600, 1200]) as BUCKET,
         count(*) as C
     from MYSUBMISSIONS group by 1
 ),
 
 BY_TIME_JSON as (
-    select json_agg(json_build_object('bucket', (array[5, 10, 15,20,30,40,50,60,80,100,120,180,240,300,360,420,480,540,600])[BUCKET], 'count', C)) as BY_TIME
+    select json_agg(json_build_object('bucket', (array[0, 5, 10, 15,20,30,40,50,60,80,100,120,180,240,300,360,420,480,540,600, 1200])[BUCKET], 'count', C)) as BY_TIME
     from BY_TIME
-    WHERE (array[5, 10, 15,20,30,40,50,60,80,100,120,180,240,300,360,420,480,540,600])[BUCKET] IS NOT NULL
+    WHERE (array[0, 5, 10, 15,20,30,40,50,60,80,100,120,180,240,300,360,420,480,540,600, 1200])[BUCKET] IS NOT NULL
 ),
 
 BY_PENALTY as (
@@ -110,11 +108,7 @@ from
     BY_TIME_JSON,
     TOTAL_SUBMISSIONS,
     BY_WEEK_JSON
-        `;
-      return query.rows[0].stats;
-    });
-    const stats = response ??
-      { total: 0, rank: [], time: [], penalty: [], week: [] };
+        `.then((x) => x.rows[0]?.stats);
     return ctx.render({ stats, name });
   },
 };

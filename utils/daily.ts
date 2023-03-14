@@ -1,5 +1,4 @@
 import { PoolClient } from "https://deno.land/x/postgres@v0.14.0/mod.ts";
-import run from "@/utils/db.ts";
 
 export interface DailySubmission {
   name: string;
@@ -10,12 +9,11 @@ export interface DailySubmission {
 }
 export type Data = DailySubmission[];
 
-export async function fetchDay(date: Date, cxn?: PoolClient): Promise<Data> {
+export async function fetchDay(date: Date, cxn: PoolClient): Promise<Data> {
   const day = date.toISOString().slice(0, 10);
-  const submissions = await run((cxn) =>
-    cxn.queryObject<
-      DailySubmission
-    >`
+  const response = await cxn.queryObject<
+    DailySubmission
+  >`
         SELECT
           id, name, time, penalty, paste
         FROM
@@ -24,6 +22,6 @@ export async function fetchDay(date: Date, cxn?: PoolClient): Promise<Data> {
           day = ${day}
         ORDER BY
           "rank"
-      `.then((x) => x.rows), cxn);
-  return submissions ?? [];
+      `;
+  return response.rows;
 }

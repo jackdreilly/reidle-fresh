@@ -1,11 +1,9 @@
-import { Handlers, PageProps } from "$fresh/server.ts";
+import { PageProps } from "$fresh/server.ts";
 import Button from "@/components/button.tsx";
 import Input from "@/components/input.tsx";
 import ReidleTemplate from "@/components/reidle_template.tsx";
 import sendEmail from "@/utils/mail.ts";
-import { getName } from "@/utils/utils.ts";
-import { WithSession } from "https://deno.land/x/fresh_session@0.2.0/mod.ts";
-import run from "@/utils/db.ts";
+import { getName, SessionHandler } from "@/utils/utils.ts";
 interface Message {
   message: string;
   name: string;
@@ -16,12 +14,11 @@ interface Data {
   name: string;
 }
 
-export const handler: Handlers<Data, WithSession> = {
+export const handler: SessionHandler<Data> = {
   async POST(req, ctx) {
     const name = getName(ctx);
     const message = (await req.formData()).get("message") as string ?? "";
-    await run((cxn) =>
-      cxn.queryArray`
+    await ctx.state.connection.queryArray`
         INSERT INTO
         messages (
           name,
@@ -30,8 +27,7 @@ export const handler: Handlers<Data, WithSession> = {
           VALUES (
             ${name},
             ${message}
-            )`
-    );
+            )`;
     await sendEmail(
       `${name}: ${message}`,
       `Message From ${name}: ${message}`,
@@ -47,19 +43,16 @@ export const handler: Handlers<Data, WithSession> = {
   },
   async GET(_, ctx) {
     const name = getName(ctx);
-    const messages = await run((cxn) =>
-      cxn.queryObject<Message>`
-    SELECT
-      message, name, id
-    FROM
-      messages
-    ORDER BY
-      created_at
-        DESC
-    `
-    ).then((x) => x?.rows ?? []);
     return ctx.render({
-      messages,
+      messages: await ctx.state.connection.queryObject<Message>`
+      SELECT
+        message, name, id
+      FROM
+        messages
+      ORDER BY
+        created_at
+          DESC
+      `.then((x) => x.rows),
       name,
     });
   },

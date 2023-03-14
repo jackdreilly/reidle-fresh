@@ -1,4 +1,4 @@
-import run from "@/utils/db.ts";
+import { PoolClient } from "https://deno.land/x/postgres@v0.14.0/mod.ts";
 
 interface Submission {
   id: number;
@@ -15,12 +15,13 @@ export interface WeekData {
   table: number[][];
   startDay: Date;
 }
-export async function fetchWeek(startDay: Date): Promise<WeekData> {
+export async function fetchWeek(
+  startDay: Date,
+  connection: PoolClient,
+): Promise<WeekData> {
   const endDay = new Date(startDay);
   endDay.setDate(endDay.getDate() + 6);
-  const submissions =
-    await run((connection) =>
-      connection.queryObject<Submission>`
+  const submissions = await connection.queryObject<Submission>`
     WITH last_week AS (
         SELECT
             id,
@@ -84,8 +85,7 @@ export async function fetchWeek(startDay: Date): Promise<WeekData> {
     NATURAL INNER JOIN name_day_ids
     ORDER BY
       day, total_score, total_time
-      `.then((x) => x.rows)
-    ) ?? [];
+      `.then((x) => x.rows);
   const dates = Array.from(
     new Set<number>(submissions.map((s) => s.day)),
   ).toSorted();

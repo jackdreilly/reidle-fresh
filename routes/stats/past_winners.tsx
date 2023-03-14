@@ -1,16 +1,14 @@
-import { Handlers, PageProps } from "$fresh/server.ts";
+import { PageProps } from "$fresh/server.ts";
 import StatsTemplate from "@/components/stats_template.tsx";
 import {
   Table,
   TableBody,
   TableCell,
   TableRow,
-  TableRowHeader
+  TableRowHeader,
 } from "@/components/tables.tsx";
-import run from "@/utils/db.ts";
 import getWinner from "@/utils/get_winner.ts";
-import { getName } from "@/utils/utils.ts";
-import { WithSession } from "https://deno.land/x/fresh_session@0.2.0/mod.ts";
+import { getName, SessionHandler } from "@/utils/utils.ts";
 interface Submission {
   name: string;
   week: string;
@@ -20,23 +18,20 @@ interface Data {
   name: string;
 }
 
-export const handler: Handlers<Data, WithSession> = {
+export const handler: SessionHandler<Data> = {
   async GET(_, ctx) {
     const name = getName(ctx);
-    await getWinner();
-    const submissions = await run((cxn) =>
-      cxn.queryObject<Submission>`
-    SELECT
-      name,
-      week::TEXT AS week
-    FROM
-      winners
-    ORDER BY
-      week DESC
-    `.then(({ rows }) => rows)
-    ) ?? [];
+    await getWinner(ctx.state.connection);
     return ctx.render({
-      submissions,
+      submissions: await ctx.state.connection.queryObject<Submission>`
+      SELECT
+        name,
+        week::TEXT AS week
+      FROM
+        winners
+      ORDER BY
+        week DESC
+      `.then((x) => x.rows),
       name,
     });
   },

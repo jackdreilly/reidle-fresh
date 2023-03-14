@@ -1,12 +1,12 @@
-import { Handlers, PageProps } from "$fresh/server.ts";
+import { PageProps } from "$fresh/server.ts";
 import { DailyTable, DailyTableData } from "@/components/daily_table.tsx";
 import StatsTemplate from "@/components/stats_template.tsx";
 import { fetchDay } from "@/utils/daily.ts";
-import { WithSession } from "https://deno.land/x/fresh_session@0.2.0/mod.ts";
-export const handler: Handlers<DailyTableData, WithSession> = {
+import { SessionHandler } from "../../../utils/utils.ts";
+export const handler: SessionHandler<DailyTableData> = {
   async GET(_, ctx) {
     return ctx.render(
-      await fetchDay(new Date(ctx.params["date"])),
+      await fetchDay(new Date(ctx.params["date"]), ctx.state.connection),
     );
   },
 };

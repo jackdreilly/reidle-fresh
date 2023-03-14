@@ -1,4 +1,3 @@
-import run from "@/utils/db.ts";
 import sendEmail from "@/utils/mail.ts";
 import { getName, SessionHandler, timerTime } from "@/utils/utils.ts";
 
@@ -6,22 +5,23 @@ export const handler: SessionHandler<null> = {
   async POST(req, ctx) {
     const { time, penalty, playback, word, paste } = await req.json();
     const name = getName(ctx);
-    const success = await run(async (cxn) => {
-      if (
-        (await cxn.queryObject<{ name: string; count: number }>`
+    if (
+      (await ctx.state.connection.queryObject<
+        { played: boolean }
+      >`
       SELECT
-          count(*) as count
+          count(*) > 0 as played
       FROM
           submissions
       WHERE
           name = ${name}
       AND
           day = CURRENT_DATE
-      `).rows[0].count ?? 0
-      ) {
-        return false;
-      }
-      await cxn.queryArray`
+      `).rows[0].played
+    ) {
+      return new Response("Already played", { status: 400 });
+    }
+    await ctx.state.connection.queryArray`
 WITH existing AS (
     SELECT
         id,
@@ -103,17 +103,12 @@ WHERE
     id IS NULL
       `;
 
-      await sendEmail(
-        `${new Date().getUTCFullYear()}-${
-          new Date().getUTCMonth().toString().padStart(2, "0")
-        }-${new Date().getUTCDate().toString().padStart(2, "0")}`,
-        `${name}: ${timerTime(time)}`,
-      );
-      return true;
-    });
-    if (success) {
-      return new Response();
-    }
-    return new Response(`${name} already played`, { status: 400 });
+    await sendEmail(
+      `${new Date().getUTCFullYear()}-${
+        new Date().getUTCMonth().toString().padStart(2, "0")
+      }-${new Date().getUTCDate().toString().padStart(2, "0")}`,
+      `${name}: ${timerTime(time)}`,
+    );
+    return new Response();
   },
 };
