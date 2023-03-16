@@ -8,7 +8,7 @@ import {
   TableRowHeader,
 } from "@/components/tables.tsx";
 import getWinner from "@/utils/get_winner.ts";
-import { getName, SessionHandler } from "@/utils/utils.ts";
+import { SessionHandler } from "@/utils/utils.ts";
 interface Submission {
   name: string;
   week: string;
@@ -20,7 +20,7 @@ interface Data {
 
 export const handler: SessionHandler<Data> = {
   async GET(_, ctx) {
-    const name = getName(ctx);
+    const name = ctx.state.name;
     await getWinner(ctx.state.connection);
     return ctx.render({
       submissions: await ctx.state.connection.queryObject<Submission>`

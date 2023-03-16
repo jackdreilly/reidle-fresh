@@ -1,7 +1,7 @@
 import { PageProps } from "$fresh/server.ts";
 import StatsTemplate from "@/components/stats_template.tsx";
 import WeekTablePage, { WeekTableData } from "@/components/week_table.tsx";
-import { getName, SessionHandler } from "@/utils/utils.ts";
+import { SessionHandler } from "@/utils/utils.ts";
 import { fetchWeek } from "@/utils/week.ts";
 export const handler: SessionHandler<WeekTableData> = {
   async GET(_, ctx) {
@@ -9,7 +9,7 @@ export const handler: SessionHandler<WeekTableData> = {
     startDay.setDate(startDay.getDate() - (startDay.getDay() + 6) % 7);
     return ctx.render({
       ...await fetchWeek(startDay, ctx.state.connection),
-      name: getName(ctx),
+      name: ctx.state.name,
     });
   },
 };

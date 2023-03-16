@@ -6,7 +6,7 @@ export interface PlaybackEvent {
   score?: ScoredWord;
   backspace?: boolean;
   clear?: boolean;
-  error?: {message: string, penalty: number};
+  error?: { message: string; penalty: number };
 }
 export interface Playback {
   events: PlaybackEvent[];

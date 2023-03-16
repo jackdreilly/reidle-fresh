@@ -4,24 +4,25 @@
 
 import config from "./deno.json" assert { type: "json" };
 import * as $0 from "./routes/_middleware.tsx";
-import * as $1 from "./routes/api/inngest.ts";
-import * as $2 from "./routes/api/played.ts";
-import * as $3 from "./routes/api/submit.tsx";
-import * as $4 from "./routes/index.tsx";
-import * as $5 from "./routes/messages.tsx";
-import * as $6 from "./routes/messages/[message_id]/delete.tsx";
-import * as $7 from "./routes/play.tsx";
-import * as $8 from "./routes/players/[name].tsx";
-import * as $9 from "./routes/practice.tsx";
-import * as $10 from "./routes/set-name.tsx";
-import * as $11 from "./routes/stats/daily/[date].tsx";
-import * as $12 from "./routes/stats/past_winners.tsx";
-import * as $13 from "./routes/stats/this_week.tsx";
-import * as $14 from "./routes/stats/today.tsx";
-import * as $15 from "./routes/stats/weekly/[startDay].tsx";
-import * as $16 from "./routes/submissions/[id]/playback.tsx";
-import * as $17 from "./routes/test.tsx";
-import * as $18 from "./routes/unsubscribe.tsx";
+import * as $1 from "./routes/account.tsx";
+import * as $2 from "./routes/api/inngest.ts";
+import * as $3 from "./routes/api/played.ts";
+import * as $4 from "./routes/api/submit.tsx";
+import * as $5 from "./routes/index.tsx";
+import * as $6 from "./routes/messages.tsx";
+import * as $7 from "./routes/messages/[message_id]/delete.tsx";
+import * as $8 from "./routes/play.tsx";
+import * as $9 from "./routes/players/[name].tsx";
+import * as $10 from "./routes/practice.tsx";
+import * as $11 from "./routes/sign-in.tsx";
+import * as $12 from "./routes/sign-out.tsx";
+import * as $13 from "./routes/stats/daily/[date].tsx";
+import * as $14 from "./routes/stats/past_winners.tsx";
+import * as $15 from "./routes/stats/this_week.tsx";
+import * as $16 from "./routes/stats/today.tsx";
+import * as $17 from "./routes/stats/weekly/[startDay].tsx";
+import * as $18 from "./routes/submissions/[id]/playback.tsx";
+import * as $19 from "./routes/unsubscribe.tsx";
 import * as $$0 from "./islands/drawer.tsx";
 import * as $$1 from "./islands/game.tsx";
 import * as $$2 from "./islands/playback.tsx";
@@ -29,24 +30,25 @@ import * as $$2 from "./islands/playback.tsx";
 const manifest = {
   routes: {
     "./routes/_middleware.tsx": $0,
-    "./routes/api/inngest.ts": $1,
-    "./routes/api/played.ts": $2,
-    "./routes/api/submit.tsx": $3,
-    "./routes/index.tsx": $4,
-    "./routes/messages.tsx": $5,
-    "./routes/messages/[message_id]/delete.tsx": $6,
-    "./routes/play.tsx": $7,
-    "./routes/players/[name].tsx": $8,
-    "./routes/practice.tsx": $9,
-    "./routes/set-name.tsx": $10,
-    "./routes/stats/daily/[date].tsx": $11,
-    "./routes/stats/past_winners.tsx": $12,
-    "./routes/stats/this_week.tsx": $13,
-    "./routes/stats/today.tsx": $14,
-    "./routes/stats/weekly/[startDay].tsx": $15,
-    "./routes/submissions/[id]/playback.tsx": $16,
-    "./routes/test.tsx": $17,
-    "./routes/unsubscribe.tsx": $18,
+    "./routes/account.tsx": $1,
+    "./routes/api/inngest.ts": $2,
+    "./routes/api/played.ts": $3,
+    "./routes/api/submit.tsx": $4,
+    "./routes/index.tsx": $5,
+    "./routes/messages.tsx": $6,
+    "./routes/messages/[message_id]/delete.tsx": $7,
+    "./routes/play.tsx": $8,
+    "./routes/players/[name].tsx": $9,
+    "./routes/practice.tsx": $10,
+    "./routes/sign-in.tsx": $11,
+    "./routes/sign-out.tsx": $12,
+    "./routes/stats/daily/[date].tsx": $13,
+    "./routes/stats/past_winners.tsx": $14,
+    "./routes/stats/this_week.tsx": $15,
+    "./routes/stats/today.tsx": $16,
+    "./routes/stats/weekly/[startDay].tsx": $17,
+    "./routes/submissions/[id]/playback.tsx": $18,
+    "./routes/unsubscribe.tsx": $19,
   },
   islands: {
     "./islands/drawer.tsx": $$0,

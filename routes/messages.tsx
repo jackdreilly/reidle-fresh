@@ -2,8 +2,8 @@ import { PageProps } from "$fresh/server.ts";
 import Button from "@/components/button.tsx";
 import Input from "@/components/input.tsx";
 import ReidleTemplate from "@/components/reidle_template.tsx";
-import sendEmail from "@/utils/mail.ts";
-import { getName, SessionHandler } from "@/utils/utils.ts";
+import { SessionHandler } from "@/utils/utils.ts";
+import { sendEmail } from "./api/inngest.ts";
 interface Message {
   message: string;
   name: string;
@@ -16,7 +16,7 @@ interface Data {
 
 export const handler: SessionHandler<Data> = {
   async POST(req, ctx) {
-    const name = getName(ctx);
+    const name = ctx.state.name;
     const message = (await req.formData()).get("message") as string ?? "";
     await ctx.state.connection.queryArray`
         INSERT INTO
@@ -28,21 +28,21 @@ export const handler: SessionHandler<Data> = {
             ${name},
             ${message}
             )`;
-    await sendEmail(
-      `${name}: ${message}`,
-      `Message From ${name}: ${message}`,
-      `
+    await sendEmail({
+      subject: `${name}: ${message}`,
+      text: `Message From ${name}: ${message}`,
+      html: `
           <h1>Message From ${name}</h1>
           <blockquote>${message}</blockquote>
 `,
-    );
+    });
     return new Response("", {
       status: 303,
       headers: { location: "/messages" },
     });
   },
   async GET(_, ctx) {
-    const name = getName(ctx);
+    const name = ctx.state.name;
     return ctx.render({
       messages: await ctx.state.connection.queryObject<Message>`
       SELECT

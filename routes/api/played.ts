@@ -1,8 +1,8 @@
-import { getName, SessionHandler } from "@/utils/utils.ts";
+import { SessionHandler } from "@/utils/utils.ts";
 
 export const handler: SessionHandler<null> = {
   async GET(_, ctx) {
-    const name = getName(ctx);
+    const name = ctx.state.name;
     return new Response(
       await ctx.state.connection.queryObject<{ played: string }>`
     select

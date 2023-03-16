@@ -10,9 +10,7 @@
     "preact": "https://esm.sh/preact@10.13.0",
     "preact/": "https://esm.sh/preact@10.13.0/",
     "twind": "https://esm.sh/twind@0.16.17",
-    "twind/": "https://esm.sh/twind@0.16.17/",
-    "inngest": "https://esm.sh/v111/*inngest@1.4.0",
-    "inngest/": "https://esm.sh/v111/*inngest@1.4.0/"
+    "twind/": "https://esm.sh/twind@0.16.17/"
   },
   "scopes": {
     "https://esm.sh/v111/": {

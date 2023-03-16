@@ -1,10 +1,10 @@
-import sendEmail from "@/utils/mail.ts";
-import { getName, SessionHandler, timerTime } from "@/utils/utils.ts";
+import { sendEmail } from "@/routes/api/inngest.ts";
+import { SessionHandler, timerTime } from "@/utils/utils.ts";
 
 export const handler: SessionHandler<null> = {
   async POST(req, ctx) {
     const { time, penalty, playback, word, paste } = await req.json();
-    const name = getName(ctx);
+    const name = ctx.state.name;
     if (
       (await ctx.state.connection.queryObject<
         { played: boolean }
@@ -103,11 +103,12 @@ WHERE
     id IS NULL
       `;
 
+    const subject = `${new Date().getUTCFullYear()}-${
+      new Date().getUTCMonth().toString().padStart(2, "0")
+    }-${new Date().getUTCDate().toString().padStart(2, "0")}`;
+    const text = `${name}: ${timerTime(time)}`;
     await sendEmail(
-      `${new Date().getUTCFullYear()}-${
-        new Date().getUTCMonth().toString().padStart(2, "0")
-      }-${new Date().getUTCDate().toString().padStart(2, "0")}`,
-      `${name}: ${timerTime(time)}`,
+      { subject, text },
     );
     return new Response();
   },

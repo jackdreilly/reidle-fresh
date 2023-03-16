@@ -1,8 +1,8 @@
 import { PageProps } from "$fresh/server.ts";
-import ReidleTemplate from "@/components/reidle_template.tsx";
-import { getName, SessionHandler } from "@/utils/utils.ts";
-import { PoolClient } from "https://deno.land/x/postgres@v0.14.0/mod.ts";
 import Input from "@/components/input.tsx";
+import ReidleTemplate from "@/components/reidle_template.tsx";
+import { SessionHandler } from "@/utils/utils.ts";
+import { PoolClient } from "https://deno.land/x/postgres@v0.14.0/mod.ts";
 
 interface Data {
   email?: string;
@@ -11,16 +11,27 @@ interface Data {
 export const handler: SessionHandler<Data> = {
   async GET(req, ctx) {
     const email = new URL(req.url).searchParams.get("email") ??
-      await getEmail(getName(ctx), ctx.state.connection);
+      await getEmail(ctx.state.name, ctx.state.connection);
     return ctx.render({ email });
+  },
+  async POST(req, ctx) {
+    const email = (await req.formData()).get("email");
+    await ctx.state.connection
+      .queryObject`update players set notifications_enabled = false where email = ${email}`;
+    return new Response("", { status: 303, headers: { location: "/" } });
   },
 };
 export default function Page({ data: { email } }: PageProps<Data>) {
+  email ??= "";
   return (
     <ReidleTemplate title="Unsubscribe">
       <form method="POST">
-        {email ? null : <Input type="text" placeholder="email" value={email ?? ""} />}
-        <Input type="submit" value={`Unsubscribe ${email ?? ""}`} />
+        <Input type={email ? "hidden" : "text"} name="email" value={email} />
+        <Input
+          class="cursor-pointer"
+          type="submit"
+          value={`Unsubscribe ${email}?`}
+        />
       </form>
     </ReidleTemplate>
   );

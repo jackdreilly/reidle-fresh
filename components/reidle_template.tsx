@@ -68,6 +68,9 @@ export const reidleHeaderLinks: Link[] = [
     text: "Reidle",
     link: "/",
     show: true,
+    matches(x) {
+      return x === "/";
+    },
   },
   { text: "Play", link: "/play", show: true },
   { text: "Practice", link: "/practice", show: true },
@@ -80,32 +83,42 @@ export const reidleHeaderLinks: Link[] = [
     show: true,
   },
   { text: "Messages", link: "/messages" },
-  { text: "Account", link: "/set-name" },
+  { text: "Account", link: "/account" },
 ];
-export function ReidleHeader(
-  { route }: { route?: string },
-) {
+
+export function ReidleHeader({ route }: { route?: string }) {
   return (
-    <nav class="mb-3">
-      <div class="bg-purple-900 flex justify-between items-center">
-        <div id="navigation-bar" class="flex">
-          {reidleHeaderLinks.map(({ show, link, text, matches }) => (
+    <div class="bg-white w-full max-w-screen-lg py-2 px-3 flex flex-row gap-2">
+      <ul class="flex flex-grow items-center gap-6">
+        {reidleHeaderLinks.map(({ text, link, matches, show }) => (
+          <li
+            class={[
+              "md:list-item",
+              !show ? "hidden" : "",
+            ].join(" ")}
+          >
             <a
-              class={(show ? "block" : "hidden") +
-                " text-white hover:text-purple-300 p-3 cursor-pointer md:block " +
-                (((matches ?? ((x) => x === link))(route ?? ""))
-                  ? "bg-purple-600"
-                  : "")}
               href={link}
+              class={[
+                "text-gray-500",
+                "hover:text-gray-700",
+                "py-1",
+                "border-gray-500",
+                (matches ?? ((x) => x.startsWith(link)))(route ?? "")
+                  ? "font-bold border-b-2"
+                  : "",
+                link === "/" ? "text-3xl font-bold text-black" : "",
+              ].join(" ")}
             >
               {text}
             </a>
-          ))}
-        </div>
-        <div class="md:hidden z-10">
+          </li>
+        ))}
+        <li class="flex-grow"></li>
+        <li class="md:hidden z-10">
           <Drawer />
-        </div>
-      </div>
-    </nav>
+        </li>
+      </ul>
+    </div>
   );
 }

@@ -1,7 +1,4 @@
-import { Handlers } from "$fresh/server.ts";
-import { WithSession } from "https://deno.land/x/fresh_session@0.2.0/mod.ts";
-
-export const handler: Handlers<unknown, WithSession> = {
+export const handler = {
   GET() {
     return new Response("", {
       status: 307,
