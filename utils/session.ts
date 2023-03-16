@@ -7,7 +7,7 @@ export async function sessionMiddleware(
 ) {
   const name = cookie.getCookies(req.headers)["name"];
   if (!name) {
-    if (!req.url.includes("sign-in")) {
+    if (!req.url.includes("sign-in") && !req.url.includes("inngest")) {
       return new Response("need to sign in", {
         status: 302,
         headers: { location: "/sign-in" },
