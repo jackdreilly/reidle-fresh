@@ -40,7 +40,7 @@ const sendEmailFunction = inngest.createFunction(
 
 const reminderEmailFunction = inngest.createFunction(
   { name: "email/reminder" },
-  { cron: "TZ=UTC */5 * * * *" },
+  { cron: "TZ=UTC 0 20 * * *" },
   async () => {
     const emails = await run((c) =>
       c.queryObject<{ email: string }>`select email from emails_to_send`
