@@ -17,7 +17,7 @@ const session = cookieSession();
 function sessionHandler(req: Request, ctx: MiddlewareHandlerContext<State>) {
   return session(req, ctx);
 }
-const pool = new postgres.Pool(Deno.env.get("POLYSCALE_URL")!, 4);
+const pool = new postgres.Pool(Deno.env.get("POSTGRES_URL")!, 4, true);
 async function connectionHandler(
   req: Request,
   ctx: MiddlewareHandlerContext<State>,

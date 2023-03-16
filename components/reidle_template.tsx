@@ -6,7 +6,7 @@ export default function ReidleTemplate(
   { children, title, route }: {
     route?: string;
     children: ComponentChildren;
-    title?: string;
+    title: string;
     fullPage?: boolean;
   },
 ) {
