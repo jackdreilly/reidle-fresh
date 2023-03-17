@@ -1,6 +1,6 @@
 {
     "short_name": "Reidle",
-    "id": "Reidle",
+    "id": "/",
     "start_url": "/",
     "description": "Wordle but stricter",
     "lang": "en",
