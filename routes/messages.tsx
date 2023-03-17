@@ -4,10 +4,12 @@ import Input from "@/components/input.tsx";
 import ReidleTemplate from "@/components/reidle_template.tsx";
 import { SessionHandler } from "@/utils/utils.ts";
 import { sendEmail } from "@/routes/api/inngest.ts";
+import { moment } from "https://deno.land/x/deno_moment/mod.ts";
 interface Message {
   message: string;
   name: string;
   id: number;
+  created_at: string;
 }
 interface Data {
   messages: Message[];
@@ -53,6 +55,7 @@ WITH "read_receipt" AS (
 SELECT
     "message",
     "name",
+    "created_at",
     "id"
 FROM
     "messages"
@@ -81,10 +84,10 @@ export default function Page(
         />
         <Button>Send</Button>
       </form>
-      <ul style={{ listStyleType: "none", padding: 0, margin: 0 }}>
-        {messages.map(({ message, id, name }, i) => (
-          <li key={i}>
-            {name}: {message}
+      <ul>
+        {messages.map(({ message, id, name, created_at }, i) => (
+          <li class="border-b-1 p-2">
+            <span class="font-bold">{name}</span>: {message}
             {myName === name
               ? (
                 <form
@@ -101,6 +104,9 @@ export default function Page(
                 </form>
               )
               : null}
+              <div class="text-xs italic pl-2">
+                {moment(created_at).fromNow()}
+              </div>
           </li>
         ))}
       </ul>
