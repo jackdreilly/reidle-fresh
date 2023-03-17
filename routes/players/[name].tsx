@@ -133,6 +133,7 @@ export default function Page(
       </div>
       <div class="p-4 mx-auto max-w-screen-md">
         <Chart
+          options={{ devicePixelRatio: 1 }}
           type="bar"
           data={{
             labels: scores.map(([a, _]) => a.toString()),
@@ -145,6 +146,7 @@ export default function Page(
       </div>
       <div class="p-4 mx-auto max-w-screen-md">
         <Chart
+          options={{ devicePixelRatio: 1 }}
           type="bar"
           data={{
             labels: times.map(([a, _]) => timerTime(a)),
@@ -157,6 +159,7 @@ export default function Page(
       </div>
       <div class="p-4 mx-auto max-w-screen-md">
         <Chart
+          options={{ devicePixelRatio: 1 }}
           type="bar"
           data={{
             labels: penalties.map(([a, _]) => timerTime(a)),
@@ -169,6 +172,7 @@ export default function Page(
       </div>
       <div class="p-4 mx-auto max-w-screen-md">
         <Chart
+          options={{ devicePixelRatio: 1 }}
           type="line"
           data={{
             labels: week.map(({ week }) => week.slice(5, 10)),
@@ -181,6 +185,7 @@ export default function Page(
       </div>
       <div class="p-4 mx-auto max-w-screen-md">
         <Chart
+          options={{ devicePixelRatio: 1 }}
           type="line"
           data={{
             labels: week.map(({ week }) => week.slice(5, 10)),
@@ -193,6 +198,7 @@ export default function Page(
       </div>
       <div class="p-4 mx-auto max-w-screen-md">
         <Chart
+          options={{ devicePixelRatio: 1 }}
           type="line"
           data={{
             labels: week.map(({ week }) => week.slice(5, 10)),

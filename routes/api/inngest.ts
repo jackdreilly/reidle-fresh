@@ -17,7 +17,9 @@ const sendEmailFunction = inngest.createFunction(
       sendgridResponse: await sendgrid.sendSimpleMail(
         {
           subject,
-          to: [{ email: to ?? "jackdreilly+reidle.admin@gmail.com" }],
+          to: [{
+            email: to ?? Deno.env.get("DEFAULT_EMAIL"),
+          }],
           from: { email: "jackdreilly@gmail.com" },
           content: [
             {
