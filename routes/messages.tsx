@@ -3,7 +3,7 @@ import Button from "@/components/button.tsx";
 import Input from "@/components/input.tsx";
 import ReidleTemplate from "@/components/reidle_template.tsx";
 import { SessionHandler } from "@/utils/utils.ts";
-import { sendEmail } from "./api/inngest.ts";
+import { sendEmail } from "@/routes/api/inngest.ts";
 interface Message {
   message: string;
   name: string;
@@ -45,13 +45,20 @@ export const handler: SessionHandler<Data> = {
     const name = ctx.state.name;
     return ctx.render({
       messages: await ctx.state.connection.queryObject<Message>`
-      SELECT
-        message, name, id
-      FROM
-        messages
-      ORDER BY
-        created_at
-          DESC
+WITH "read_receipt" AS (
+    INSERT INTO "message_reads" ("name", "last_read")
+        VALUES (${name}, NOW())
+        ON CONFLICT ("name") DO UPDATE SET "last_read" = NOW()
+)
+SELECT
+    "message",
+    "name",
+    "id"
+FROM
+    "messages"
+ORDER BY
+    "created_at"
+        DESC
       `.then((x) => x.rows),
       name,
     });

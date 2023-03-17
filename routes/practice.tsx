@@ -13,9 +13,28 @@ const wordlePromise = Wordle.make(true);
 export const handler: SessionHandler<PracticeData> = {
   async GET(req, ctx) {
     const wordle = await wordlePromise;
-    const word = wordle.randomAnswer();
-    const startingWord = wordle.randomWord();
-    return ctx.render({ word, startingWord });
+    const url = new URL(req.url);
+    const { searchParams } = url;
+    if (["word", "startingWord"].every((x) => searchParams.has(x))) {
+      return ctx.render({
+        word: wordle.answers[parseInt(searchParams.get("word") ?? "0")],
+        startingWord:
+          wordle.words[parseInt(searchParams.get("startingWord") ?? "0")],
+      });
+    }
+    const word = Math.floor(Math.random() * wordle.answers.length);
+    const startingWord = Math.floor(Math.random() * wordle.words.length);
+    return new Response("set params", {
+      status: 307,
+      headers: {
+        location: new URL(
+          `${url.origin}${url.pathname}?${new URLSearchParams([[
+            "word",
+            word.toString(),
+          ], ["startingWord", startingWord.toString()]])}`,
+        ).toString(),
+      },
+    });
   },
 };
 

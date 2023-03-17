@@ -1,26 +1,6 @@
 import { readAsset } from "@/utils/utils.ts";
 
-function todaysHash() {
-  const now = new Date();
-  const year = now.getUTCFullYear();
-  const month = now.getUTCMonth();
-  const day = now.getUTCDate();
-  return 321 * (year * 543 + month * 123) + day * 711;
-}
-
 export class Wordle {
-  todaysAnswer(): string {
-    return this.answers[todaysHash() % this.answers.length];
-  }
-  todaysWord(): string {
-    return this.words[todaysHash() % this.answers.length];
-  }
-  randomAnswer(): string {
-    return this.answers[Math.floor(Math.random() * this.answers.length)];
-  }
-  randomWord(): string {
-    return this.words[Math.floor(Math.random() * this.words.length)];
-  }
   words: string[];
   answers: string[];
   wordsSet: Set<string>;

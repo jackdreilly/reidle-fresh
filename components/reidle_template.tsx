@@ -1,5 +1,6 @@
 import { asset, Head } from "$fresh/runtime.ts";
 import Drawer from "@/islands/drawer.tsx";
+import ReadNotification from "@/islands/ReadNotification.tsx";
 import { ComponentChildren } from "preact";
 
 export default function ReidleTemplate(
@@ -111,6 +112,7 @@ export function ReidleHeader({ route }: { route?: string }) {
               ].join(" ")}
             >
               {text}
+              {text === "Messages" ? <ReadNotification /> : null}
             </a>
           </li>
         ))}

@@ -2,31 +2,45 @@ import { PageProps } from "$fresh/server.ts";
 import GameTemplate from "@/components/game_template.tsx";
 import Game from "@/islands/game.tsx";
 import { SessionHandler } from "@/utils/utils.ts";
-import { Wordle } from "@/utils/wordle.ts";
 
-interface PracticeData {
+interface PlayData {
   word: string;
   startingWord: string;
-  winnersTime?: number | null;
+  winnersTime: number;
 }
 
-const wordlePromise = Wordle.make(true);
-export const handler: SessionHandler<PracticeData> = {
-  async GET(req, ctx) {
-    const { connection: cxn } = ctx.state;
-    const wordle = await wordlePromise;
-    const word = wordle.todaysAnswer();
-    const startingWord = wordle.todaysWord();
-    const winnersTime = await cxn.queryObject<
-      { time: number }
-    >`select time from submissions where day = CURRENT_DATE order by time limit 1`
-      .then((x) => x.rows[0]?.time ?? 0);
-    return ctx.render({ word, startingWord, winnersTime });
+export const handler: SessionHandler<PlayData> = {
+  async GET(_, ctx) {
+    return ctx.render(
+      await ctx.state.connection.queryObject<PlayData>`
+SELECT
+    COALESCE(
+            (
+                SELECT
+                    time
+                FROM
+                    "submissions"
+                WHERE
+                    "day" = CURRENT_DATE
+                ORDER BY
+                    "time"
+                LIMIT 1
+            ), 0
+        )                      AS "winnersTime",
+    UPPER(CONVERT_FROM(DECODE("word", 'base64'), 'UTF8'))   AS "startingWord",
+    UPPER(CONVERT_FROM(DECODE("answer", 'base64'), 'UTF8')) AS "word"
+FROM
+    "daily_words"
+WHERE
+    "day" = CURRENT_DATE
+LIMIT 1
+    `.then((x) => x.rows[0]),
+    );
   },
 };
 
 export default function Page(
-  { data: { word, startingWord, winnersTime } }: PageProps<PracticeData>,
+  { data: { word, startingWord, winnersTime } }: PageProps<PlayData>,
 ) {
   return (
     <GameTemplate isPractice={false}>

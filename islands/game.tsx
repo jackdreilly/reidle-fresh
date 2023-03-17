@@ -280,12 +280,14 @@ export default function Game(
             />
           )
           : null}
-        {winnersTime && (
-          <TimerText
-            seconds={winnersTime}
-            class="mx-2 text-green-400"
-          />
-        )}
+        {winnersTime
+          ? (
+            <TimerText
+              seconds={winnersTime}
+              class="mx-2 text-green-400"
+            />
+          )
+          : null}
       </div>
       <div style={{ flexGrow: 1 }}>
         <div
