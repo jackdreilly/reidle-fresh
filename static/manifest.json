@@ -1,5 +1,11 @@
 {
     "short_name": "Reidle",
+    "id": "Reidle",
+    "start_url": "/",
+    "description": "Wordle but stricter",
+    "lang": "en",
+    "orientation": "portrait",
+    "scope": "/",
     "name": "Reidle",
     "icons": [
         {
