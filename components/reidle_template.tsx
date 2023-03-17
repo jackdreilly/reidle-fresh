@@ -27,26 +27,9 @@ export default function ReidleTemplate(
           sizes="180x180"
           href="/apple-touch-icon.png"
         />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="32x32"
-          href="/favicon-32x32.png"
-        />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="16x16"
-          href="/favicon-16x16.png"
-        />
-        <link
-          crossOrigin="use-credentials"
-          rel="manifest"
-          href="/manifest.webmanifest"
-        />
-        <meta name="msapplication-TileColor" content="#da532c" />
-        <meta name="theme-color" content="#ffffff" />
-        <script src="/worker.js" type="module" />
+        <link rel="manifest" crossOrigin="use-credentials" href="manifest.json"/>
+        <meta name="theme-color" content="#db7093" />
+        <script defer src="/register.js" />
       </Head>
       <body>
         <ReidleHeader route={route} />
