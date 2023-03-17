@@ -72,7 +72,7 @@ export default function Page(
           class="block m-4"
           type="checkbox"
           name="notifications_enabled"
-          checked={notifications_enabled}
+          checked={notifications_enabled || notifications_enabled === undefined}
         />
         <Input class="block m-4 cursor-pointer" type="submit" />
       </form>
