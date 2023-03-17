@@ -14,8 +14,8 @@
             "purpose": "any maskable"
         }
     ],
-    "start_url": "/",
+    "$schema": "https://json.schemastore.org/web-manifest-combined.json",
     "theme_color": "#ffffff",
     "background_color": "#ffffff",
-    "display": "standalone"
+    "display": "fullscreen"
 }

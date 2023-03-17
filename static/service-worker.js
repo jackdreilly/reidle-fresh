@@ -15,7 +15,7 @@ const urlsToCache = [
  * We use event.waitUntil() to ensure the install doesn't finished until our promise resolves
  * so we don't do anything else until the initial caching is done.
  */
-self.addEventListener("install", async (event) => {
+self.addEventListener("install", (event) => {
   console.log("installing!");
   self.skipWaiting();
   event.waitUntil(cache_assets());
@@ -32,7 +32,7 @@ async function cache_assets() {
  * version, which is a good time to clean up old caches.
  * Again we use waitUntil() to ensure we don't move on until the old caches are deleted.
  */
-self.addEventListener("activate", async (event) => {
+self.addEventListener("activate", (event) => {
   console.log("activating!");
   event.waitUntil(delete_old_caches());
 });
