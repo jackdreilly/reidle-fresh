@@ -15,7 +15,13 @@ export const handler: SessionHandler<null> = {
         ) ?? "";
     return new Response("go to account", {
       status: 303,
-      headers: { location: "/account" },
+      headers: {
+        location: (await ctx.state.connection
+            .queryArray`select * from persons where name = ${ctx.state.name} and LENGTH(email) > 0`
+            .then((r) => r.rowCount))
+          ? "/"
+          : "/account",
+      },
     });
   },
 };
