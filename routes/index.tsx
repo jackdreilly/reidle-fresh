@@ -15,6 +15,12 @@ export const handler: SessionHandler<Data> = {
   async GET(_req, ctx) {
     const { connection } = ctx.state;
     const name = ctx.state.name;
+    if (!ctx.state.name) {
+      return new Response("need to sign in", {
+        status: 302,
+        headers: { location: "/sign-in" },
+      });
+    }
     const submissions = await fetchDay(new Date(), connection);
     const winner = await getWinner(connection);
     return ctx.render({ submissions, winner, name });

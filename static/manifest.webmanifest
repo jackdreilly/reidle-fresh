@@ -5,7 +5,6 @@
     "description": "Wordle but stricter",
     "lang": "en",
     "orientation": "portrait",
-    "scope": "/",
     "name": "Reidle",
     "icons": [
         {
@@ -14,10 +13,20 @@
             "type": "image/png"
         },
         {
+            "src": "/android-chrome-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/android-chrome-384x384.png",
+            "sizes": "384x384",
+            "type": "image/png"
+        },
+        {
             "src": "/mask.png",
             "sizes": "512x512",
             "type": "image/png",
-            "purpose": "any maskable"
+            "purpose": "maskable"
         }
     ],
     "$schema": "https://json.schemastore.org/web-manifest-combined.json",

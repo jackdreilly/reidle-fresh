@@ -67,11 +67,14 @@ export function ReidleHead({ title }: { title: string }) {
       <link
         rel="apple-touch-icon"
         sizes="180x180"
-        href="/apple-touch-icon.png"
+        href={asset("/apple-touch-icon.png")}
       />
-      <link rel="manifest" crossOrigin="use-credentials" href="manifest.json" />
+      <link
+        rel="manifest"
+        href={asset("/manifest.webmanifest")}
+      />
       <meta name="theme-color" content="#db7093" />
-      <script defer src="/register.js" />
+      <script defer src={asset("/register.js")} />
     </Head>
   );
 }

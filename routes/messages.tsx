@@ -2,8 +2,8 @@ import { PageProps } from "$fresh/server.ts";
 import Button from "@/components/button.tsx";
 import Input from "@/components/input.tsx";
 import ReidleTemplate from "@/components/reidle_template.tsx";
-import { SessionHandler } from "@/utils/utils.ts";
 import { sendEmail } from "@/routes/api/inngest.ts";
+import { SessionHandler } from "@/utils/utils.ts";
 import { moment } from "https://deno.land/x/deno_moment/mod.ts";
 interface Message {
   message: string;
@@ -18,6 +18,12 @@ interface Data {
 
 export const handler: SessionHandler<Data> = {
   async POST(req, ctx) {
+    if (!ctx.state.name) {
+      return new Response("need to sign in", {
+        status: 302,
+        headers: { location: "/sign-in" },
+      });
+    }
     const name = ctx.state.name;
     const message = (await req.formData()).get("message") as string ?? "";
     await ctx.state.connection.queryArray`

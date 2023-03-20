@@ -11,6 +11,12 @@ interface Data {
 
 export const handler: SessionHandler<Data> = {
   async GET(_, ctx) {
+    if (!ctx.state.name) {
+      return new Response("need to sign in", {
+        status: 302,
+        headers: { location: "/sign-in" },
+      });
+    }
     const name = ctx.state.name;
     return ctx.render(
       await ctx.state.connection.queryObject<

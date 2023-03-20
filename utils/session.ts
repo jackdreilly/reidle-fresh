@@ -6,14 +6,6 @@ export async function sessionMiddleware(
   ctx: MiddlewareHandlerContext<{ name: string }>,
 ) {
   const name = cookie.getCookies(req.headers)["name"];
-  if (!name) {
-    if (!req.url.includes("sign-in") && !req.url.includes("inngest")) {
-      return new Response("need to sign in", {
-        status: 302,
-        headers: { location: "/sign-in" },
-      });
-    }
-  }
   ctx.state.name = name;
   const response = await ctx.next();
   cookie.setCookie(response.headers, {

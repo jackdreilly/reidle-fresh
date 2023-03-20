@@ -1,6 +1,7 @@
 import { Head } from "$fresh/runtime.ts";
 import Input from "@/components/input.tsx";
 import { SessionHandler } from "@/utils/utils.ts";
+import { ReidleHead } from "../components/reidle_template.tsx";
 
 export const handler: SessionHandler<null> = {
   async POST(req, ctx) {
@@ -22,9 +23,7 @@ export const handler: SessionHandler<null> = {
 export default function Page() {
   return (
     <html>
-      <Head>
-        <title>Reidle - Sign In</title>
-      </Head>
+      <ReidleHead title="Reidle Sign In" />
       <body class="m-2">
         <nav>
           <h1 class="m-2 font-bold text-3xl">Reidle</h1>

@@ -11,6 +11,12 @@ interface PlayData {
 
 export const handler: SessionHandler<PlayData> = {
   async GET(_, ctx) {
+    if (!ctx.state.name) {
+      return new Response("need to sign in", {
+        status: 302,
+        headers: { location: "/sign-in" },
+      });
+    }
     return ctx.render(
       await ctx.state.connection.queryObject<PlayData>`
 SELECT
