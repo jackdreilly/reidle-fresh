@@ -29,7 +29,7 @@ export default function Drawer() {
       </div>
       <nav
         class={(show ? "block" : "hidden") +
-          " absolute top-[55px] shadow-2xl rounded-md right-1 w-48 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg"}
+          " absolute top-[55px] shadow-2xl rounded-md right-0 w-[25em] text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg"}
       >
         <ul>
           {reidleHeaderLinks.map(({ text, link }, i) => (
