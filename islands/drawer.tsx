@@ -32,7 +32,6 @@ export default function Drawer() {
           " absolute top-[55px] shadow-2xl rounded-md right-1 w-48 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg"}
       >
         <ul>
-          <li></li>
           {reidleHeaderLinks.map(({ text, link }, i) => (
             <li>
               <a
@@ -43,6 +42,7 @@ export default function Drawer() {
                   "px-4",
                   "py-2",
                   "border-b",
+                  "text-2xl",
                   "border-gray-200",
                   "cursor-pointer",
                   "hover:bg-gray-100",
