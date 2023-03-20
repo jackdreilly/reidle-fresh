@@ -8,7 +8,7 @@ export default function StatsTemplate(
 ) {
   return (
     <ReidleTemplate route="/stats" title="Stats">
-      <div class="m-4">
+      <div class="my-4">
         {[["Today", "today"], ["Week", "this_week"], ["Past", "past_winners"]]
           .map(([text, link]) => (
             <a

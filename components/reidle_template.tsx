@@ -13,24 +13,7 @@ export default function ReidleTemplate(
 ) {
   return (
     <html>
-      <Head>
-        <title>{title ?? "Reidle"}</title>
-        <link rel="prefetch" href={asset("/words.csv")} sizes="any" />
-        <link rel="prefetch" href={asset("/answers.csv")} sizes="any" />
-        <meta
-          name="description"
-          content="Reidle is a Wordle clone with a leaderboard, a forced starting word, and very strict rules."
-        >
-        </meta>
-        <link
-          rel="apple-touch-icon"
-          sizes="180x180"
-          href="/apple-touch-icon.png"
-        />
-        <link rel="manifest" crossOrigin="use-credentials" href="manifest.json"/>
-        <meta name="theme-color" content="#db7093" />
-        <script defer src="/register.js" />
-      </Head>
+      <ReidleHead title={title} />
       <body>
         <ReidleHeader route={route} />
         <div class="m-4">
@@ -69,6 +52,29 @@ export const reidleHeaderLinks: Link[] = [
   { text: "Messages", link: "/messages" },
   { text: "Account", link: "/account" },
 ];
+
+export function ReidleHead({ title }: { title: string }) {
+  return (
+    <Head>
+      <title>{title ?? "Reidle"}</title>
+      <link rel="prefetch" href={asset("/words.csv")} sizes="any" />
+      <link rel="prefetch" href={asset("/answers.csv")} sizes="any" />
+      <meta
+        name="description"
+        content="Reidle is a Wordle clone with a leaderboard, a forced starting word, and very strict rules."
+      >
+      </meta>
+      <link
+        rel="apple-touch-icon"
+        sizes="180x180"
+        href="/apple-touch-icon.png"
+      />
+      <link rel="manifest" crossOrigin="use-credentials" href="manifest.json" />
+      <meta name="theme-color" content="#db7093" />
+      <script defer src="/register.js" />
+    </Head>
+  );
+}
 
 export function ReidleHeader({ route }: { route?: string }) {
   return (

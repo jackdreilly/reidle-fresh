@@ -104,9 +104,9 @@ export default function Page(
                 </form>
               )
               : null}
-              <div class="text-xs italic pl-2">
-                {moment(created_at).fromNow()}
-              </div>
+            <div class="text-xs italic pl-2">
+              {moment(created_at).fromNow()}
+            </div>
           </li>
         ))}
       </ul>

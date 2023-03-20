@@ -41,7 +41,7 @@ export const handler: SessionHandler<Data> = {
               email = EXCLUDED.email,
               notifications_enabled = EXCLUDED.notifications_enabled
       `;
-    return new Response("", { status: 303, headers: { location: "/account" } });
+    return new Response("", { status: 303, headers: { location: "/" } });
   },
 };
 
