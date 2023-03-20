@@ -17,7 +17,7 @@ export const handler: SessionHandler<null> = {
       status: 303,
       headers: {
         location: (await ctx.state.connection
-            .queryArray`select * from persons where name = ${ctx.state.name} and LENGTH(email) > 0`
+            .queryArray`select * from players where name = ${ctx.state.name} and LENGTH(email) > 0`
             .then((r) => r.rowCount))
           ? "/"
           : "/account",
