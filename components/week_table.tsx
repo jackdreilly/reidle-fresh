@@ -14,7 +14,9 @@ export interface WeekTableData extends WeekData {
   startDay: Date;
 }
 export default function WeekTable(
-  { data: { names, dates, ids, table, startDay } }: { data: WeekTableData },
+  { data: { names, dates, ids, table, startDay, name: myName } }: {
+    data: WeekTableData;
+  },
 ) {
   function getDay(dow: number): string {
     const day = new Date(startDay);
@@ -53,7 +55,7 @@ export default function WeekTable(
         <TableBody>
           {names.map((name, i) => (
             <TableRow>
-              <TableRowHeader>
+              <TableRowHeader class={name === myName ? "bg-yellow-100" : ""}>
                 <a
                   class="text-blue-600 dark:text-blue-500 hover:underline"
                   href={`/players/${name}`}

@@ -24,23 +24,30 @@ export function TableHead(
   );
 }
 export function TableRow(
-  { header, children }: {
+  { header, children, "class": myClass }: {
     header?: ComponentChildren;
     children?: ComponentChildren;
+    "class"?: string;
   },
 ) {
   return (
-    <tr class="bg-white border-b">
+    <tr class={`bg-white border-b ${myClass ?? ""}`}>
       {header && <TableRowHeader>{header}</TableRowHeader>}
       {children}
     </tr>
   );
 }
-export function TableRowHeader({ children }: { children?: ComponentChildren }) {
+export function TableRowHeader(
+  { children, "class": myClass }: {
+    children?: ComponentChildren;
+    class?: string;
+  },
+) {
   return (
     <th
       scope="row"
-      class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap"
+      class={"px-4 py-2 font-medium text-gray-900 whitespace-nowrap " +
+        (myClass ?? "")}
     >
       {children}
     </th>

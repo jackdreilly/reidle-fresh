@@ -38,14 +38,14 @@ export const handler: SessionHandler<Data> = {
 };
 
 export default function Page(
-  { data: { submissions } }: PageProps<Data>,
+  { data: { submissions, name: myName } }: PageProps<Data>,
 ) {
   return (
     <StatsTemplate route="past_winners">
       <Table columns={["Name", "Week"]}>
         <TableBody>
           {submissions.map(({ name, week }, i) => (
-            <TableRow>
+            <TableRow class={name === myName ? "bg-yellow-100" : ""}>
               <TableRowHeader>{name}</TableRowHeader>
               <TableCell>
                 <a

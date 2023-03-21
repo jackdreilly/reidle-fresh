@@ -10,7 +10,11 @@ import { DailySubmission } from "@/utils/daily.ts";
 
 export type DailyTableData = DailySubmission[];
 export function DailyTable(
-  { submissions, hide }: { submissions: DailyTableData; hide?: boolean },
+  { submissions, hide, name: myName }: {
+    submissions: DailyTableData;
+    hide?: boolean;
+    name: string;
+  },
 ) {
   return (
     <Table
@@ -20,7 +24,7 @@ export function DailyTable(
         {submissions.map((
           { name, time, penalty, paste, id },
         ) => (
-          <TableRow>
+          <TableRow class={name === myName ? "bg-yellow-100" : ""}>
             <TableRowHeader>
               <a
                 class="text-blue-600 dark:text-blue-500 hover:underline"

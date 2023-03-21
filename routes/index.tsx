@@ -41,7 +41,7 @@ export default function Home(
       </p>
       <div>
         <h2 class="m-4">Today</h2>
-        <DailyTable hide={!played} submissions={submissions} />
+        <DailyTable name={name} hide={!played} submissions={submissions} />
       </div>
     </ReidleTemplate>
   );
