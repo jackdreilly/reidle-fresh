@@ -4,7 +4,7 @@ import { ComponentChildren } from "preact";
 
 export default function ReidleTemplate(
   { children, title, route, fullPage }: {
-    route?: string;
+    route: string;
     children: ComponentChildren;
     title: string;
     fullPage?: boolean;
@@ -93,7 +93,11 @@ export default function ReidleTemplate(
                   class="flex items-center p-2 text-base font-normal text-gray-900 rounded-lg hover:bg-gray-100 "
                 >
                   <PlaySVG />
-                  <span class="ml-3">Play</span>
+                  <span
+                    class={"ml-3 " + (route === "/play" ? "font-bold" : "")}
+                  >
+                    Play
+                  </span>
                 </a>
               </li>
               <li>
@@ -102,7 +106,11 @@ export default function ReidleTemplate(
                   class="flex items-center p-2 text-base font-normal text-gray-900 rounded-lg hover:bg-gray-100 "
                 >
                   <PracticeSVG />
-                  <span class="ml-3">Practice</span>
+                  <span
+                    class={"ml-3 " + (route === "/practice" ? "font-bold" : "")}
+                  >
+                    Practice
+                  </span>
                 </a>
               </li>
               <li>
@@ -124,7 +132,11 @@ export default function ReidleTemplate(
                     >
                     </path>
                   </svg>
-                  <span class="ml-3">Leaderboard</span>
+                  <span
+                    class={"ml-3 " + (route === "/stats" ? "font-bold" : "")}
+                  >
+                    Leaderboard
+                  </span>
                 </a>
               </li>
               <li>
@@ -133,7 +145,12 @@ export default function ReidleTemplate(
                   class="flex items-center p-2 text-base font-normal text-gray-900 rounded-lg hover:bg-gray-100 "
                 >
                   <Messages />
-                  <span class="flex-1 ml-3 whitespace-nowrap">Messages</span>
+                  <span
+                    class={"flex-1 ml-3 whitespace-nowrap " +
+                      (route === "/messages" ? "font-bold" : "")}
+                  >
+                    Messages
+                  </span>
                   <span class="inline-flex items-center justify-center">
                     <ReadNotification />
                   </span>
@@ -158,7 +175,12 @@ export default function ReidleTemplate(
                     >
                     </path>
                   </svg>
-                  <span class="flex-1 ml-3 whitespace-nowrap">Account</span>
+                  <span
+                    class={"flex-1 ml-3 whitespace-nowrap " +
+                      (route === "/account" ? "font-bold" : "")}
+                  >
+                    Account
+                  </span>
                 </a>
               </li>
             </ul>

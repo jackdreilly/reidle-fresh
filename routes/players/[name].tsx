@@ -126,7 +126,7 @@ export default function Page(
   );
   const penalties = _penalties.filter(([a, b]) => a !== 0);
   return (
-    <ReidleTemplate title={name}>
+    <ReidleTemplate route="/players" title={name}>
       <h1 class="text-2xl">{name}</h1>
       <div class="m-2">
         <h2 class="text-xl">Total Games: {total}</h2>

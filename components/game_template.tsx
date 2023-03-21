@@ -9,5 +9,13 @@ export default function GameTemplate(
   },
 ) {
   title ??= isPractice ? "Practice" : "Play";
-  return <ReidleTemplate fullPage title={title}>{children}</ReidleTemplate>;
+  return (
+    <ReidleTemplate
+      route={isPractice ? "/practice" : "/play"}
+      fullPage
+      title={title}
+    >
+      {children}
+    </ReidleTemplate>
+  );
 }

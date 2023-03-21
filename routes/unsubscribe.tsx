@@ -24,7 +24,7 @@ export const handler: SessionHandler<Data> = {
 export default function Page({ data: { email } }: PageProps<Data>) {
   email ??= "";
   return (
-    <ReidleTemplate title="Unsubscribe">
+    <ReidleTemplate route="/unsubscribe" title="Unsubscribe">
       <form method="POST">
         <Input type={email ? "hidden" : "text"} name="email" value={email} />
         <Input
