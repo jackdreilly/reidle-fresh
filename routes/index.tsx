@@ -3,32 +3,29 @@ import { DailyTable } from "@/components/daily_table.tsx";
 import ReidleTemplate from "@/components/reidle_template.tsx";
 import { DailySubmission, fetchDay } from "@/utils/daily.ts";
 import getWinner from "@/utils/get_winner.ts";
-import { SessionHandler } from "@/utils/utils.ts";
+import { guardLogin, SessionHandler } from "@/utils/utils.ts";
+import { played } from "@/routes/api/played.ts";
 
 interface Data {
   name: string;
   winner: string;
   submissions: DailySubmission[];
+  played: boolean;
 }
 
 export const handler: SessionHandler<Data> = {
   async GET(_req, ctx) {
-    const { connection } = ctx.state;
-    const name = ctx.state.name;
-    if (!ctx.state.name) {
-      return new Response("need to sign in", {
-        status: 302,
-        headers: { location: "/sign-in" },
-      });
-    }
-    const submissions = await fetchDay(new Date(), connection);
-    const winner = await getWinner(connection);
-    return ctx.render({ submissions, winner, name });
+    return guardLogin(ctx) ?? ctx.render({
+      submissions: await fetchDay(new Date(), ctx.state.connection),
+      winner: await getWinner(ctx.state.connection),
+      name: ctx.state.name,
+      played: await played(ctx),
+    });
   },
 };
 
 export default function Home(
-  { data: { name, winner, submissions } }: PageProps<Data>,
+  { data: { name, winner, submissions, played } }: PageProps<Data>,
 ) {
   return (
     <ReidleTemplate title="Reidle" route="/">
@@ -44,7 +41,7 @@ export default function Home(
       </p>
       <div>
         <h2 class="m-4">Today</h2>
-        <DailyTable submissions={submissions} />
+        <DailyTable hide={!played} submissions={submissions} />
       </div>
     </ReidleTemplate>
   );

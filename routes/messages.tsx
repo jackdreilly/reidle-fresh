@@ -3,8 +3,8 @@ import Button from "@/components/button.tsx";
 import Input from "@/components/input.tsx";
 import ReidleTemplate from "@/components/reidle_template.tsx";
 import { sendEmail } from "@/routes/api/inngest.ts";
-import { SessionHandler } from "@/utils/utils.ts";
-import { moment } from "https://deno.land/x/deno_moment/mod.ts";
+import { guardLogin, SessionHandler } from "@/utils/utils.ts";
+import { moment } from "https://deno.land/x/deno_moment@v1.1.2/mod.ts";
 interface Message {
   message: string;
   name: string;
@@ -18,12 +18,6 @@ interface Data {
 
 export const handler: SessionHandler<Data> = {
   async POST(req, ctx) {
-    if (!ctx.state.name) {
-      return new Response("need to sign in", {
-        status: 302,
-        headers: { location: "/sign-in" },
-      });
-    }
     const name = ctx.state.name;
     const message = (await req.formData()).get("message") as string ?? "";
     await ctx.state.connection.queryArray`
@@ -51,7 +45,7 @@ export const handler: SessionHandler<Data> = {
   },
   async GET(_, ctx) {
     const name = ctx.state.name;
-    return ctx.render({
+    return guardLogin(ctx) ?? ctx.render({
       messages: await ctx.state.connection.queryObject<Message>`
 WITH "read_receipt" AS (
     INSERT INTO "message_reads" ("name", "last_read")

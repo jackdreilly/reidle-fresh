@@ -1,7 +1,7 @@
 import { PageProps } from "$fresh/server.ts";
 import GameTemplate from "@/components/game_template.tsx";
 import Game from "@/islands/game.tsx";
-import { SessionHandler } from "@/utils/utils.ts";
+import { guardLogin, SessionHandler } from "@/utils/utils.ts";
 
 interface PlayData {
   word: string;
@@ -11,13 +11,7 @@ interface PlayData {
 
 export const handler: SessionHandler<PlayData> = {
   async GET(_, ctx) {
-    if (!ctx.state.name) {
-      return new Response("need to sign in", {
-        status: 302,
-        headers: { location: "/sign-in" },
-      });
-    }
-    return ctx.render(
+    return guardLogin(ctx) ?? ctx.render(
       await ctx.state.connection.queryObject<PlayData>`
 SELECT
     COALESCE(
@@ -49,7 +43,7 @@ export default function Page(
   { data: { word, startingWord, winnersTime } }: PageProps<PlayData>,
 ) {
   return (
-    <GameTemplate isPractice={false}>
+    <GameTemplate title="Play" isPractice={false}>
       <Game
         isPractice={false}
         word={word}

@@ -2,7 +2,7 @@ import { asset } from "$fresh/runtime.ts";
 import { Handlers } from "$fresh/server.ts";
 import { PoolClient } from "https://deno.land/x/postgres@v0.14.0/mod.ts";
 
-type SessionData = {
+export type SessionData = {
   connection: PoolClient;
   name: string;
 };
@@ -28,4 +28,35 @@ export function timerTime(totalSeconds: number): string {
   return `${minutes}:${seconds.toString().padStart(2, "0")}${
     millis ? "." + millis.toString().slice(0, 3).padStart(3, "0") : ""
   }`;
+}
+
+type JSONable =
+  | boolean
+  | string
+  | number
+  | undefined
+  | null
+  | JSONArray
+  | JSONObject;
+
+type JSONArray = JSONable[];
+interface JSONObject {
+  [x: string]: JSONable;
+}
+
+export function jsonResponse(json: JSONable): Response {
+  return new Response(JSON.stringify(json), {
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+export function guardLogin(
+  { state: { name } }: { state: { name: string } },
+): Response | undefined {
+  if (!name) {
+    return new Response("need to sign in", {
+      status: 302,
+      headers: { location: "/sign-in" },
+    });
+  }
 }

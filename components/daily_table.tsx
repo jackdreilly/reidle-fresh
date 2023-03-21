@@ -9,7 +9,9 @@ import TimerText from "@/components/timer_text.tsx";
 import { DailySubmission } from "@/utils/daily.ts";
 
 export type DailyTableData = DailySubmission[];
-export function DailyTable({ submissions }: { submissions: DailyTableData }) {
+export function DailyTable(
+  { submissions, hide }: { submissions: DailyTableData; hide?: boolean },
+) {
   return (
     <Table
       columns={["Name", "Time", "Pen", "Paste", "Watch"]}
@@ -31,11 +33,19 @@ export function DailyTable({ submissions }: { submissions: DailyTableData }) {
               <TimerText seconds={time} />
             </TableCell>
             <TableCell>{penalty}</TableCell>
-            <TableCell class="whitespace-pre-wrap text-[7px] leading-[4px]">
+            <TableCell
+              class={"whitespace-pre-wrap text-[7px] leading-[4px]" +
+                (hide ? " invisible" : "")}
+            >
               {paste}
             </TableCell>
             <TableCell>
-              <a class="text-2xl" href={`/submissions/${id}/playback`}>▶️</a>
+              <a
+                class={"text-2xl" + (hide ? " invisible" : "")}
+                href={`/submissions/${id}/playback`}
+              >
+                ▶️
+              </a>
             </TableCell>
           </TableRow>
         ))}

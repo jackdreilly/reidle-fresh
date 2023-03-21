@@ -1,20 +1,26 @@
-import { SessionHandler } from "@/utils/utils.ts";
+import { jsonResponse, SessionHandler } from "@/utils/utils.ts";
+import { PoolClient } from "https://deno.land/x/postgres@v0.14.0/mod.ts";
 
-export const handler: SessionHandler<null> = {
-  async GET(_, ctx) {
-    const name = ctx.state.name;
-    return new Response(
-      await ctx.state.connection.queryObject<{ played: string }>`
+export async function played(
+  { state: { name, connection } }: {
+    state: { name: string; connection: PoolClient };
+  },
+): Promise<boolean> {
+  const response = await connection.queryObject`
     select
-        LOWER((count(*) > 0)::TEXT) as played
+        id
     from
         submissions
     where
         CURRENT_DATE = day
     and
         name = ${name}
-`.then((x) => x.rows[0].played),
-      { headers: { "Content-Type": "application/json" } },
-    );
+`;
+  return (response.rowCount ?? 0) > 0;
+}
+
+export const handler: SessionHandler<null> = {
+  async GET(_, ctx) {
+    return jsonResponse(await played(ctx));
   },
 };

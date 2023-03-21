@@ -1,7 +1,7 @@
 import { PageProps } from "$fresh/server.ts";
 import Input from "@/components/input.tsx";
 import ReidleTemplate from "@/components/reidle_template.tsx";
-import { SessionHandler } from "@/utils/utils.ts";
+import { guardLogin, SessionHandler } from "@/utils/utils.ts";
 
 interface Data {
   name?: string;
@@ -11,14 +11,8 @@ interface Data {
 
 export const handler: SessionHandler<Data> = {
   async GET(_, ctx) {
-    if (!ctx.state.name) {
-      return new Response("need to sign in", {
-        status: 302,
-        headers: { location: "/sign-in" },
-      });
-    }
     const name = ctx.state.name;
-    return ctx.render(
+    return guardLogin(ctx) ?? ctx.render(
       await ctx.state.connection.queryObject<
         Data
       >`select name, email, notifications_enabled from players where name = ${name} limit 1`
