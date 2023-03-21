@@ -12,6 +12,8 @@ export async function sessionMiddleware(
     name: "name",
     value: ctx.state.name,
     path: "/",
+    expires: new Date().getTime() + (1000 * 60 * 60 * 24 * 365),
+    maxAge: 60 * 60 * 24 * 365,
   });
   return response;
 }
