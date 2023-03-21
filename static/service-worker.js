@@ -10,6 +10,7 @@ self.addEventListener('install', (e) => {
             '/favicon.ico',
             '/mask.png',
             '/register.js',
+            '/flowbite.min.js',
         ])),
     );
 });

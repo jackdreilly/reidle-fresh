@@ -1,4 +1,3 @@
-import { ReidleHeader } from "@/components/reidle_template.tsx";
 import TimerText from "@/components/timer_text.tsx";
 import { Playback, PlaybackEvent, scoreColor } from "@/utils/playback.ts";
 import { ScoredWord, Scoring, ScoringHistory, Wordle } from "@/utils/wordle.ts";
@@ -276,9 +275,8 @@ export default function Game(
   );
   return (
     <>
-      <ReidleHeader route={isPractice ? "/practice" : "/play"} />
       <div class="w-full flex flex-col h-full max-w-6xl flex-grow-1 text-center text-lg">
-        <div class="m-1 h-8">
+        <div class="m-1 h-8 flex place-content-evenly">
           {!won && wordle
             ? (
               <TimerText
@@ -286,7 +284,7 @@ export default function Game(
                 class="mx-2 text-gray"
               />
             )
-            : null}
+            : <div />}
           {penalties
             ? (
               <TimerText
@@ -294,7 +292,7 @@ export default function Game(
                 class="mx-2 text-red-400"
               />
             )
-            : null}
+            : <div />}
           {(winnersTime && winnersTime > 0)
             ? (
               <TimerText
@@ -302,7 +300,7 @@ export default function Game(
                 class="mx-2 text-green-400"
               />
             )
-            : null}
+            : <div />}
         </div>
         <ErrorBar
           wordle={wordle}

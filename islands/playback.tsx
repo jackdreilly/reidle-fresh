@@ -1,4 +1,3 @@
-import { ReidleHeader } from "@/components/reidle_template.tsx";
 import TimerText from "@/components/timer_text.tsx";
 import { PlaybackEvent, scoreColor } from "@/utils/playback.ts";
 import { Scoring, ScoringHistory } from "@/utils/wordle.ts";
@@ -50,7 +49,6 @@ export default function PlaybackComponent(
   const totalSeconds = event.time / 1000;
   return (
     <>
-      <ReidleHeader />
       <div class="m-1 text-center">
         <TimerText
           seconds={totalSeconds}

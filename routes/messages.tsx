@@ -1,6 +1,5 @@
 import { PageProps } from "$fresh/server.ts";
 import Button from "@/components/button.tsx";
-import Input from "@/components/input.tsx";
 import ReidleTemplate from "@/components/reidle_template.tsx";
 import { sendEmail } from "@/routes/api/inngest.ts";
 import { guardLogin, SessionHandler } from "@/utils/utils.ts";
@@ -73,18 +72,7 @@ export default function Page(
 ) {
   return (
     <ReidleTemplate route="/messages" title="Messages">
-      <form method="POST" style={{ marginBottom: 10 }}>
-        <Input
-          autocomplete="off"
-          autoFocus={true}
-          style={{ width: "80%", marginRight: 10 }}
-          type="text"
-          name="message"
-          placeholder="Message"
-        />
-        <Button>Send</Button>
-      </form>
-      <ul>
+      <ul class="overflow-scroll" style={{ height: "calc(90vh - 5em)" }}>
         {messages.map(({ message, id, name, created_at }, i) => (
           <li class="border-b-1 p-2">
             <span class="font-bold">{name}</span>: {message}
@@ -110,6 +98,20 @@ export default function Page(
           </li>
         ))}
       </ul>
+      <div class="mt-3">
+        <form method="POST" class="flex">
+          <textarea
+            rows={2}
+            required
+            class="flex-grow-1 break-word mr-2.5 p-2.5 text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Your message..."
+            autocomplete="off"
+            autoFocus
+            name="message"
+          />
+          <Button>Send</Button>
+        </form>
+      </div>
     </ReidleTemplate>
   );
 }
