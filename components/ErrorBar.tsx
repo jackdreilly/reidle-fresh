@@ -15,7 +15,7 @@ export default function ErrorBar(
       @keyframes fade-out {
 
         0%,
-        50% {
+        25% {
             opacity: 1;
         }
     
@@ -38,7 +38,7 @@ export default function ErrorBar(
         <div
           key={`${error} ${penalty}`}
           class="text-red-800 opacity-0"
-          style={{ animation: "fade-out 2s" }}
+          style={{ animation: "fade-out 4s" }}
         >
           {error}
         </div>
