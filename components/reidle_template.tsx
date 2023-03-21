@@ -73,7 +73,7 @@ export function ReidleHead({ title }: { title: string }) {
         rel="manifest"
         href={asset("/manifest.webmanifest")}
       />
-      <meta name="theme-color" content="#db7093" />
+      <meta name="theme-color" content="#ffffff" />
       <script defer src={asset("/register.js")} />
     </Head>
   );

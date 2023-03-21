@@ -12,5 +12,4 @@ import twindConfig from "@/twind.config.ts";
 
 await start(manifest, {
   plugins: [twindPlugin(twindConfig)],
-  // hostname: "0.0.0.0",
 });

@@ -2,3 +2,4 @@ service-account.json
 .vscode/
 *.db
 *firebase-adminsdk*.json
+.DS_Store
