@@ -211,7 +211,7 @@ export default function ReidleTemplate(
             </ul>
           </div>
         </aside>
-        <div class={"md:ml-48 pt-[5em] " + (fullPage ? "h-full" : "p-4")}>
+        <div class={["md:ml-48", fullPage ? "pt-[5em] h-full" : "pt-[6em] px-4 pb-4"].join(" ")}>
           {children}
         </div>
       </body>
