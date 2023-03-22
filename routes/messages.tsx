@@ -76,7 +76,19 @@ export default function Page(
 ) {
   return (
     <ReidleTemplate route="/messages" title="Messages">
-      <ul class="overflow-scroll" style={{ height: "calc(100vh - 13em)" }}>
+      <form method="POST" class="flex">
+        <textarea
+          required
+          rows={2}
+          class="flex-grow-1 break-word mr-2.5 p-2.5 text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="Your message..."
+          autocomplete="off"
+          autoFocus
+          name="message"
+        />
+        <Button>Send</Button>
+      </form>
+      <ul>
         {messages.map(({ message, id, name, created_at }, i) => (
           <li class="border-b-1 p-2">
             <span class="font-bold">{name}</span>: {message}
@@ -102,19 +114,6 @@ export default function Page(
           </li>
         ))}
       </ul>
-      <div class="mt-3">
-        <form method="POST" class="flex h-[5em]">
-          <textarea
-            required
-            class="flex-grow-1 break-word mr-2.5 p-2.5 text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Your message..."
-            autocomplete="off"
-            autoFocus
-            name="message"
-          />
-          <Button>Send</Button>
-        </form>
-      </div>
     </ReidleTemplate>
   );
 }
