@@ -45,7 +45,7 @@ export default function ReidleTemplate(
                   <img
                     height="48px"
                     width="48px"
-                    src="/favicon.ico"
+                    src={asset("/android-chrome-96x96.webp")}
                     class="mr-3"
                     alt="Reidle Logo"
                   />
@@ -211,7 +211,12 @@ export default function ReidleTemplate(
             </ul>
           </div>
         </aside>
-        <div class={["md:ml-48", fullPage ? "pt-[5em] h-full" : "pt-[6em] px-4 pb-4"].join(" ")}>
+        <div
+          class={[
+            "md:ml-48",
+            fullPage ? "pt-[5em] h-full" : "pt-[6em] px-4 pb-4",
+          ].join(" ")}
+        >
           {children}
         </div>
       </body>
