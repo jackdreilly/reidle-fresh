@@ -43,9 +43,10 @@ export default function ReidleTemplate(
                 </button>
                 <a href="/" class="flex ml-2 md:mr-24">
                   <img
-                    height="2rem"
+                    height="48px"
+                    width="48px"
                     src="/favicon.ico"
-                    class="h-8 mr-3"
+                    class="mr-3"
                     alt="Reidle Logo"
                   />
                   <span class="self-center text-xl font-semibold md:text-2xl whitespace-nowrap hidden md:contents">
