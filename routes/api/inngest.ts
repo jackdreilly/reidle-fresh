@@ -26,7 +26,7 @@ const sendEmailFunction = inngest.createFunction(
       to = [{ email }];
     }
     const payload = {
-      subject,
+      subject: `${Deno.env.get("EMAIL_TAG") ?? ""}${subject}`,
       cc,
       to,
       from: { email: "jackdreilly@gmail.com" },
