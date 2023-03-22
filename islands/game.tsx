@@ -348,62 +348,63 @@ export default function Game(
               ))}
           </div>
         </div>
-        <div
-          style={{ height: 200, margin: "0 8px", userSelect: "none" }}
-          id="keyboard"
-        >
-          {"QWERTYUIOP,ASDFGHJKL,↵ZXCVBNM␡".split(",").map((row) => (
-            <div
-              style={{
-                display: "flex",
-                touchAction: "manipulation",
-                width: "100%",
-                margin: "0 auto 8px",
-                justifyContent: "center",
-              }}
-              key={row}
-            >
-              {row.split("").map((c) => (
-                <button
-                  style={{
-                    fontFamily: "sans-serif",
-                    fontSize: "1.25em",
-                    fontWeight: "bold",
-                    maxWidth: 50,
-                    border: "0",
-                    padding: "0",
-                    margin: "0 6px 0 0",
-                    height: "58px",
-                    borderRadius: "4px",
-                    cursor: "pointer",
-                    webkitUserSelect: "none",
-                    mozUserSelect: "none",
-                    userSelect: "none",
-                    backgroundColor: keyColor(c),
-                    color: keyColor(c) === "#d3d6da" ? "black" : "white",
-                    flex: "1",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    textTransform: "uppercase",
-                    webkitTapHighlightColor: "rgba(0,0,0,.3)",
-                  }}
-                  class="col"
-                  key={c}
-                  onPointerDown={() =>
-                    onKeyDown(
-                      c === "↵"
-                        ? "ENTER"
-                        : c === "␡"
-                        ? "BACKSPACE"
-                        : c.toUpperCase(),
-                    )}
-                >
-                  {c}
-                </button>
-              ))}
-            </div>
-          ))}
+        <div class="m-1">
+          <div
+            class="mx-auto max-w-xl h-[12rem] grid grid-rows-3 gap-1 text-2xl select-none"
+            style={{ width: "inherit" }}
+          >
+            {"QWERTYUIOP,ASDFGHJKL,↵ZXCVBNM␡".split(",").map((row) => (
+              <div
+                class={[
+                  "touch-manipulation grid gap-1",
+                  "grid-cols-" + row.length,
+                ]
+                  .join(" ")}
+              >
+                {row.split("").map((c) => (
+                  <button
+                    class={[
+                      "rounded-lg cursor-pointer font-bold",
+                      `text-[${keyColor(c) === "#d3d6da" ? "black" : "white"}]`,
+                      `bg-[${keyColor(c)}]`,
+                    ].join(" ")}
+                    style={{
+                      webkitTapHighlightColor: "rgba(0,0,0,.3)",
+                      outline: "none",
+                    }}
+                    key={c}
+                    onPointerDown={() =>
+                      onKeyDown(
+                        c === "↵"
+                          ? "ENTER"
+                          : c === "␡"
+                          ? "BACKSPACE"
+                          : c.toUpperCase(),
+                      )}
+                  >
+                    {c === "␡"
+                      ? (
+                        <svg
+                          class="p-1 m-auto"
+                          style={{ maxWidth: "40px" }}
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                          xmlns="http://www.w3.org/2000/svg"
+                          aria-hidden="true"
+                        >
+                          <path
+                            clipRule="evenodd"
+                            fillRule="evenodd"
+                            d="M7.22 3.22A.75.75 0 017.75 3h9A2.25 2.25 0 0119 5.25v9.5A2.25 2.25 0 0116.75 17h-9a.75.75 0 01-.53-.22L.97 10.53a.75.75 0 010-1.06l6.25-6.25zm3.06 4a.75.75 0 10-1.06 1.06L10.94 10l-1.72 1.72a.75.75 0 101.06 1.06L12 11.06l1.72 1.72a.75.75 0 101.06-1.06L13.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L12 8.94l-1.72-1.72z"
+                          />
+                        </svg>
+                      )
+                      : c}
+                  </button>
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </>
