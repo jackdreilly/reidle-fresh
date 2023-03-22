@@ -49,7 +49,7 @@ export default function Page(
 ) {
   return (
     <ReidleTemplate route="/account" title="Account">
-      <h1 class="text-2xl">Account for {name}</h1>
+      <h1 class="text-2xl uppercase">{name}</h1>
       <form method="POST" class="my-4 max-w-sm">
         <div class="mb-6">
           <label
