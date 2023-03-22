@@ -275,7 +275,7 @@ export default function Game(
               />
             )
             : <div />}
-          {isPractice
+          {isPractice && !won
             ? (
               <button
                 type="button"
