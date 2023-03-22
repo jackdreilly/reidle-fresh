@@ -104,7 +104,7 @@ WHERE
       `;
 
     const subject = `${new Date().getUTCFullYear()}-${
-      new Date().getUTCMonth().toString().padStart(2, "0")
+      (new Date().getUTCMonth() + 1).toString().padStart(2, "0")
     }-${new Date().getUTCDate().toString().padStart(2, "0")}`;
     const text = `${name}: ${timerTime(time)}`;
     await sendEmail(
