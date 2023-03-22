@@ -1,8 +1,8 @@
+import ErrorBar from "@/components/ErrorBar.tsx";
 import TimerText from "@/components/timer_text.tsx";
 import { Playback, PlaybackEvent, scoreColor } from "@/utils/playback.ts";
 import { ScoredWord, Scoring, ScoringHistory, Wordle } from "@/utils/wordle.ts";
-import { useEffect, useState } from "preact/hooks";
-import ErrorBar from "../components/ErrorBar.tsx";
+import { useEffect, useMemo, useState } from "preact/hooks";
 interface GameProperties {
   word: string;
   isPractice: boolean;
@@ -22,6 +22,8 @@ export default function Game(
   const [won, setWon] = useState<Date | null>(null);
   const [__, setTicks] = useState(0);
   const [played, setPlayed] = useState(false);
+  const [candidates, setCandidates] = useState<string[]>([]);
+  const [enableHelp, setEnableHelp] = useState(false);
   function addPlayback(
     { l, b, c, s, e }: {
       l?: string;
@@ -51,24 +53,47 @@ export default function Game(
     });
   }
   function setCurrentWord(input: string | ((word: string) => string)) {
-    const word = typeof input === "string" ? input : input(currentWord);
+    const newWord = typeof input === "string" ? input : input(currentWord);
     setCurrentWordPrivate((oldWord) => {
-      if (!word.length) {
+      if (!newWord.length) {
         addPlayback({ c: true });
-      } else if (word.length < currentWord.length) {
+      } else if (newWord.length < currentWord.length) {
         addPlayback({ b: true });
       } else {
-        addPlayback({ l: word.slice(word.length - 1) });
+        addPlayback({ l: newWord.slice(newWord.length - 1) });
       }
-      return word;
+      return newWord;
     });
   }
+  const doubleCandidates = useMemo(() => {
+    if (!wordle) {
+      return [];
+    }
+    return !isPractice
+      ? candidates
+      : candidates.filter((c) =>
+        c.split("").every((l, i) =>
+          [l, " ", "-", undefined].includes(currentWord[i])
+        )
+      );
+  }, [currentWord, wordle, candidates]);
   function setPreviousWords(
     input: ScoringHistory | ((word: ScoringHistory) => ScoringHistory),
   ) {
     const words = typeof input === "object" ? input : input(previousWords);
     addPlayback({ s: words[words.length - 1] });
     setPreviousWordsPrivate(words);
+    setCandidates((candidates) =>
+      candidates.filter((currentWord) =>
+        wordScorer({
+          wordle: wordle!,
+          word,
+          currentWord,
+          previousWords: words,
+        }) instanceof
+          Array
+      )
+    );
   }
   useEffect(() => {
     if (isPractice) {
@@ -97,6 +122,7 @@ export default function Game(
       const wordle = await Wordle.make(false);
       setWordle((_) => wordle);
       setStartTime((_) => new Date());
+      setCandidates(wordle.words);
     }
     helper();
   }, []);
@@ -117,27 +143,27 @@ export default function Game(
     const interval = setInterval(() => setTicks((s) => s + 1), 1000);
     return () => clearInterval(interval);
   }, [wordle]);
-  function clearError() {
-    addError("");
-  }
-  const keyboardLookup: Record<string, Scoring> = {};
-  previousWords.forEach((w) =>
-    w.forEach(({ letter, score }) => {
-      const previous = keyboardLookup[letter];
-      switch (score) {
-        case Scoring.orange:
-          if (previous === Scoring.green) {
-            return;
-          }
-          break;
-        case Scoring.gray:
-          if ([Scoring.green, Scoring.orange].includes(previous)) {
-            return;
-          }
-      }
-      keyboardLookup[letter] = score;
-    })
-  );
+  const keyboardLookup = useMemo(() => {
+    const keyboardLookup: Record<string, Scoring> = {};
+    previousWords.forEach((w) =>
+      w.forEach(({ letter, score }) => {
+        const previous = keyboardLookup[letter];
+        switch (score) {
+          case Scoring.orange:
+            if (previous === Scoring.green) {
+              return;
+            }
+            break;
+          case Scoring.gray:
+            if ([Scoring.green, Scoring.orange].includes(previous)) {
+              return;
+            }
+        }
+        keyboardLookup[letter] = score;
+      })
+    );
+    return keyboardLookup;
+  }, [previousWords]);
   function onKeyDown(
     key: string,
     superPressed?: boolean,
@@ -201,74 +227,22 @@ export default function Game(
   function keyColor(c: string): string {
     return scoreColor(keyboardLookup[c]) ?? "#d3d6da";
   }
+
   function scoreWord() {
-    if (currentWord === word) {
-      setPreviousWords(
-        (s) => [
-          ...s,
-          word.split("").map((letter) => ({ letter, score: Scoring.green })),
-        ],
-      );
-      setCurrentWord("");
-      clearError();
-      setWon(new Date());
-    }
-    if (currentWord.length < 5) {
-      addError("Need 5 letters");
+    if (!wordle) {
       return;
     }
-    if (currentWord.includes(" ") || currentWord.includes("-")) {
-      addError("Includes space or -");
-      return;
-    }
-    if (!wordle?.isWord(currentWord)) {
-      addError("Not a word", 5);
-      setCurrentWord("");
-      return;
-    }
-    const scoring = [
-      Scoring.gray,
-      Scoring.gray,
-      Scoring.gray,
-      Scoring.gray,
-      Scoring.gray,
-    ];
-    word?.split("").forEach((letter, position) => {
-      if (currentWord[position] === letter) {
-        scoring[position] = Scoring.green;
-        return;
-      }
-    });
-    currentWord.split("").forEach((letter, position) => {
-      if (scoring[position] === Scoring.green) {
-        return;
-      }
-      const offPositions = word?.split("").filter((_, pos) =>
-        scoring[pos] !== Scoring.green
-      ).filter((l) => l === letter).length ?? 0;
-      const usedPositions = currentWord.split("").filter((l, pos) =>
-        l === letter && scoring[pos] === Scoring.orange
-      ).length;
-      if (usedPositions < offPositions) {
-        scoring[position] = Scoring.orange;
-      }
-    });
-    const guesses = [
-      ...previousWords,
-      currentWord.split("").map((l, p) => ({
-        letter: l,
-        score: scoring[p],
-      })),
-    ];
-    const error = wordle?.error(guesses);
-    if (error) {
-      addError(error, 10);
-      setCurrentWord("");
-      return;
-    }
-    setPreviousWords(guesses);
     setCurrentWord("");
-    clearError();
+    const wordScore = wordScorer({ wordle, currentWord, previousWords, word });
+    if (wordScore instanceof Array) {
+      setPreviousWords((s) => [...s, wordScore]);
+      if (currentWord === word) {
+        setWon(new Date());
+      }
+      return;
+    }
+    const { error, penalty } = wordScore;
+    addError(error, penalty);
   }
   const totalSeconds = penalties + Math.round(
     ((won ?? new Date()).getTime() - startTime.getTime()) / 1000,
@@ -301,6 +275,31 @@ export default function Game(
               />
             )
             : <div />}
+          {isPractice
+            ? (
+              <button
+                type="button"
+                class="text-blue-700 border border-blue-700 hover:bg-blue-700 hover:text-white focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center dark:border-blue-500 dark:text-blue-500 dark:hover:text-white dark:focus:ring-blue-800 dark:hover:bg-blue-500"
+                onClick={() => {
+                  if (!enableHelp) {
+                    setEnableHelp(true);
+                    return;
+                  }
+                  const cand =
+                    currentWord.length === 5 && doubleCandidates.length === 1
+                      ? candidates
+                      : doubleCandidates;
+                  setCurrentWord(
+                    cand[
+                      Math.round(Math.random() * cand.length)
+                    ],
+                  );
+                }}
+              >
+                {enableHelp ? doubleCandidates.length : "?"}
+              </button>
+            )
+            : undefined}
         </div>
         <ErrorBar
           wordle={wordle}
@@ -409,4 +408,65 @@ export default function Game(
       </div>
     </>
   );
+}
+
+function wordScorer(
+  { wordle, word, currentWord, previousWords }: {
+    wordle: Wordle;
+    word: string;
+    currentWord: string;
+    previousWords: ScoringHistory;
+  },
+): { error: string; penalty?: number } | ScoredWord {
+  if (currentWord === word) {
+    return word.split("").map((letter) => ({ letter, score: Scoring.green }));
+  }
+  if (currentWord.length < 5) {
+    return { error: "Need 5 letters" };
+  }
+  if (currentWord.includes(" ") || currentWord.includes("-")) {
+    return { error: "Includes space or -" };
+  }
+  if (!wordle?.isWord(currentWord)) {
+    return { error: "Not a word", penalty: 5 };
+  }
+  const scoring = [
+    Scoring.gray,
+    Scoring.gray,
+    Scoring.gray,
+    Scoring.gray,
+    Scoring.gray,
+  ];
+  word?.split("").forEach((letter, position) => {
+    if (currentWord[position] === letter) {
+      scoring[position] = Scoring.green;
+      return;
+    }
+  });
+  currentWord.split("").forEach((letter, position) => {
+    if (scoring[position] === Scoring.green) {
+      return;
+    }
+    const offPositions = word?.split("").filter((_, pos) =>
+      scoring[pos] !== Scoring.green
+    ).filter((l) => l === letter).length ?? 0;
+    const usedPositions = currentWord.split("").filter((l, pos) =>
+      l === letter && scoring[pos] === Scoring.orange
+    ).length;
+    if (usedPositions < offPositions) {
+      scoring[position] = Scoring.orange;
+    }
+  });
+  const guesses = [
+    ...previousWords,
+    currentWord.split("").map((l, p) => ({
+      letter: l,
+      score: scoring[p],
+    })),
+  ];
+  const error = wordle?.error(guesses);
+  if (error) {
+    return { error, penalty: 10 };
+  }
+  return guesses[guesses.length - 1];
 }
