@@ -29,18 +29,15 @@ export default function Home(
 ) {
   return (
     <ReidleTemplate title="Reidle" route="/">
-      Welcome to Reidle, {name}!
-      <p>
-        Last week's winner:{" "}
-        <a
-          href={`/players/${winner}`}
-          class="text-blue-600 dark:text-blue-500 hover:underline"
-        >
-          {winner}
-        </a>
-      </p>
+      Last week's winner:{" "}
+      <a
+        href={`/players/${winner}`}
+        class="text-blue-600 dark:text-blue-500 hover:underline"
+      >
+        {winner}
+      </a>
       <div>
-        <h2 class="m-4">Today</h2>
+        <h2 class="my-4 font-bold">Today</h2>
         <DailyTable name={name} hide={!played} submissions={submissions} />
       </div>
     </ReidleTemplate>

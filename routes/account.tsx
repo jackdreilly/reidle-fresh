@@ -1,5 +1,4 @@
 import { PageProps } from "$fresh/server.ts";
-import Input from "@/components/input.tsx";
 import ReidleTemplate from "@/components/reidle_template.tsx";
 import { guardLogin, SessionHandler } from "@/utils/utils.ts";
 
@@ -41,7 +40,7 @@ export const handler: SessionHandler<Data> = {
               email = EXCLUDED.email,
               notifications_enabled = EXCLUDED.notifications_enabled
       `;
-    return new Response("", { status: 303, headers: { location: "/" } });
+    return new Response("", { status: 303, headers: { location: "/account" } });
   },
 };
 
@@ -50,38 +49,53 @@ export default function Page(
 ) {
   return (
     <ReidleTemplate route="/account" title="Account">
-      <form method="POST">
-        <div>
-          Name: <span class="font-bold">{name}</span>
+      <h1 class="text-2xl">Account for {name}</h1>
+      <form method="POST" class="my-4 max-w-sm">
+        <div class="mb-6">
+          <label
+            for="email"
+            class="block mb-2 text-sm font-medium text-gray-900"
+          >
+            Your email
+          </label>
+          <input
+            type="email"
+            id="email"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+            required
+            autoFocus
+            placeholder="Email"
+            name="email"
+            title="Email"
+            value={email}
+          />
         </div>
-        <label for="name">Email</label>
-        <Input
-          class="block m-4"
-          autoFocus={true}
-          type="email"
-          placeholder="Email"
-          name="email"
-          title="Email"
-          value={email}
-        />
-        <label for="name">
-          Reminder Emails if you haven't played w/ 4 hours remaining (you can
-          disable these whenever)
-        </label>
-        <Input
-          class="block m-4"
-          type="checkbox"
-          name="notifications_enabled"
-          checked={notifications_enabled || notifications_enabled === undefined}
-        />
-        <Input class="block m-4 cursor-pointer" type="submit" />
+        <div class="flex items-start mb-6">
+          <div class="flex items-center h-5">
+            <input
+              id="notifications_enabled"
+              type="checkbox"
+              value=""
+              class="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-blue-300"
+              name="notifications_enabled"
+              checked={notifications_enabled ||
+                notifications_enabled === undefined}
+            />
+          </div>
+          <label
+            for="notifications_enabled"
+            class="ml-2 text-sm font-medium text-gray-900"
+          >
+            Reminder Notifications
+          </label>
+        </div>
+        <button
+          type="submit"
+          class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center"
+        >
+          Save
+        </button>
       </form>
-      <a
-        class="p-2 m-4 rounded-sm text-red-500 font-bold border-2 hover:bg-gray-100"
-        href="/sign-out"
-      >
-        Sign Out
-      </a>
     </ReidleTemplate>
   );
 }
