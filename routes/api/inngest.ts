@@ -14,11 +14,11 @@ const sendEmailFunction = inngest.createFunction(
   { name: "Send Email" },
   { event: "email/send" },
   async (
-    { event: { data: { subject, to, text, html, cc } } }: {
+    { event: { data: { subject, to, text, html, bcc, cc } } }: {
       event: { data: SendEmailData };
     },
   ) => {
-    if (!to?.length) {
+    if (to === undefined) {
       const email = Deno.env.get("DEFAULT_EMAIL");
       if (!email) {
         return;
@@ -28,6 +28,7 @@ const sendEmailFunction = inngest.createFunction(
     const payload = {
       subject: `${Deno.env.get("EMAIL_TAG") ?? ""}${subject}`,
       cc,
+      bcc,
       to,
       from: { email: "jackdreilly@gmail.com" },
       content: [
@@ -60,10 +61,11 @@ const reminderEmailFunction = inngest.createFunction(
   { name: "email/reminder" },
   { cron: "TZ=UTC 0 20 * * *" },
   async () => {
-    const cc = await run((c) =>
+    const bcc = await run((c) =>
       c.queryObject<IAddress>`select email, name from emails_to_send`
     ).then((x) => x.rows);
     sendEmail({
+      to: [],
       html: render(ReminderEmail()),
       text: `
 You haven't played Reidle yet today!
@@ -73,7 +75,7 @@ Play at https://reidle.reillybrothers.net
 Unsubscribe at https://reidle.reillybrothers.net/unsubscribe
       `,
       subject: "Reminder email",
-      cc,
+      bcc,
     });
   },
 );
