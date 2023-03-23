@@ -21,11 +21,14 @@ const sendEmailFunction = inngest.createFunction(
   ) => {
     if (to === undefined) {
       to = [{
-        email: Deno.env.get("ADMIN_EMAIL") ??
+        email: Deno.env.get("DEFAULT_EMAIL") ??
           "jackdreilly+reidle.admin@gmail.com",
       }];
     } else if (!to?.length) {
-      to = [{ email: Deno.env.get("DEFAULT_EMAIL") ?? "" }];
+      to = [{
+        email: Deno.env.get("ADMIN_EMAIL") ??
+          "jackdreilly+reidle.admin@gmail.com",
+      }];
     }
     const payload = {
       subject: `${Deno.env.get("EMAIL_TAG") ?? ""}${subject}`,
