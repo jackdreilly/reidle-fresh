@@ -1,5 +1,5 @@
 import { IAddress } from "https://deno.land/x/sendgrid@0.0.3/mod.ts";
-import { EventPayload, Inngest } from "https://esm.sh/inngest@1.4.0";
+import { EventPayload, Inngest } from "https://esm.sh/v111/inngest@1.4.0";
 export type SendEmailData = {
   to?: IAddress[];
   cc?: IAddress[];
