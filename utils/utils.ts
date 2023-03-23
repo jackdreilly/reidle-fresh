@@ -60,3 +60,8 @@ export function guardLogin(
     });
   }
 }
+type Message = unknown;
+export function spy<T>(t: T, ...messages: Message[]): T {
+  console.log(...messages, t);
+  return t;
+}

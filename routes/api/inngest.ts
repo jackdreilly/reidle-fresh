@@ -5,6 +5,7 @@ import * as sendgrid from "https://deno.land/x/sendgrid@0.0.3/mod.ts";
 import { IAddress } from "https://deno.land/x/sendgrid@0.0.3/mod.ts";
 import { serve } from "https://esm.sh/inngest@1.4.0/deno/fresh";
 import render from "preact-render-to-string";
+import { spy } from "../../utils/utils.ts";
 
 export function sendEmail(data: SendEmailData) {
   return inngest.send("email/send", { data, user: { name: "fake" } });
@@ -19,11 +20,12 @@ const sendEmailFunction = inngest.createFunction(
     },
   ) => {
     if (to === undefined) {
-      const email = Deno.env.get("DEFAULT_EMAIL");
-      if (!email) {
-        return;
-      }
-      to = [{ email }];
+      to = [{
+        email: Deno.env.get("ADMIN_EMAIL") ??
+          "jackdreilly+reidle.admin@gmail.com",
+      }];
+    } else if (!to?.length) {
+      to = [{ email: Deno.env.get("DEFAULT_EMAIL") ?? "" }];
     }
     const payload = {
       subject: `${Deno.env.get("EMAIL_TAG") ?? ""}${subject}`,
@@ -47,11 +49,13 @@ const sendEmailFunction = inngest.createFunction(
       return;
     }
     return {
-      sendgridResponse: await sendgrid.sendSimpleMail(
-        payload,
-        {
-          apiKey: Deno.env.get("SENDGRID_API_KEY") ?? "",
-        },
+      sendgridResponse: spy(
+        await sendgrid.sendSimpleMail(
+          payload,
+          {
+            apiKey: Deno.env.get("SENDGRID_API_KEY") ?? "",
+          },
+        ),
       ),
     };
   },
