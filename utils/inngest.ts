@@ -3,7 +3,6 @@ import { EventPayload, Inngest } from "https://esm.sh/inngest@1.4.0";
 export type SendEmailData = {
   to?: IAddress[];
   cc?: IAddress[];
-  bcc?: IAddress[];
   subject: string;
   text: string;
   html?: string;
