@@ -1,5 +1,5 @@
 import TimerText from "@/components/timer_text.tsx";
-import { Wordle } from "../utils/wordle.ts";
+import { Wordle } from "@/utils/wordle.ts";
 export default function ErrorBar(
   { winTime, error, penalty, wordle }: {
     winTime: number | null;
