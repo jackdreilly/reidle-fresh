@@ -1,6 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
 const stepMS = 1;
-const nConfetti = 200;
+const nConfetti = 80;
 class State {
   step(): State {
     for (const confetti of this.confetti) {
