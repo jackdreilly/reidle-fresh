@@ -3,6 +3,7 @@ import TimerText from "@/components/timer_text.tsx";
 import { Playback, PlaybackEvent, scoreColor } from "@/utils/playback.ts";
 import { ScoredWord, Scoring, ScoringHistory, Wordle } from "@/utils/wordle.ts";
 import { useEffect, useMemo, useState } from "preact/hooks";
+import Confetti from "./confetti.tsx";
 interface GameProperties {
   word: string;
   isPractice: boolean;
@@ -308,44 +309,49 @@ export default function Game(
           error={error}
         />
         <div class="flex justify-center items-center flex-grow overflow-hidden">
-          <div class="font-bold text-center text-[30px] sm:text-[40px] grid grid-rows-6 sm:gap-[5px] sm:p-[10px] gap-[3px] p-[5px] box-border">
-            {[...Array(Math.max(6, previousWords.length + 1)).keys()].filter(
-              (_) => wordle,
-            )
-              .filter((
-                i,
-              ) => i < previousWords.length || !won)
-              .map((row) => (
-                <div
-                  class="grid grid-cols-5 sm:gap-[5px] gap-[3px]"
-                  key={row}
-                >
-                  {[0, 1, 2, 3, 4].map((column) => (
-                    <div
-                      class="sm:m-[3px] m-[2px] sm:p-[5px] p-[3px] border-solid border-2 sm:w-[45px] sm:h-[45px] sm:leading-[50px] w-[35px] h-[35px] leading-[40px]"
-                      style={{
-                        boxSizing: "unset",
-                        borderColor: row < previousWords.length
-                          ? "transparent"
-                          : row === activeRow && column < activeCol
-                          ? "#878a8c"
-                          : "#d3d6da",
-                        backgroundColor: row < previousWords.length
-                          ? scoreColor(previousWords[row][column].score)
-                          : null,
-                        color: row < previousWords.length ? "white" : null,
-                      }}
-                      key={column}
-                    >
-                      {row === activeRow && column < activeCol
-                        ? currentWord[column]
-                        : row < previousWords.length
-                        ? previousWords[row][column].letter
-                        : null}
-                    </div>
-                  ))}
-                </div>
-              ))}
+          <div class="relative">
+            <div class="absolute bottom-[25%] right-[25%] h-full w-full">
+              {won ? <Confetti /> : null}
+            </div>
+            <div class="font-bold text-center text-[30px] sm:text-[40px] grid grid-rows-6 sm:gap-[5px] sm:p-[10px] gap-[3px] p-[5px] box-border">
+              {[...Array(Math.max(6, previousWords.length + 1)).keys()].filter(
+                (_) => wordle,
+              )
+                .filter((
+                  i,
+                ) => i < previousWords.length || !won)
+                .map((row) => (
+                  <div
+                    class="grid grid-cols-5 sm:gap-[5px] gap-[3px]"
+                    key={row}
+                  >
+                    {[0, 1, 2, 3, 4].map((column) => (
+                      <div
+                        class="sm:m-[3px] m-[2px] sm:p-[5px] p-[3px] border-solid border-2 sm:w-[45px] sm:h-[45px] sm:leading-[50px] w-[35px] h-[35px] leading-[40px]"
+                        style={{
+                          boxSizing: "unset",
+                          borderColor: row < previousWords.length
+                            ? "transparent"
+                            : row === activeRow && column < activeCol
+                            ? "#878a8c"
+                            : "#d3d6da",
+                          backgroundColor: row < previousWords.length
+                            ? scoreColor(previousWords[row][column].score)
+                            : null,
+                          color: row < previousWords.length ? "white" : null,
+                        }}
+                        key={column}
+                      >
+                        {row === activeRow && column < activeCol
+                          ? currentWord[column]
+                          : row < previousWords.length
+                          ? previousWords[row][column].letter
+                          : null}
+                      </div>
+                    ))}
+                  </div>
+                ))}
+            </div>
           </div>
         </div>
         <div class="m-1">
