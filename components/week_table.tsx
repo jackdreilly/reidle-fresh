@@ -87,7 +87,7 @@ export default function WeekTable(
               <TableCell>
                 {table[i][0] < 1000
                   ? table[i][0]
-                  : table[i][0].toString().slice(0, 2) + "K"}
+                  : Math.floor(table[i][0] / 1000).toString().slice(0, 2) + "K"}
               </TableCell>
               <TableCell>{timerTime(table[i][1])}</TableCell>
             </TableRow>
