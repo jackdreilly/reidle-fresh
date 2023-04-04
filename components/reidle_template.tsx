@@ -12,7 +12,7 @@ export default function ReidleTemplate(
 ) {
   return (
     <html class={fullPage ? "h-full" : ""}>
-      <ReidleHead title={title} />
+      <ReidleHead title={title} fullPage={fullPage} />
       <body class={fullPage ? "h-full" : ""}>
         <nav class="fixed top-0 z-50 w-full bg-white border-b border-gray-200 ">
           <div class="px-3 py-3 lg:px-5 lg:pl-3">
@@ -292,13 +292,23 @@ function Messages() {
   );
 }
 
-export function ReidleHead({ title }: { title: string }) {
+export function ReidleHead(
+  { title, fullPage }: { title: string; fullPage?: boolean },
+) {
   return (
     <Head>
       <title>{title ?? "Reidle"}</title>
       <script defer src={asset("/flowbite.min.js")} />
       <link rel="prefetch" href={asset("/words.csv")} sizes="any" />
       <link rel="prefetch" href={asset("/answers.csv")} sizes="any" />
+      {fullPage
+        ? (
+          <meta
+            name="viewport"
+            content="width=device-width, minimum-scale=1.0, maximum-scale = 1.0, user-scalable = no"
+          />
+        )
+        : null}
       <meta
         name="description"
         content="Reidle is a Wordle clone with a leaderboard, a forced starting word, and very strict rules."
