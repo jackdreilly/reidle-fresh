@@ -84,7 +84,9 @@ export async function fetchWeek(
     NATURAL INNER JOIN expanded
     NATURAL INNER JOIN name_day_ids
     ORDER BY
-      day, total_score, total_time
+      total_score,
+      day,
+      total_time
       `.then((x) => x.rows);
   const dates = Array.from(
     new Set<number>(submissions.map((s) => s.day)),
