@@ -1,12 +1,7 @@
 import { PageProps } from "$fresh/server.ts";
 import GameTemplate from "@/components/game_template.tsx";
 import Game from "@/islands/game.tsx";
-import {
-  guardLogin,
-  guardNotPlayed,
-  SessionData,
-  SessionHandler,
-} from "@/utils/utils.ts";
+import { guardLogin, SessionHandler } from "@/utils/utils.ts";
 
 interface PlayData {
   word: string;
@@ -16,10 +11,8 @@ interface PlayData {
 
 export const handler: SessionHandler<PlayData> = {
   async GET(_, ctx) {
-    return guardLogin(ctx) ?? guardNotPlayed(ctx.state.playedToday) ??
-      ctx.state.render(
-        ctx,
-        await ctx.state.connection.queryObject<PlayData>`
+    return guardLogin(ctx) ?? ctx.render(
+      await ctx.state.connection.queryObject<PlayData>`
 SELECT
     COALESCE(
             (
@@ -42,17 +35,15 @@ WHERE
     "day" = CURRENT_DATE
 LIMIT 1
     `.then((x) => x.rows[0]),
-      );
+    );
   },
 };
 
 export default function Page(
-  { data: { word, startingWord, winnersTime, playedToday } }: PageProps<
-    PlayData & SessionData
-  >,
+  { data: { word, startingWord, winnersTime } }: PageProps<PlayData>,
 ) {
   return (
-    <GameTemplate title="Play" isPractice={false} playedToday={playedToday}>
+    <GameTemplate title="Play" isPractice={false}>
       <Game
         isPractice={false}
         word={word}

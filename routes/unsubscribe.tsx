@@ -1,7 +1,7 @@
 import { PageProps } from "$fresh/server.ts";
 import Input from "@/components/input.tsx";
 import ReidleTemplate from "@/components/reidle_template.tsx";
-import { SessionData, SessionHandler } from "@/utils/utils.ts";
+import { SessionHandler } from "@/utils/utils.ts";
 import { PoolClient } from "https://deno.land/x/postgres@v0.14.0/mod.ts";
 
 interface Data {
@@ -13,28 +13,24 @@ export const handler: SessionHandler<Data> = {
   async GET(req, ctx) {
     const email = new URL(req.url).searchParams.get("email") ??
       await getEmail(ctx.state.name, ctx.state.connection);
-    return ctx.state.render(ctx, { email });
+    return ctx.render({ email });
   },
   async POST(req, ctx) {
     const email = (await req.formData()).get("email") as string;
     if (!email) {
-      return ctx.state.render(ctx, {});
+      return ctx.render({});
     }
     await ctx.state.connection
       .queryObject`update players set notifications_enabled = false where email = ${email}`;
-    return ctx.state.render(ctx, { email, unsubscribed: true });
+    return ctx.render({ email, unsubscribed: true });
   },
 };
 export default function Page(
-  { data: { email, unsubscribed, playedToday } }: PageProps<Data & SessionData>,
+  { data: { email, unsubscribed } }: PageProps<Data>,
 ) {
   email ??= "";
   return (
-    <ReidleTemplate
-      playedToday={playedToday}
-      route="/unsubscribe"
-      title="Unsubscribe"
-    >
+    <ReidleTemplate route="/unsubscribe" title="Unsubscribe">
       <h1 class="text-2xl my-4">Reminder Notifications</h1>
       {unsubscribed
         ? "You have been successfully unsubscribed from daily notifications"

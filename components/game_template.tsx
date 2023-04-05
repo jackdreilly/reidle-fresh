@@ -1,17 +1,16 @@
-import ReidleTemplate from "@/components/reidle_template.tsx";
+import { Head } from "$fresh/runtime.ts";
 import { ComponentChildren } from "preact";
+import ReidleTemplate, { ReidleHead } from "./reidle_template.tsx";
 export default function GameTemplate(
-  { isPractice, children, title, playedToday }: {
+  { isPractice, children, title }: {
     isPractice: boolean;
     children?: ComponentChildren;
     title: string;
-    playedToday: boolean;
   },
 ) {
   title ??= isPractice ? "Practice" : "Play";
   return (
     <ReidleTemplate
-      playedToday={playedToday}
       route={isPractice ? "/practice" : "/play"}
       fullPage
       title={title}

@@ -32,7 +32,7 @@ export const handler: SessionHandler<Data> = {
     if (ctx.state.name.toLowerCase() !== "jack") {
       return new Response("unauthorized", { status: 401 });
     }
-    return ctx.state.render(ctx,await data(ctx));
+    return ctx.render(await data(ctx));
   },
   async POST(req, ctx) {
     if (ctx.state.name.toLowerCase() !== "jack") {

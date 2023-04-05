@@ -1,7 +1,7 @@
 import { PageProps } from "$fresh/server.ts";
 import GameTemplate from "@/components/game_template.tsx";
 import Game from "@/islands/game.tsx";
-import { SessionData, SessionHandler } from "@/utils/utils.ts";
+import { SessionHandler } from "@/utils/utils.ts";
 import { Wordle } from "@/utils/wordle.ts";
 
 interface PracticeData {
@@ -16,7 +16,7 @@ export const handler: SessionHandler<PracticeData> = {
     const url = new URL(req.url);
     const { searchParams } = url;
     if (["word", "startingWord"].every((x) => searchParams.has(x))) {
-      return ctx.state.render(ctx, {
+      return ctx.render({
         word: wordle.answers[parseInt(searchParams.get("word") ?? "0")],
         startingWord:
           wordle.words[parseInt(searchParams.get("startingWord") ?? "0")],
@@ -39,12 +39,10 @@ export const handler: SessionHandler<PracticeData> = {
 };
 
 export default function Page(
-  { data: { word, startingWord, playedToday } }: PageProps<
-    PracticeData & SessionData
-  >,
+  { data: { word, startingWord } }: PageProps<PracticeData>,
 ) {
   return (
-    <GameTemplate title="Practice" isPractice={true} playedToday={playedToday}>
+    <GameTemplate isPractice={true}>
       <Game
         isPractice={true}
         word={word}

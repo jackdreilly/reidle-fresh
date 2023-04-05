@@ -22,7 +22,7 @@ export const handler: SessionHandler<Data> = {
   async GET(_, ctx) {
     const name = ctx.state.name;
     await getWinner(ctx.state.connection);
-    return ctx.state.render(ctx,{
+    return ctx.render({
       submissions: await ctx.state.connection.queryObject<Submission>`
       SELECT
         name,
@@ -38,10 +38,10 @@ export const handler: SessionHandler<Data> = {
 };
 
 export default function Page(
-  { data: { submissions, playedToday, name: myName } }: PageProps<Data & {playedToday: boolean}>,
+  { data: { submissions, name: myName } }: PageProps<Data>,
 ) {
   return (
-    <StatsTemplate playedToday={playedToday} route="past_winners">
+    <StatsTemplate route="past_winners">
       <Table columns={["Name", "Week"]}>
         <TableBody>
           {submissions.map(({ name, week }, i) => (

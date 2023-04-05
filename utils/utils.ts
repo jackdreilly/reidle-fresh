@@ -1,15 +1,10 @@
 import { asset } from "$fresh/runtime.ts";
-import { HandlerContext, Handlers } from "$fresh/server.ts";
+import { Handlers } from "$fresh/server.ts";
 import { PoolClient } from "https://deno.land/x/postgres@v0.14.0/mod.ts";
 
 export type SessionData = {
   connection: PoolClient;
   name: string;
-  playedToday: boolean;
-  render<T>(
-    ctx: HandlerContext<T, SessionData>,
-    data: T,
-  ): Promise<Response> | Response;
 };
 
 export type SessionHandler<T> = Handlers<
@@ -62,16 +57,6 @@ export function guardLogin(
     return new Response("need to sign in", {
       status: 302,
       headers: { location: "/sign-in" },
-    });
-  }
-}
-export function guardNotPlayed(
-  played: boolean,
-): Response | undefined {
-  if (played) {
-    return new Response("Already played", {
-      status: 307,
-      headers: { location: "/" },
     });
   }
 }
