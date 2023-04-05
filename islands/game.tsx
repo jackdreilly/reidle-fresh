@@ -210,15 +210,17 @@ export default function Game(
     if (!wordle) {
       return;
     }
-    setCurrentWord("");
     const wordScore = wordScorer({ wordle, currentWord, previousWords, word });
     if (wordScore instanceof Array) {
       setPreviousWords((s) => [...s, wordScore]);
       if (currentWord === word) {
         setWon(new Date());
+        return;
       }
+      setCurrentWord("");
       return;
     }
+    setCurrentWord("");
     const { error, penalty } = wordScore;
     addError(error, penalty);
   }

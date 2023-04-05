@@ -12,7 +12,7 @@ export default function PlaybackComponent(
   const [error, setError] = useState<string>("");
   const [won, setWon] = useState(false);
   useEffect(() => {
-    if (won || eventIndex === events.length - 1) {
+    if (won || eventIndex === events.length) {
       return;
     }
     const { letter, backspace, clear, score, error } = events[eventIndex];
