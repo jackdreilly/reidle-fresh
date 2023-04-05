@@ -37,7 +37,6 @@ export const handler: MiddlewareHandler<SessionData> = (req, ctx) => {
     CURRENT_DATE = day
     AND name = ${name}
     `.then((x) => x.rows[0].count > 0).then((x) => {
-      console.log('hi');
         return x;
       })))();
     ctx.state.render = async (ctxSuper, data) => {
