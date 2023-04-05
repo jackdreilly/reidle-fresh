@@ -22,7 +22,6 @@ export default function Game(
   const [previousWords, setPreviousWordsPrivate] = useState<ScoringHistory>([]);
   const [won, setWon] = useState<Date | null>(null);
   const [__, setTicks] = useState(0);
-  const [played, setPlayed] = useState(false);
   const [candidates, setCandidates] = useState<string[]>([]);
   const [enableHelp, setEnableHelp] = useState(false);
   function addPlayback(
@@ -96,28 +95,6 @@ export default function Game(
       )
     );
   }
-  useEffect(() => {
-    if (isPractice) {
-      return;
-    }
-    async function helper() {
-      const response = await fetch("/api/played", {
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-        },
-      });
-      const played = await response.json();
-      if (!played) {
-        return;
-      }
-      addError("You already played! This game won't count", 120);
-      setPlayed(true);
-      await new Promise((r) => setTimeout(r, 100));
-      addError("You already played! This game won't count");
-    }
-    helper();
-  }, []);
   useEffect(() => {
     async function helper() {
       const wordle = await Wordle.make(false);
@@ -201,7 +178,7 @@ export default function Game(
     return () => self.removeEventListener("keydown", onKeyDownWrapper);
   }, [wordle, onKeyDownWrapper]);
   useEffect(() => {
-    if (!won || isPractice || played) {
+    if (!won || isPractice) {
       return;
     }
     fetch("/api/submit", {

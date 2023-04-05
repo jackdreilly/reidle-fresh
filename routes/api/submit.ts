@@ -5,22 +5,6 @@ export const handler: SessionHandler<null> = {
   async POST(req, ctx) {
     const { time, penalty, playback, word, paste } = await req.json();
     const name = ctx.state.name;
-    if (
-      (await ctx.state.connection.queryObject<
-        { played: boolean }
-      >`
-      SELECT
-          count(*) > 0 as played
-      FROM
-          submissions
-      WHERE
-          name = ${name}
-      AND
-          day = CURRENT_DATE
-      `).rows[0].played
-    ) {
-      return new Response("Already played", { status: 400 });
-    }
     await ctx.state.connection.queryArray`
 WITH existing AS (
     SELECT

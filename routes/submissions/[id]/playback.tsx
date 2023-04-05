@@ -2,14 +2,14 @@ import { PageProps } from "$fresh/server.ts";
 import GameTemplate from "@/components/game_template.tsx";
 import PlaybackComponent from "@/islands/playback.tsx";
 import { Playback } from "@/utils/playback.ts";
-import { SessionHandler } from "@/utils/utils.ts";
+import { SessionData, SessionHandler } from "@/utils/utils.ts";
 interface Data {
   playback: Playback;
 }
 
 export const handler: SessionHandler<Data> = {
   async GET(_, ctx) {
-    return ctx.render({
+    return ctx.state.render(ctx,{
       playback: await ctx.state.connection.queryObject<
         { playback: Playback }
       >`select playback from submissions where id = ${ctx.params.id} limit 1`
@@ -19,10 +19,10 @@ export const handler: SessionHandler<Data> = {
 };
 
 export default function Page(
-  { data: { playback: { events } } }: PageProps<Data>,
+  { data: { playedToday, playback: { events } } }: PageProps<Data & SessionData>,
 ) {
   return (
-    <GameTemplate title="Playback" isPractice={false}>
+    <GameTemplate title="Playback" isPractice={false} playedToday={playedToday}>
       <PlaybackComponent events={events} />
     </GameTemplate>
   );

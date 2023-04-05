@@ -1,6 +1,6 @@
 import { PageProps } from "$fresh/server.ts";
 import ReidleTemplate from "@/components/reidle_template.tsx";
-import { SessionHandler, timerTime } from "@/utils/utils.ts";
+import { SessionData, SessionHandler, timerTime } from "@/utils/utils.ts";
 import { Chart } from "https://deno.land/x/fresh_charts@0.2.1/mod.ts";
 type Buckets = { bucket: number; count: number }[];
 interface Stats {
@@ -109,14 +109,15 @@ from
     TOTAL_SUBMISSIONS,
     BY_WEEK_JSON
         `.then((x) => x.rows[0]?.stats);
-    return ctx.render({ stats, name });
+    return ctx.state.render(ctx, { stats, name });
   },
 };
 
 export default function Page(
-  { data: { name, stats: { total, rank, penalty, time, week } } }: PageProps<
-    Data
-  >,
+  { data: { name, playedToday, stats: { total, rank, penalty, time, week } } }:
+    PageProps<
+      Data & SessionData
+    >,
 ) {
   const [scores, _penalties, times] = ([rank, penalty, time] as Buckets[]).map(
     (x) =>
@@ -126,7 +127,7 @@ export default function Page(
   );
   const penalties = _penalties.filter(([a, b]) => a !== 0);
   return (
-    <ReidleTemplate route="/players" title={name}>
+    <ReidleTemplate playedToday={playedToday} route="/players" title={name}>
       <h1 class="text-2xl">{name}</h1>
       <div class="m-2">
         <h2 class="text-xl">Total Games: {total}</h2>
@@ -136,10 +137,14 @@ export default function Page(
           options={{ devicePixelRatio: 1 }}
           type="bar"
           data={{
-            labels: scores.map(([a, _]) => a.toString()),
+            labels: scores.map(([a, _]) =>
+              a.toString()
+            ),
             datasets: [{
               label: "Scores",
-              data: scores.map(([_, b]) => b),
+              data: scores.map(([_, b]) =>
+                b
+              ),
             }],
           }}
         />
