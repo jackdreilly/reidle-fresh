@@ -97,7 +97,7 @@ class ConfettiPiece {
     this.rotation = this.rotation.add(this.rotationVelocity);
     this.velocity.y = Math.max(
       this.minVelocity,
-      this.velocity.y - 80e-4 - Math.abs(this.velocity.y) * 1.5e-1,
+      this.velocity.y - 40e-4 - Math.abs(this.velocity.y) * 1.5e-1,
     );
     this.velocity.x += rand() * 5e-5;
     this.velocity.x *= .99;
@@ -110,7 +110,7 @@ class ConfettiPiece {
     const velocity = new Vector(0, 1, 0).add(Vector.random().mul(1e-2))
       .rotateXY(
         rand() * 3,
-      ).norm().mul((1 + rand() * 1e-1) * 7.5e-2 * 3.2);
+      ).norm().mul((1 + rand() * 1e-1) * 7.5e-2 * 2.4);
     const hsl = new Hsl(Math.random() * 360, 50, 50);
     const position = new Vector(0.5 + rand() * 1e-3, 0, 1 + rand() * 3e-1);
     const minVelocity = -1e-3 * (1 + rand() * 0.4) * factor;
