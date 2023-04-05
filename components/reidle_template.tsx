@@ -3,11 +3,12 @@ import ReadNotification from "@/islands/ReadNotification.tsx";
 import { ComponentChildren } from "preact";
 
 export default function ReidleTemplate(
-  { children, title, route, fullPage }: {
+  { children, title, route, fullPage, playedToday }: {
     route: string;
     children: ComponentChildren;
     title: string;
     fullPage?: boolean;
+    playedToday: boolean;
   },
 ) {
   return (
@@ -57,6 +58,7 @@ export default function ReidleTemplate(
                   <a
                     href="/play"
                     class="text-white bg-gradient-to-r from-pink-400 via-pink-500 to-pink-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-pink-300 dark:focus:ring-pink-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2"
+                    style={{ display: playedToday ? "none" : null }}
                   >
                     <PlaySVG fill="#ffffff" />
                   </a>
@@ -89,7 +91,7 @@ export default function ReidleTemplate(
         >
           <div class="h-full px-3 pb-4 overflow-y-auto bg-white ">
             <ul class="space-y-2">
-              <li>
+              <li style={{ display: playedToday ? "none" : null }}>
                 <a
                   href="/play"
                   class="flex items-center p-2 text-base font-normal text-gray-900 rounded-lg hover:bg-gray-100 "

@@ -1,13 +1,14 @@
 import ReidleTemplate from "@/components/reidle_template.tsx";
 import { ComponentChildren } from "preact";
 export default function StatsTemplate(
-  { children, route }: {
+  { children, route, playedToday }: {
     children?: ComponentChildren;
     route?: "today" | "this_week" | "past_winners";
+    playedToday: boolean,
   },
 ) {
   return (
-    <ReidleTemplate route="/stats" title="Stats">
+    <ReidleTemplate playedToday={playedToday} route="/stats" title="Stats">
       <div class="my-4">
         {[["Today", "today"], ["Week", "this_week"], ["Past", "past_winners"]]
           .map(([text, link]) => (

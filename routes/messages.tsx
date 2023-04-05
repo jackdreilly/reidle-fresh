@@ -2,7 +2,7 @@ import { PageProps } from "$fresh/server.ts";
 import Button from "@/components/button.tsx";
 import ReidleTemplate from "@/components/reidle_template.tsx";
 import { sendEmail } from "@/routes/api/inngest.ts";
-import { guardLogin, SessionHandler } from "@/utils/utils.ts";
+import { guardLogin, SessionData, SessionHandler } from "@/utils/utils.ts";
 import { moment } from "https://deno.land/x/deno_moment@v1.1.2/mod.ts";
 interface Message {
   message: string;
@@ -44,7 +44,7 @@ export const handler: SessionHandler<Data> = {
   },
   async GET(_, ctx) {
     const name = ctx.state.name;
-    return guardLogin(ctx) ?? ctx.render({
+    return guardLogin(ctx) ?? ctx.state.render(ctx, {
       messages: await ctx.state.connection.queryObject<Message>`
 WITH "read_receipt" AS (
     INSERT INTO "message_reads" ("name", "last_read")
@@ -72,10 +72,16 @@ ORDER BY
 };
 
 export default function Page(
-  { data: { messages, name: myName } }: PageProps<Data>,
+  { data: { messages, name: myName, playedToday } }: PageProps<
+    Data & SessionData
+  >,
 ) {
   return (
-    <ReidleTemplate route="/messages" title="Messages">
+    <ReidleTemplate
+      playedToday={playedToday}
+      route="/messages"
+      title="Messages"
+    >
       <form method="POST" class="flex">
         <textarea
           required
