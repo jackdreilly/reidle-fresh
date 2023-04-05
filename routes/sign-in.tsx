@@ -1,7 +1,6 @@
-import { Head } from "$fresh/runtime.ts";
 import Input from "@/components/input.tsx";
 import { SessionHandler } from "@/utils/utils.ts";
-import { ReidleHead } from "../components/reidle_template.tsx";
+import { ReidleHead } from "@/components/reidle_template.tsx";
 
 export const handler: SessionHandler<null> = {
   async POST(req, ctx) {

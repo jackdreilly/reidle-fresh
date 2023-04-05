@@ -6,6 +6,7 @@ export type SessionData = {
   connection: PoolClient;
   name: string;
   playedToday: boolean;
+  playedTodayPromise: Promise<boolean>;
   render<T>(
     ctx: HandlerContext<T, SessionData>,
     data: T,
@@ -53,17 +54,6 @@ export function jsonResponse(json: JSONable): Response {
   return new Response(JSON.stringify(json), {
     headers: { "Content-Type": "application/json" },
   });
-}
-
-export function guardLogin(
-  { state: { name } }: { state: { name: string } },
-): Response | undefined {
-  if (!name) {
-    return new Response("need to sign in", {
-      status: 302,
-      headers: { location: "/sign-in" },
-    });
-  }
 }
 export function guardNotPlayed(
   played: boolean,

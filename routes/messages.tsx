@@ -2,7 +2,7 @@ import { PageProps } from "$fresh/server.ts";
 import Button from "@/components/button.tsx";
 import ReidleTemplate from "@/components/reidle_template.tsx";
 import { sendEmail } from "@/routes/api/inngest.ts";
-import { guardLogin, SessionData, SessionHandler } from "@/utils/utils.ts";
+import { SessionData, SessionHandler } from "@/utils/utils.ts";
 import { moment } from "https://deno.land/x/deno_moment@v1.1.2/mod.ts";
 interface Message {
   message: string;
@@ -44,7 +44,7 @@ export const handler: SessionHandler<Data> = {
   },
   async GET(_, ctx) {
     const name = ctx.state.name;
-    return guardLogin(ctx) ?? ctx.state.render(ctx, {
+    return ctx.state.render(ctx, {
       messages: await ctx.state.connection.queryObject<Message>`
 WITH "read_receipt" AS (
     INSERT INTO "message_reads" ("name", "last_read")

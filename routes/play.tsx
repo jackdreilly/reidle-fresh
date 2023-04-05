@@ -1,12 +1,7 @@
 import { PageProps } from "$fresh/server.ts";
 import GameTemplate from "@/components/game_template.tsx";
 import Game from "@/islands/game.tsx";
-import {
-  guardLogin,
-  guardNotPlayed,
-  SessionData,
-  SessionHandler,
-} from "@/utils/utils.ts";
+import { guardNotPlayed, SessionData, SessionHandler } from "@/utils/utils.ts";
 
 interface PlayData {
   word: string;
@@ -16,7 +11,7 @@ interface PlayData {
 
 export const handler: SessionHandler<PlayData> = {
   async GET(_, ctx) {
-    return guardLogin(ctx) ?? guardNotPlayed(ctx.state.playedToday) ??
+    return guardNotPlayed(await ctx.state.playedTodayPromise) ??
       ctx.state.render(
         ctx,
         await ctx.state.connection.queryObject<PlayData>`

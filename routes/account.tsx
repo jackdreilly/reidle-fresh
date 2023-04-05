@@ -1,17 +1,17 @@
 import { PageProps } from "$fresh/server.ts";
 import ReidleTemplate from "@/components/reidle_template.tsx";
-import { guardLogin, SessionData, SessionHandler } from "@/utils/utils.ts";
+import { SessionData, SessionHandler } from "@/utils/utils.ts";
 
 interface Data {
-  name?: string;
   email?: string;
   notifications_enabled?: boolean;
 }
 
 export const handler: SessionHandler<Data> = {
   async GET(_, ctx) {
-    const name = ctx.state.name;
-    return guardLogin(ctx) ?? ctx.state.render(ctx,
+    const { state: { name } } = ctx;
+    return ctx.state.render(
+      ctx,
       await ctx.state.connection.queryObject<
         Data
       >`select name, email, notifications_enabled from players where name = ${name} limit 1`
@@ -45,10 +45,12 @@ export const handler: SessionHandler<Data> = {
 };
 
 export default function Page(
-  { data: { name, email, notifications_enabled, playedToday } }: PageProps<Data & SessionData>,
+  { data: { name, email, notifications_enabled, playedToday } }: PageProps<
+    Data & SessionData
+  >,
 ) {
   return (
-    <ReidleTemplate  playedToday={playedToday} route="/account" title="Account">
+    <ReidleTemplate playedToday={playedToday} route="/account" title="Account">
       <h1 class="text-2xl uppercase">{name}</h1>
       <form method="POST" class="my-4 max-w-sm">
         <div class="mb-6">

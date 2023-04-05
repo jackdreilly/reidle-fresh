@@ -17,13 +17,14 @@ import * as $10 from "./routes/players/[name].tsx";
 import * as $11 from "./routes/practice.tsx";
 import * as $12 from "./routes/sign-in.tsx";
 import * as $13 from "./routes/sign-out.tsx";
-import * as $14 from "./routes/stats/daily/[date].tsx";
-import * as $15 from "./routes/stats/past_winners.tsx";
-import * as $16 from "./routes/stats/this_week.tsx";
-import * as $17 from "./routes/stats/today.tsx";
-import * as $18 from "./routes/stats/weekly/[startDay].tsx";
-import * as $19 from "./routes/submissions/[id]/playback.tsx";
-import * as $20 from "./routes/unsubscribe.tsx";
+import * as $14 from "./routes/stats.tsx";
+import * as $15 from "./routes/stats/daily/[date].tsx";
+import * as $16 from "./routes/stats/past_winners.tsx";
+import * as $17 from "./routes/stats/this_week.tsx";
+import * as $18 from "./routes/stats/today.tsx";
+import * as $19 from "./routes/stats/weekly/[startDay].tsx";
+import * as $20 from "./routes/submissions/[id]/playback.tsx";
+import * as $21 from "./routes/unsubscribe.tsx";
 import * as $$0 from "./islands/ReadNotification.tsx";
 import * as $$1 from "./islands/confetti.tsx";
 import * as $$2 from "./islands/game.tsx";
@@ -45,13 +46,14 @@ const manifest = {
     "./routes/practice.tsx": $11,
     "./routes/sign-in.tsx": $12,
     "./routes/sign-out.tsx": $13,
-    "./routes/stats/daily/[date].tsx": $14,
-    "./routes/stats/past_winners.tsx": $15,
-    "./routes/stats/this_week.tsx": $16,
-    "./routes/stats/today.tsx": $17,
-    "./routes/stats/weekly/[startDay].tsx": $18,
-    "./routes/submissions/[id]/playback.tsx": $19,
-    "./routes/unsubscribe.tsx": $20,
+    "./routes/stats.tsx": $14,
+    "./routes/stats/daily/[date].tsx": $15,
+    "./routes/stats/past_winners.tsx": $16,
+    "./routes/stats/this_week.tsx": $17,
+    "./routes/stats/today.tsx": $18,
+    "./routes/stats/weekly/[startDay].tsx": $19,
+    "./routes/submissions/[id]/playback.tsx": $20,
+    "./routes/unsubscribe.tsx": $21,
   },
   islands: {
     "./islands/ReadNotification.tsx": $$0,

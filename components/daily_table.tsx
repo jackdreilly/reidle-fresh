@@ -6,7 +6,7 @@ import {
   TableRowHeader,
 } from "@/components/tables.tsx";
 import TimerText from "@/components/timer_text.tsx";
-import { DailySubmission } from "@/utils/daily.ts";
+import { DailySubmission } from "@/routes/stats/daily/[date].tsx";
 
 export type DailyTableData = DailySubmission[];
 export function DailyTable(
