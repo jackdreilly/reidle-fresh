@@ -12,4 +12,5 @@ import twindConfig from "@/twind.config.ts";
 
 await start(manifest, {
   plugins: [twindPlugin(twindConfig)],
+  experimentalDenoServe: false,
 });

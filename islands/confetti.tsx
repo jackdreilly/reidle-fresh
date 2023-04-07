@@ -3,18 +3,18 @@ const stepMS = 25;
 const nConfetti = 200;
 const factor = 1e1;
 class State {
-  step(): State {
+  step(stepFactor: number): State {
     for (const confetti of this.confetti) {
-      confetti.stepForward();
+      confetti.stepForward(stepFactor);
     }
     return this.copy();
   }
   copy(): State {
-    return new State(this.confetti, this.n);
+    return new State(this.confetti);
   }
-  constructor(public confetti: ConfettiPiece[], public n: number) {}
-  static make(n: number): State {
-    return new State(repeat(nConfetti, () => ConfettiPiece.randomStart()), n);
+  constructor(public confetti: ConfettiPiece[]) {}
+  static make(): State {
+    return new State(repeat(nConfetti, () => ConfettiPiece.randomStart()));
   }
 }
 type VectorLike = Vector | number | [number, number, number];
@@ -92,16 +92,16 @@ class ConfettiPiece {
     public minVelocity: number,
     public height: number,
   ) {}
-  stepForward() {
-    this.position = this.position.add(this.velocity);
-    this.rotation = this.rotation.add(this.rotationVelocity);
+  stepForward(stepFactor: number) {
+    this.position = this.position.add(this.velocity.mul(stepFactor));
+    this.rotation = this.rotation.add(this.rotationVelocity.mul(stepFactor));
     this.velocity.y = Math.max(
       this.minVelocity,
-      this.velocity.y - 40e-4 - Math.abs(this.velocity.y) * 1.5e-1,
+      this.velocity.y - 40e-4 * stepFactor -
+        Math.abs(this.velocity.y) * 1.5e-1 * stepFactor,
     );
     this.velocity.x += rand() * 5e-5;
     this.velocity.x *= .99;
-    this.rotationVelocity = this.rotationVelocity.mul(.99999);
   }
   static randomStart() {
     const rotationVelocity = Vector.random().add(1).norm().mul(2);
@@ -114,7 +114,7 @@ class ConfettiPiece {
     const hsl = new Hsl(Math.random() * 360, 50, 50);
     const position = new Vector(0.5 + rand() * 1e-3, 0, 1 + rand() * 3e-1);
     const minVelocity = -1e-3 * (1 + rand() * 0.4) * factor;
-    const height = (7e-2 + rand() * 6e-2) * 4e-1;
+    const height = (5.5e-2 + rand() * 8e-2) * 4e-1;
     return new ConfettiPiece(
       position,
       velocity,
@@ -154,10 +154,16 @@ class ConfettiPiece {
   }
 }
 export default function Confetti() {
-  const [{ confetti }, setState] = useState<State>(() => State.make(100));
+  const [{ confetti }, setState] = useState<State>(() => State.make());
   useEffect(() => {
+    let last = Date.now();
+    const start = Date.now();
     const interval = setInterval(() => {
-      setState((state) => state.step());
+      setState((state) => state.step((Date.now() - last) / stepMS));
+      last = Date.now();
+      if (last - start > 4500) {
+        clearInterval(interval);
+      }
     }, stepMS);
     return () => clearInterval(interval);
   }, []);
