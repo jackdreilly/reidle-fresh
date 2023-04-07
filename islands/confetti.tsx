@@ -161,7 +161,7 @@ export default function Confetti() {
     const interval = setInterval(() => {
       setState((state) => state.step((Date.now() - last) / stepMS));
       last = Date.now();
-      if (last - start > 4500) {
+      if (last - start > 5500) {
         clearInterval(interval);
       }
     }, stepMS);
