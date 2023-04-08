@@ -288,10 +288,10 @@ export default function Game(
           winTime={won ? totalSeconds : null}
           error={error}
         />
-        <div class="flex justify-center items-center flex-grow overflow-hidden m-2 p-2 font-bold font-mono text-center">
+        <div class="flex justify-center items-center flex-grow overflow-hidden m-2 p-2 font-bold text-center">
           <div
             class="relative h-full max-h-[25rem] w-full"
-            style={{ maxWidth: "min(20.8rem, 40vh)" }}
+            style={{ maxWidth: "min(20.8rem, 40vh)", fontSize: "min(50px, 5vh)", }}
           >
             <div class="absolute bottom-[50%] right-[50%] h-full w-full">
               {won ? <Confetti /> : null}
@@ -315,7 +315,6 @@ export default function Game(
                       <div
                         class="border-solid border-2 grid items-center"
                         style={{
-                          fontSize: "min(40px, 4.5vh)",
                           borderColor: row < previousWords.length
                             ? "transparent"
                             : row === activeRow && column < activeCol
