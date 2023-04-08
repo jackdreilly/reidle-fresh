@@ -16,7 +16,14 @@ export default function ReidleTemplate(
       <ReidleHead title={title} fullPage={fullPage} />
       <body class={fullPage ? "h-full" : ""}>
         <nav class="fixed top-0 z-50 w-full bg-white border-b border-gray-200 ">
-          <div class="px-3 py-3 lg:px-5 lg:pl-3">
+          <div
+            class={[
+              "px-3",
+              fullPage ? "py-[0.4rem]" : "py-3",
+              "lg:px-5",
+              "lg:pl-3",
+            ].join(" ")}
+          >
             <div class="flex items-center justify-between">
               <div class="flex items-center justify-start">
                 <button
@@ -245,7 +252,7 @@ export default function ReidleTemplate(
         <div
           class={[
             "md:ml-48",
-            fullPage ? "pt-[5em] h-full" : "pt-[6em] px-4 pb-4",
+            fullPage ? "pt-[4em] h-full" : "pt-[6em] px-4 pb-4",
           ].join(" ")}
         >
           {children}

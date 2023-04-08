@@ -227,6 +227,7 @@ export default function Game(
   const totalSeconds = penalties + Math.round(
     ((won ?? new Date()).getTime() - startTime.getTime()) / 1000,
   );
+  const numRows = Math.max(6, previousWords.length + 1);
   return (
     <>
       <div class="w-full flex flex-col h-full max-w-6xl flex-grow-1 text-center text-lg">
@@ -287,13 +288,19 @@ export default function Game(
           winTime={won ? totalSeconds : null}
           error={error}
         />
-        <div class="flex justify-center items-center flex-grow overflow-hidden">
-          <div class="relative">
+        <div class="flex justify-center items-center flex-grow overflow-hidden m-2 p-2 font-bold font-mono text-center">
+          <div
+            class="relative h-full max-h-[25rem] w-full"
+            style={{ maxWidth: "min(20.8rem, 40vh)" }}
+          >
             <div class="absolute bottom-[25%] right-[25%] h-full w-full">
               {won ? <Confetti /> : null}
             </div>
-            <div class="font-bold text-center text-[30px] sm:text-[40px] grid grid-rows-6 sm:gap-[5px] sm:p-[10px] gap-[3px] p-[5px] box-border">
-              {[...Array(Math.max(6, previousWords.length + 1)).keys()].filter(
+            <div
+              class={`grid gap-[3px] p-[5px] box-border h-full w-full`}
+              style={`grid-template-rows: repeat(${numRows}, minmax(0, 1fr))`}
+            >
+              {[...Array(numRows).keys()].filter(
                 (_) => wordle,
               )
                 .filter((
@@ -301,14 +308,14 @@ export default function Game(
                 ) => i < previousWords.length || !won)
                 .map((row) => (
                   <div
-                    class="grid grid-cols-5 sm:gap-[5px] gap-[3px]"
+                    class="grid grid-cols-5 gap-[3px]"
                     key={row}
                   >
                     {[0, 1, 2, 3, 4].map((column) => (
                       <div
-                        class="sm:m-[3px] m-[2px] sm:p-[5px] p-[3px] border-solid border-2 sm:w-[45px] sm:h-[45px] sm:leading-[50px] w-[35px] h-[35px] leading-[40px]"
+                        class="border-solid border-2 grid items-center"
                         style={{
-                          boxSizing: "unset",
+                          fontSize: "min(40px, 4.5vh)",
                           borderColor: row < previousWords.length
                             ? "transparent"
                             : row === activeRow && column < activeCol
@@ -335,7 +342,7 @@ export default function Game(
         </div>
         <div class="m-1">
           <div
-            class="mx-auto max-w-xl h-[12rem] grid grid-rows-3 gap-1 text-2xl select-none"
+            class="mx-auto max-w-xl h-[calc(min(25vh,12rem))] grid grid-rows-3 gap-1 text-2xl select-none"
             style={{ width: "inherit" }}
           >
             {"QWERTYUIOP,ASDFGHJKL,↵ZXCVBNM␡".split(",").map((row) => (
