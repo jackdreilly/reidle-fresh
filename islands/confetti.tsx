@@ -168,7 +168,7 @@ export default function Confetti() {
     return () => clearInterval(interval);
   }, []);
   return (
-    <svg height="150%" width="150%" viewBox="0 0 1 1">
+    <svg height="200%" width="200%" viewBox="0 0 1 1">
       <g transform={`translate(0, 1) scale(1,-1)`}>
         {confetti.map((c, i) => c.svg())}
       </g>

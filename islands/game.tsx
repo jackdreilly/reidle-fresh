@@ -293,7 +293,7 @@ export default function Game(
             class="relative h-full max-h-[25rem] w-full"
             style={{ maxWidth: "min(20.8rem, 40vh)" }}
           >
-            <div class="absolute bottom-[25%] right-[25%] h-full w-full">
+            <div class="absolute bottom-[50%] right-[50%] h-full w-full">
               {won ? <Confetti /> : null}
             </div>
             <div
