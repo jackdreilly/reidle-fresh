@@ -10,6 +10,7 @@ export interface Challenge {
   best_time?: number;
   best_name?: string;
   have_played: boolean;
+  challengers: string;
 }
 interface Data {
   challenges: Challenge[];
@@ -100,6 +101,14 @@ export const handler: SessionHandler<Data> = {
           submissions
         group by
           1
+      ),
+      challengers as (
+        select
+          challenge_id,
+          string_agg(name, ', ' order by name) as challengers
+        FROM
+          challenge_requests
+        group by 1
       )
       SELECT
         challenger,
@@ -107,13 +116,16 @@ export const handler: SessionHandler<Data> = {
         created_at,
         best_time,
         best_name,
-        have_played
+        have_played,
+        challengers
       FROM
         eligible_challenges
       natural FULL OUTER join
         best_result
       natural full outer join
         played
+      natural full outer join
+        challengers
       ORDER BY
         have_played,
         challenge_id desc
@@ -163,20 +175,24 @@ export default function Page(
             : (
               <ul class="max-w-md divide-y divide-gray-200 rounded shadow border m-4">
                 {challenges.map((
-                  { challenger, created_at, id, best_name, best_time },
+                  {
+                    challenger,
+                    created_at,
+                    id,
+                    best_name,
+                    best_time,
+                    challengers,
+                  },
                 ) => (
                   <li
-                    class="divide-y divide-gray-700 hover:bg-gray-200"
-                    style={{
-                      backgroundColor: best_name === myName ? "#fef3c7" : null,
-                    }}
+                    class={[
+                      "divide-y divide-gray-700 hover:bg-gray-200",
+                      best_name === myName ? "bg-green-200" : "",
+                    ].join(" ")}
                   >
                     <a href={`/challenges/challenge/${id}`}>
                       <div class="flex divide-x divide-gray-400 items-center p-2">
                         <div class="p-2 w-8">{id}</div>
-                        <div class={"p-2 w-24"}>
-                          By<span class={"p-2 font-bold"}>{challenger}</span>
-                        </div>
                         <div class="p-2 flex-1">
                           {best_time
                             ? (
@@ -190,6 +206,11 @@ export default function Page(
                               </>
                             )
                             : null}
+                          <div class="italic">
+                            <span class={"font-bold"}>{challenger}</span>,
+                            {" "}
+                            <span>{challengers}</span>
+                          </div>
                         </div>
                         <div class="italic w-32 p-2">
                           {moment(created_at).fromNow()}
