@@ -1,10 +1,8 @@
+import { PageProps } from "$fresh/server.ts";
 import { Challenge } from "@/routes/challenges.tsx";
 import { SessionData, SessionHandler } from "@/utils/utils.ts";
-import { PageProps } from "$fresh/server.ts";
-import ReidleTemplate from "@/components/reidle_template.tsx";
-import { moment } from "https://deno.land/x/deno_moment@v1.1.2/moment.ts";
-import GameTemplate from "../../../../components/game_template.tsx";
-import Game from "../../../../islands/game.tsx";
+import GameTemplate from "@/components/game_template.tsx";
+import Game from "@/islands/game.tsx";
 interface ChallengeWithWords extends Challenge {
   starting_word: string;
   answer: string;
@@ -14,7 +12,7 @@ export const handler: SessionHandler<ChallengeWithWords> = {
     const { state: { name, connection, render } } = ctx;
     const data = await connection.queryObject<ChallengeWithWords>`
       SELECT
-          id,
+          id::INT AS id,
           starting_word,
           answer
       FROM
