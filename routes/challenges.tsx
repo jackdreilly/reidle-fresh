@@ -108,6 +108,8 @@ export const handler: SessionHandler<Data> = {
           string_agg(name, ', ' order by name) as challengers
         FROM
           challenge_requests
+        NATURAL INNER JOIN
+          eligible_challenge_ids
         group by 1
       )
       SELECT
@@ -124,7 +126,7 @@ export const handler: SessionHandler<Data> = {
         best_result
       natural full outer join
         played
-      natural full outer join
+      natural FULL OUTER join
         challengers
       ORDER BY
         have_played,
