@@ -12,7 +12,7 @@ export class Wordle {
   static async make(server: boolean) {
     const [words, answers] = await Promise.all(
       ["words", "answers"].map(async (w) =>
-        (await readAsset(w + ".csv", server)).toUpperCase().split("\n")
+        (await readAsset("/" + w + ".csv", server)).toUpperCase().split("\n")
       ),
     );
     const wordsSet = new Set(words);

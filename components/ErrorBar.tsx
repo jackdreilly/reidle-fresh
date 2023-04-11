@@ -1,11 +1,12 @@
 import TimerText from "@/components/timer_text.tsx";
 import { Wordle } from "@/utils/wordle.ts";
 export default function ErrorBar(
-  { winTime, error, penalty, wordle }: {
+  { winTime, error, penalty, wordle, challenge_id }: {
     winTime: number | null;
     error: string | null;
     penalty: number;
     wordle: Wordle | undefined;
+    challenge_id?: number;
   },
 ) {
   return (
@@ -29,9 +30,23 @@ export default function ErrorBar(
       {winTime && (
         <div class="text-green-800">
           You won in <TimerText seconds={winTime} />!
-          <a href="/practice" class="p-1 border-2 border-black rounded mx-2">
-            Practice?
-          </a>
+          {challenge_id !== undefined
+            ? (
+              <a
+                href={`/challenges/challenge/${challenge_id}`}
+                class="p-1 border-2 border-black rounded mx-2"
+              >
+                Back to Challenge
+              </a>
+            )
+            : (
+              <a
+                href="/practice"
+                class="p-1 border-2 border-black rounded mx-2"
+              >
+                Practice?
+              </a>
+            )}
         </div>
       )}
       {error && (

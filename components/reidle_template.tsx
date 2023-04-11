@@ -126,6 +126,20 @@ export default function ReidleTemplate(
               </li>
               <li>
                 <a
+                  href="/challenges"
+                  class="flex items-center p-2 text-base font-normal text-gray-900 rounded-lg hover:bg-gray-100 "
+                >
+                  <ChallengeSVG />
+                  <span
+                    class={"ml-3 " +
+                      (route === "/challenges" ? "font-bold" : "")}
+                  >
+                    Challenges
+                  </span>
+                </a>
+              </li>
+              <li>
+                <a
                   href="/stats/today"
                   class="flex items-center p-2 text-base font-normal text-gray-900 rounded-lg hover:bg-gray-100 "
                 >
@@ -372,6 +386,20 @@ l227 -228 -167 -167 c-91 -93 -171 -178 -177 -190 -16 -31 -14 -109 3 -141 18
 65 67 84 116 84 213 0 74 -4 92 -29 140 -22 44 -177 204 -794 822 -685 685
 -773 770 -826 794 -70 32 -162 40 -223 20z" />
       </g>
+    </svg>
+  );
+}
+function ChallengeSVG({ fill }: { fill?: string }) {
+  return (
+    <svg
+      fill={fill ?? "currentColor"}
+      viewBox="0 0 20 20"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+      class="w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 "
+      style="stroke-width: var(--grid-item-icon-stroke-width); transform: scale(var(--grid-item-icon-scale));"
+    >
+      <path d="M10 9a3 3 0 100-6 3 3 0 000 6zM6 8a2 2 0 11-4 0 2 2 0 014 0zM1.49 15.326a.78.78 0 01-.358-.442 3 3 0 014.308-3.516 6.484 6.484 0 00-1.905 3.959c-.023.222-.014.442.025.654a4.97 4.97 0 01-2.07-.655zM16.44 15.98a4.97 4.97 0 002.07-.654.78.78 0 00.357-.442 3 3 0 00-4.308-3.517 6.484 6.484 0 011.907 3.96 2.32 2.32 0 01-.026.654zM18 8a2 2 0 11-4 0 2 2 0 014 0zM5.304 16.19a.844.844 0 01-.277-.71 5 5 0 019.947 0 .843.843 0 01-.277.71A6.975 6.975 0 0110 18a6.974 6.974 0 01-4.696-1.81z" />
     </svg>
   );
 }

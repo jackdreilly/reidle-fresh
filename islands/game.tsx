@@ -9,9 +9,10 @@ interface GameProperties {
   isPractice: boolean;
   startingWord: string;
   winnersTime?: number | null;
+  challenge_id?: number;
 }
 export default function Game(
-  { word, startingWord, isPractice, winnersTime }: GameProperties,
+  { word, startingWord, isPractice, winnersTime, challenge_id }: GameProperties,
 ) {
   const [playback, setPlayback] = useState<Playback>({ events: [] });
   const [penalties, setPenalties] = useState(0);
@@ -188,6 +189,7 @@ export default function Game(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
+        challenge_id,
         time: totalSeconds,
         penalty: penalties,
         word,
@@ -224,9 +226,8 @@ export default function Game(
     const { error, penalty } = wordScore;
     addError(error, penalty);
   }
-  const totalSeconds = penalties + Math.round(
-    ((won ?? new Date()).getTime() - startTime.getTime()) / 1000,
-  );
+  const totalSeconds = penalties +
+    ((won ?? new Date()).getTime() - startTime.getTime()) / 1000;
   const numRows = Math.max(6, previousWords.length + 1);
   return (
     <>
@@ -287,11 +288,15 @@ export default function Game(
           penalty={penalties}
           winTime={won ? totalSeconds : null}
           error={error}
+          challenge_id={challenge_id}
         />
         <div class="flex justify-center items-center flex-grow overflow-hidden m-2 p-2 font-bold text-center">
           <div
             class="relative h-full max-h-[25rem] w-full"
-            style={{ maxWidth: "min(20.8rem, 40vh)", fontSize: "min(50px, 5vh)", }}
+            style={{
+              maxWidth: "min(20.8rem, 40vh)",
+              fontSize: "min(50px, 5vh)",
+            }}
           >
             <div class="absolute bottom-[50%] right-[50%] h-full w-full">
               {won ? <Confetti /> : null}

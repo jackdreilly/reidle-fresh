@@ -10,10 +10,11 @@ import { DailySubmission } from "@/routes/stats/daily/[date].tsx";
 
 export type DailyTableData = DailySubmission[];
 export function DailyTable(
-  { submissions, hide, name: myName }: {
+  { submissions, hide, name: myName, challenge }: {
     submissions: DailyTableData;
     hide?: boolean;
     name: string;
+    challenge?: boolean;
   },
 ) {
   return (
@@ -46,7 +47,8 @@ export function DailyTable(
             <TableCell>
               <a
                 class={"text-2xl" + (hide ? " invisible" : "")}
-                href={`/submissions/${id}/playback`}
+                href={`/submissions/${id}/playback` +
+                  (challenge ? "?challenge" : "")}
               >
                 ▶️
               </a>

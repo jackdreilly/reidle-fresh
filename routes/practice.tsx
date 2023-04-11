@@ -9,7 +9,7 @@ interface PracticeData {
   startingWord: string;
 }
 
-const wordlePromise = Wordle.make(true);
+export const wordlePromise = Wordle.make(true);
 export const handler: SessionHandler<PracticeData> = {
   async GET(req, ctx) {
     const wordle = await wordlePromise;

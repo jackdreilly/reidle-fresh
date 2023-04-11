@@ -8,8 +8,16 @@ interface Data {
 }
 
 export const handler: SessionHandler<Data> = {
-  async GET(_, ctx) {
-    return ctx.state.render(ctx,{
+  async GET(r, ctx) {
+    if (Array.from(new URL(r.url).searchParams.keys()).includes("challenge")) {
+      return ctx.state.render(ctx, {
+        playback: await ctx.state.connection.queryObject<
+          { playback: Playback }
+        >`select playback from challenge_submissions where id = ${ctx.params.id} limit 1`
+          .then((x) => x.rows[0].playback),
+      });
+    }
+    return ctx.state.render(ctx, {
       playback: await ctx.state.connection.queryObject<
         { playback: Playback }
       >`select playback from submissions where id = ${ctx.params.id} limit 1`
@@ -19,7 +27,9 @@ export const handler: SessionHandler<Data> = {
 };
 
 export default function Page(
-  { data: { playedToday, playback: { events } } }: PageProps<Data & SessionData>,
+  { data: { playedToday, playback: { events } } }: PageProps<
+    Data & SessionData
+  >,
 ) {
   return (
     <GameTemplate title="Playback" isPractice={false} playedToday={playedToday}>
