@@ -6,22 +6,40 @@ import Game from "@/islands/game.tsx";
 interface ChallengeWithWords extends Challenge {
   starting_word: string;
   answer: string;
+  already_played: boolean;
 }
 export const handler: SessionHandler<ChallengeWithWords> = {
   async GET(req, ctx) {
-    const { state: { name, connection, render } } = ctx;
+    const { state: { name, connection, render }, params: { challenge_id } } =
+      ctx;
     const data = await connection.queryObject<ChallengeWithWords>`
       SELECT
           id::INT AS id,
           starting_word,
-          answer
+          answer,
+          EXISTS (
+            SELECT
+                name
+            FROM
+                challenge_submissions
+            WHERE
+                challenge_id = ${challenge_id}
+            AND
+                name = ${name}
+          ) AS already_played
       FROM
           challenges
       WHERE
-          id = ${ctx.params.challenge_id}
+          id = ${challenge_id}
       LIMIT
           1
   `.then((r) => r.rows[0]);
+    if (data.already_played) {
+      return new Response("already played", {
+        status: 307,
+        headers: { location: `/challenges/challenge/${challenge_id}` },
+      });
+    }
     return render(ctx, data);
   },
 };
