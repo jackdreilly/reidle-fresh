@@ -12,7 +12,12 @@ export const handler: SessionHandler<null> = {
     const text = `${name}: ${timerTime(time)}`;
     if (challenge_id !== undefined) {
       const to = await ctx.state.connection.queryObject<
-        { challenger: string; name: string; email: string }
+        {
+          challenger: string;
+          name: string;
+          email: string;
+          challenge_notifications_enabled: boolean;
+        }
       >`
 WITH
 new_record AS (
@@ -64,14 +69,26 @@ tos AS (
         email IS NOT NULL
 )
 SELECT
-    *
-FROM challenger, tos
+    challenger,
+    tos.name as name,
+    tos.email as email,
+    COALESCE(challenge_notifications_enabled, true) AS "challenge_notifications_enabled"
+FROM
+    challenger,
+    tos
+LEFT JOIN
+    players
+USING
+    (name)
         `.then((x) => x.rows);
-      sendEmail({
-        to,
-        subject: `Reidle Challenge ${challenge_id} from ${to[0].challenger}`,
-        text,
-      });
+      const toEmails = to.filter((x) => x.challenge_notifications_enabled);
+      if (toEmails.length) {
+        await sendEmail({
+          to: toEmails,
+          subject: `Reidle Challenge ${challenge_id} from ${to[0].challenger}`,
+          text,
+        });
+      }
       return new Response();
     }
     await ctx.state.connection.queryArray`

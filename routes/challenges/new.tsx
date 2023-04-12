@@ -71,14 +71,20 @@ SELECT
 FROM
   challenge
     `.then((r) => r.rows[0].id);
-    await sendEmail({
-      to: players,
-      subject: `Reidle Challenge ${id} from ${ctx.state.name}`,
-      text:
-        `You have been challenged to a game of Reidle by ${ctx.state.name}! Go to https://reidle.reillybrothers.net/challenges/challenge/${id} to play!`,
-      html:
-        `<p>You have been challenged to a game of Reidle by ${ctx.state.name}! Go to <a href="https://reidle.reillybrothers.net/challenges/challenge/${id}">https://reidle.reillybrothers.net/challenges/challenge/${id}</a> to play!</p>`,
-    });
+    const doNotEmail = await ctx.state.connection
+      .queryArray`select email from players where email IS NOT NULL AND NOT challenge_notifications_enabled`
+      .then((x) => x.rows.map((x) => x[0]));
+    const to = players.filter((x) => !doNotEmail.includes(x.email));
+    if (to.length) {
+      await sendEmail({
+        to,
+        subject: `Reidle Challenge ${id} from ${ctx.state.name}`,
+        text:
+          `You have been challenged to a game of Reidle by ${ctx.state.name}! Go to https://reidle.reillybrothers.net/challenges/challenge/${id} to play!`,
+        html:
+          `<p>You have been challenged to a game of Reidle by ${ctx.state.name}! Go to <a href="https://reidle.reillybrothers.net/challenges/challenge/${id}">https://reidle.reillybrothers.net/challenges/challenge/${id}</a> to play!</p>`,
+      });
+    }
 
     return new Response("Challenge created", {
       status: 303,

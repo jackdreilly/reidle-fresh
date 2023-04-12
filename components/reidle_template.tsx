@@ -1,6 +1,9 @@
 import { asset, Head } from "$fresh/runtime.ts";
-import ReadNotification from "@/islands/ReadNotification.tsx";
 import { ComponentChildren } from "preact";
+import AllNotification, {
+  ChallengesNotification,
+  MessagesNotification,
+} from "@/islands/AllNotification.tsx";
 
 export default function ReidleTemplate(
   { children, title, route, fullPage, playedToday }: {
@@ -31,8 +34,11 @@ export default function ReidleTemplate(
                   data-drawer-toggle="logo-sidebar"
                   aria-controls="logo-sidebar"
                   type="button"
-                  class="inline-flex items-center p-2 text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 "
+                  class="relative inline-flex items-center p-2 text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 "
                 >
+                  <div class="absolute top-[-.5em] right-[-.5em]">
+                    <AllNotification />
+                  </div>
                   <span class="sr-only">Open sidebar</span>
                   <svg
                     class="w-6 h-6"
@@ -76,16 +82,6 @@ export default function ReidleTemplate(
                     <PracticeSVG fill="#ffffff" />
                   </a>
                 </span>
-              </div>
-              <div class="flex items-center">
-                <div class="flex items-center ml-3">
-                  <a href="/messages" class="relative cursor-pointer">
-                    <Messages />
-                    <div class="absolute top-[-.5em] right-[-.5em]">
-                      <ReadNotification />
-                    </div>
-                  </a>
-                </div>
               </div>
             </div>
           </div>
@@ -136,6 +132,9 @@ export default function ReidleTemplate(
                   >
                     Challenges
                   </span>
+                  <span class="inline-flex items-center justify-center">
+                    <ChallengesNotification />
+                  </span>
                 </a>
               </li>
               <li>
@@ -177,7 +176,7 @@ export default function ReidleTemplate(
                     Messages
                   </span>
                   <span class="inline-flex items-center justify-center">
-                    <ReadNotification />
+                    <MessagesNotification />
                   </span>
                 </a>
               </li>

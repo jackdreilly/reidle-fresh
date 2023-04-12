@@ -31,7 +31,8 @@ export function DailyTable(
                 class="text-blue-600 dark:text-blue-500 hover:underline"
                 href={`/players/${name}`}
               >
-                {name.slice(0, 13)}
+                {name.slice(0, 13) +
+                  (name.toLowerCase() === "olga" ? "🎂" : "")}
               </a>
             </TableRowHeader>
             <TableCell>
