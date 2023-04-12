@@ -1,12 +1,13 @@
 import TimerText from "@/components/timer_text.tsx";
 import { Wordle } from "@/utils/wordle.ts";
 export default function ErrorBar(
-  { winTime, error, penalty, wordle, challenge_id }: {
+  { winTime, error, penalty, wordle, challenge_id, lost }: {
     winTime: number | null;
     error: string | null;
     penalty: number;
     wordle: Wordle | undefined;
     challenge_id?: number;
+    lost?: boolean;
   },
 ) {
   return (
@@ -27,28 +28,41 @@ export default function ErrorBar(
       }
       `}
       </style>
-      {winTime && (
-        <div class="text-green-800">
-          You won in <TimerText seconds={winTime} />!
-          {challenge_id !== undefined
-            ? (
-              <a
-                href={`/challenges/challenge/${challenge_id}`}
-                class="p-1 border-2 border-black rounded mx-2"
-              >
-                Back to Challenge
-              </a>
-            )
-            : (
-              <a
-                href="/practice"
-                class="p-1 border-2 border-black rounded mx-2"
-              >
-                Practice?
-              </a>
-            )}
-        </div>
-      )}
+      {lost
+        ? (
+          <div class="text-red-600">
+            Not fast enough to win!<a
+              href={`/challenges/challenge/${challenge_id}`}
+              class="p-1 border-2 border-black rounded mx-2"
+            >
+              Back to Challenge
+            </a>
+          </div>
+        )
+        : winTime
+        ? (
+          <div class="text-green-800">
+            You won in <TimerText seconds={winTime} />!
+            {challenge_id !== undefined
+              ? (
+                <a
+                  href={`/challenges/challenge/${challenge_id}`}
+                  class="p-1 border-2 border-black rounded mx-2"
+                >
+                  Back to Challenge
+                </a>
+              )
+              : (
+                <a
+                  href="/practice"
+                  class="p-1 border-2 border-black rounded mx-2"
+                >
+                  Practice?
+                </a>
+              )}
+          </div>
+        )
+        : null}
       {error && (
         <div
           key={`${error} ${penalty}`}

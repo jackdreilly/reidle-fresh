@@ -22,7 +22,7 @@ export default function Game(
   const [currentWord, setCurrentWordPrivate] = useState(startingWord);
   const [previousWords, setPreviousWordsPrivate] = useState<ScoringHistory>([]);
   const [won, setWon] = useState<Date | null>(null);
-  const [__, setTicks] = useState(0);
+  const [ticks, setTicks] = useState(0);
   const [candidates, setCandidates] = useState<string[]>([]);
   const [enableHelp, setEnableHelp] = useState(false);
   function addPlayback(
@@ -119,7 +119,9 @@ export default function Game(
     if (!wordle) {
       return;
     }
-    const interval = setInterval(() => setTicks((s) => s + 1), 1000);
+    const interval = setInterval(() => {
+      setTicks((s) => s + 1);
+    }, 1000);
     return () => clearInterval(interval);
   }, [wordle]);
   const keyboardLookup = useMemo(() => {
@@ -232,6 +234,14 @@ export default function Game(
   const totalSeconds = penalties +
     ((won ?? new Date()).getTime() - startTime.getTime()) / 1000;
   const numRows = Math.max(6, previousWords.length + 1);
+  useEffect(() => {
+    if (
+      !won && challenge_id && winnersTime && totalSeconds > winnersTime
+    ) {
+      console.log("yo");
+      setWon(new Date());
+    }
+  }, [totalSeconds]);
   return (
     <>
       <div class="w-full flex flex-col h-full max-w-6xl flex-grow-1 text-center text-lg">
@@ -239,8 +249,14 @@ export default function Game(
           {!won && wordle
             ? (
               <TimerText
-                seconds={totalSeconds}
-                class="mx-2 text-gray"
+                seconds={challenge_id && winnersTime
+                  ? Math.max(0, winnersTime - totalSeconds)
+                  : totalSeconds}
+                class={"mx-2 text-gray " +
+                  (challenge_id && winnersTime &&
+                      (winnersTime - totalSeconds) < 10
+                    ? "text-red-800 animate-pulse font-bold"
+                    : "")}
               />
             )
             : <div />}
@@ -252,7 +268,7 @@ export default function Game(
               />
             )
             : <div />}
-          {(winnersTime && winnersTime > 0)
+          {(!challenge_id && winnersTime && winnersTime > 0)
             ? (
               <TimerText
                 seconds={winnersTime}
@@ -292,6 +308,7 @@ export default function Game(
           winTime={won ? totalSeconds : null}
           error={error}
           challenge_id={challenge_id}
+          lost={!!challenge_id && !!winnersTime && (totalSeconds > winnersTime)}
         />
         <div class="flex justify-center items-center flex-grow overflow-hidden m-2 p-2 font-bold text-center">
           <div
@@ -302,7 +319,10 @@ export default function Game(
             }}
           >
             <div class="absolute bottom-[50%] right-[50%] h-full w-full">
-              {won ? <Confetti /> : null}
+              {won &&
+                  (!challenge_id || !winnersTime || totalSeconds < winnersTime)
+                ? <Confetti />
+                : null}
             </div>
             <div
               class={`grid gap-[3px] p-[5px] box-border h-full w-full`}

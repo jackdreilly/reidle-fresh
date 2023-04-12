@@ -7,6 +7,7 @@ interface ChallengeWithWords extends Challenge {
   starting_word: string;
   answer: string;
   already_played: boolean;
+  best_time?: number;
 }
 export const handler: SessionHandler<ChallengeWithWords> = {
   async GET(req, ctx) {
@@ -26,7 +27,15 @@ export const handler: SessionHandler<ChallengeWithWords> = {
                 challenge_id = ${challenge_id}
             AND
                 name = ${name}
-          ) AS already_played
+          ) AS already_played,
+          (
+            SELECT
+                MIN(time)
+            FROM
+                challenge_submissions
+            WHERE
+                challenge_id = ${challenge_id}
+          ) AS best_time
       FROM
           challenges
       WHERE
@@ -45,7 +54,7 @@ export const handler: SessionHandler<ChallengeWithWords> = {
 };
 
 export default function Challenge(
-  { data: { starting_word, answer, playedToday, id } }: PageProps<
+  { data: { starting_word, answer, playedToday, id, best_time } }: PageProps<
     ChallengeWithWords & SessionData
   >,
 ) {
@@ -58,6 +67,7 @@ export default function Challenge(
       <Game
         challenge_id={id}
         isPractice={false}
+        winnersTime={best_time}
         startingWord={starting_word.toUpperCase()}
         word={answer.toUpperCase()}
       />
