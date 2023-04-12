@@ -114,7 +114,7 @@ class ConfettiPiece {
     const hsl = new Hsl(Math.random() * 360, 50, 50);
     const position = new Vector(0.5 + rand() * 1e-3, 0, 1 + rand() * 3e-1);
     const minVelocity = -1e-3 * (1 + rand() * 0.4) * factor;
-    const height = (5.5e-2 + rand() * 8e-2) * 4e-1;
+    const height = (7e-2 + rand() * 6e-2) * 4e-1;
     return new ConfettiPiece(
       position,
       velocity,
