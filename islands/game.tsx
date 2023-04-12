@@ -147,6 +147,9 @@ export default function Game(
     key: string,
     superPressed?: boolean,
   ) {
+    if (won) {
+      return;
+    }
     if (!wordle) {
       return;
     }
