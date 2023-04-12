@@ -42,10 +42,10 @@ export default function PlaybackComponent(
     new Promise((r) => setTimeout(r, 120)).then((_) =>
       setEventIndex((i) => i + 1)
     );
-  }, [eventIndex]);
+  }, [eventIndex, won]);
   const activeRow = history.length;
   const activeCol = word.length;
-  const event = events[eventIndex] ?? { time: 0, letter: "a" };
+  const event = events[eventIndex] ?? events[events.length - 1];
   const totalSeconds = event.time / 1000;
   return (
     <>
