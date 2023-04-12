@@ -166,11 +166,11 @@ export default function Page(
         tag: "Past ",
         challenges: played,
       }].map(({ tag, challenges }, i) => (
-        <div>
-          <h2 class="text-xl font-bold">{tag}Challenges</h2>
+        <div class="m-2 p-2">
+          <h2 class="text-xl m-4 p-2 font-bold">{tag}Challenges</h2>
           {challenges.length === 0
             ? (
-              <div class="italic">
+              <div class="italic text-gray-700">
                 No {" " + tag.toLowerCase()}challenges, start a new one!
               </div>
             )
