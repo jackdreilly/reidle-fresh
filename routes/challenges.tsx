@@ -44,6 +44,7 @@ export const handler: SessionHandler<Data> = {
       ),
       winner_counts as (
         select winners.name, count(*) - count(distinct challenge_id) as count from winners inner join submissions using (challenge_id) group by 1
+        HAVING count(*) - count(distinct challenge_id) > 0
       ),
       winner_records as (
         select coalesce(json_agg(json_build_object('name', name, 'count', count) order by count desc), json_build_array()) as winner_records from winner_counts
@@ -112,16 +113,20 @@ export default function Page(
           value="New Challenge"
         />
       </form>
-      <div>
-        <h1 class="text-xl m-4">Week Leaderboard</h1>
-        <Table
-          columns={["Rank", "Name", "Points"]}
-          rows={winner_records.map((
-            { name, count },
-            i,
-          ) => [i + 1, name, count])}
-        />
-      </div>
+      {winner_records.length
+        ? (
+          <div>
+            <h1 class="text-xl m-4">Week Leaderboard</h1>
+            <Table
+              columns={["Rank", "Name", "Points"]}
+              rows={winner_records.map((
+                { name, count },
+                i,
+              ) => [i + 1, name, count])}
+            />
+          </div>
+        )
+        : null}
       {unplayed.length
         ? (
           <div>
