@@ -1,9 +1,6 @@
 import { asset, Head } from "$fresh/runtime.ts";
 import { ComponentChildren } from "preact";
-import AllNotification, {
-  ChallengesNotification,
-  MessagesNotification,
-} from "@/islands/AllNotification.tsx";
+import AllNotification from "@/islands/AllNotification.tsx";
 
 export default function ReidleTemplate(
   { children, title, route, fullPage, playedToday }: {
@@ -132,9 +129,6 @@ export default function ReidleTemplate(
                   >
                     Challenges
                   </span>
-                  <span class="inline-flex items-center justify-center">
-                    <ChallengesNotification />
-                  </span>
                 </a>
               </li>
               <li>
@@ -176,7 +170,7 @@ export default function ReidleTemplate(
                     Messages
                   </span>
                   <span class="inline-flex items-center justify-center">
-                    <MessagesNotification />
+                    <AllNotification />
                   </span>
                 </a>
               </li>

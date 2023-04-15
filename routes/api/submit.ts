@@ -11,18 +11,9 @@ export const handler: SessionHandler<null> = {
     }-${new Date().getUTCDate().toString().padStart(2, "0")}`;
     const text = `${name}: ${timerTime(time)}`;
     if (challenge_id !== undefined) {
-      const to = await ctx.state.connection.queryObject<
-        {
-          challenger: string;
-          name: string;
-          email: string;
-          challenge_notifications_enabled: boolean;
-        }
-      >`
-WITH
-new_record AS (
+      await ctx.state.connection.queryObject`
 INSERT INTO
-challenge_submissions(
+submissions(
     challenge_id,
     name,
     time,
@@ -44,51 +35,7 @@ SELECT
     ${paste} AS paste,
     1 AS score,
     1 AS "rank",
-    CURRENT_DATE::DATE AS day
-),
-challenger AS (
-    SELECT challenger FROM challenges WHERE id = ${challenge_id} LIMIT 1
-),
-tos AS (
-    SELECT
-        name,
-        email
-    FROM
-        challenge_requests
-    WHERE
-        challenge_id = ${challenge_id}
-    UNION
-    SELECT
-        name,
-        email
-    FROM
-        players
-    WHERE
-        name = (SELECT challenger FROM challenger)
-    AND
-        email IS NOT NULL
-)
-SELECT
-    challenger,
-    tos.name as name,
-    tos.email as email,
-    COALESCE(challenge_notifications_enabled, true) AS "challenge_notifications_enabled"
-FROM
-    challenger,
-    tos
-LEFT JOIN
-    players
-USING
-    (name)
-        `.then((x) => x.rows);
-      const toEmails = to.filter((x) => x.challenge_notifications_enabled);
-      if (toEmails.length) {
-        await sendEmail({
-          to: toEmails,
-          subject: `Reidle Challenge ${challenge_id} from ${to[0].challenger}`,
-          text,
-        });
-      }
+    CURRENT_DATE::DATE AS day`;
       return new Response();
     }
     await ctx.state.connection.queryArray`
@@ -102,6 +49,8 @@ WITH existing AS (
         CURRENT_DATE
         =
         day
+    AND
+        challenge_id IS NULL
 ),
 
 previous AS (
@@ -146,7 +95,6 @@ updates AS (
     WHERE
         submissions.id = scored.id
 )
-
 INSERT INTO
 submissions(
     name,

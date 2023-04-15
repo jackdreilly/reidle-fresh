@@ -1,137 +1,81 @@
-import { SessionData, SessionHandler } from "@/utils/utils.ts";
 import { PageProps } from "$fresh/server.ts";
+import { DailyTable, DailyTableData } from "@/components/daily_table.tsx";
 import ReidleTemplate from "@/components/reidle_template.tsx";
-import { moment } from "https://deno.land/x/deno_moment@v1.1.2/moment.ts";
-import {
-  DailyTable,
-  DailyTableData,
-} from "../../../../components/daily_table.tsx";
-import { DailySubmission } from "../../../stats/daily/[date].tsx";
+import { SessionData, SessionHandler } from "@/utils/utils.ts";
+interface Data {
+  challenge_id: number;
+  played: boolean;
+  submissions: DailyTableData;
+}
 export const handler: SessionHandler<Data> = {
   async GET(req, ctx) {
-    const { state: { name, connection, render }, params: { challenge_id } } =
+    const { params: { challenge_id }, state: { connection, name, render } } =
       ctx;
-    const rows = await connection.queryObject<
-      DailySubmission & {
-        challenge_id: number;
-        challenge_created_at: string;
-        challenger: string;
-      }
-    >`
-WITH
-challenge AS (
-  SELECT
-    challenger,
-    created_at AS challenge_created_at,
-    id AS challenge_id
-  FROM
-    challenges
-  WHERE
-    id = ${challenge_id}
-),
-challengers AS (
-  SELECT
-    challenger AS name
-  from
-    challenge
-  UNION
-  SELECT
-    name
-  from
-    challenge_requests
-  WHERE
-    challenge_id = ${challenge_id}
-),
-submissions AS (
-SELECT
-    id,
-    created_at,
-    name,
-    time,
-    penalty,
-    paste,
-    playback,
-    word,
-    day,
-    score,
-    rank
-FROM
-  challenge_submissions
-WHERE
-  challenge_id = ${challenge_id}
-)
-SELECT
-  *
-FROM
-  challenge,
-  challengers
-FULL OUTER JOIN
-  submissions
-USING (
-  name
-)
-ORDER BY
-    time NULLS LAST
-  `.then((r) => r.rows);
-    const challenge = rows[0];
-    const submissions = rows;
-    return render(ctx, { challenge, submissions });
+    return render(
+      ctx,
+      await connection.queryObject<Data>`
+      select
+      challenge_id,
+      EXISTS (
+        select 1 from submissions where name = ${name} and challenge_id = ${challenge_id}
+      ) as played,
+      coalesce((
+        select json_agg(
+          json_build_object(
+          'name', name,
+          'time', time,
+          'penalty', penalty,
+          'paste', paste,
+          'id', id
+          ) order by time
+        ) from submissions where challenge_id = ${challenge_id}
+      ), json_build_array()) as submissions
+    from challenges where challenge_id = ${challenge_id};
+      `.then((r) => r.rows[0]),
+    );
   },
-};
-type Data = {
-  challenge: {
-    challenge_id: number;
-    challenge_created_at: string;
-    challenger: string;
-  };
-  submissions: DailyTableData;
 };
 
 export default function Page(
-  {
-    data: {
-      challenge: { challenge_id, challenger, challenge_created_at: created_at },
-      submissions,
-      playedToday,
-      name,
-    },
-  }: PageProps<Data & SessionData>,
+  { data: { challenge_id, played, submissions, playedToday, name } }: PageProps<
+    Data & SessionData
+  >,
 ) {
-  const playedChallenge = submissions.filter((x) => x.time).map((x) => x.name)
-    .includes(
-      name,
-    );
   return (
     <ReidleTemplate
       route="/challenges"
-      title={`Challenge ${challenge_id}`}
+      title="Challenge"
       playedToday={playedToday}
     >
-      <h1 class="m-4 p-4 text-xl">Challenge {challenge_id}</h1>
-      <div>
-        <span class="font-bold">Created:</span>
-        <span class="pl-2">{moment(created_at).fromNow()}</span>
-      </div>
-      <div>
-        <span class="font-bold">Challenger:</span>
-        <span class="pl-2">{challenger}</span>
-      </div>
-      {!playedChallenge
-        ? (
-          <a
-            href={`/challenges/challenge/${challenge_id}/play`}
-            class="inline-block m-4 text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2"
-          >
-            Play
-          </a>
-        )
-        : null}
-      <DailyTable
-        name={name}
-        hide={!playedChallenge}
-        submissions={submissions}
-        challenge={true}
-      />
+      <a
+        class="font-medium text-blue-600 dark:text-blue-500 hover:underline float align-center"
+        href="/challenges"
+      >
+        <svg
+          class="h-5 w-5 inline mx-2"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <path
+            clipRule="evenodd"
+            fillRule="evenodd"
+            d="M17 10a.75.75 0 01-.75.75H5.612l4.158 3.96a.75.75 0 11-1.04 1.08l-5.5-5.25a.75.75 0 010-1.08l5.5-5.25a.75.75 0 111.04 1.08L5.612 9.25H16.25A.75.75 0 0117 10z"
+          />
+        </svg>
+        Back to challenges
+      </a>
+      <h1>Challenge {challenge_id}</h1>
+      {played ? null : (
+        <a
+          class="inline-block text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300  font-medium rounded-lg text-sm px-5 py-2.5 text-center m-2"
+          href={`/challenges/challenge/${challenge_id}/play`}
+        >
+          Play
+        </a>
+      )}
+      <DailyTable hide={!played} name={name} submissions={submissions} />
     </ReidleTemplate>
   );
 }

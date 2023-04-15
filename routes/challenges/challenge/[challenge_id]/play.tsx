@@ -1,13 +1,13 @@
 import { PageProps } from "$fresh/server.ts";
-import { Challenge } from "@/routes/challenges.tsx";
 import { SessionData, SessionHandler } from "@/utils/utils.ts";
 import GameTemplate from "@/components/game_template.tsx";
 import Game from "@/islands/game.tsx";
-interface ChallengeWithWords extends Challenge {
+interface ChallengeWithWords {
   starting_word: string;
   answer: string;
   already_played: boolean;
   best_time?: number;
+  challenge_id: number;
 }
 export const handler: SessionHandler<ChallengeWithWords> = {
   async GET(req, ctx) {
@@ -15,14 +15,14 @@ export const handler: SessionHandler<ChallengeWithWords> = {
       ctx;
     const data = await connection.queryObject<ChallengeWithWords>`
       SELECT
-          id::INT AS id,
+          challenge_id::INT AS challenge_id,
           starting_word,
           answer,
           EXISTS (
             SELECT
                 name
             FROM
-                challenge_submissions
+                submissions
             WHERE
                 challenge_id = ${challenge_id}
             AND
@@ -32,14 +32,14 @@ export const handler: SessionHandler<ChallengeWithWords> = {
             SELECT
                 MIN(time)
             FROM
-                challenge_submissions
+              submissions
             WHERE
                 challenge_id = ${challenge_id}
           ) AS best_time
       FROM
           challenges
       WHERE
-          id = ${challenge_id}
+        challenge_id = ${challenge_id}
       LIMIT
           1
   `.then((r) => r.rows[0]);
@@ -54,9 +54,10 @@ export const handler: SessionHandler<ChallengeWithWords> = {
 };
 
 export default function Challenge(
-  { data: { starting_word, answer, playedToday, id, best_time } }: PageProps<
-    ChallengeWithWords & SessionData
-  >,
+  { data: { starting_word, answer, playedToday, challenge_id, best_time } }:
+    PageProps<
+      ChallengeWithWords & SessionData
+    >,
 ) {
   return (
     <GameTemplate
@@ -65,7 +66,7 @@ export default function Challenge(
       playedToday={playedToday}
     >
       <Game
-        challenge_id={id}
+        challenge_id={challenge_id}
         isPractice={false}
         winnersTime={best_time}
         startingWord={starting_word.toUpperCase()}

@@ -36,6 +36,7 @@ export const handler: MiddlewareHandler<SessionData> = (req, ctx) => {
   FROM submissions
   WHERE
     CURRENT_DATE = day
+    AND challenge_id is null
     AND name = ${name}
     `.then((x) => x.rows[0].count > 0).then((x) => {
         return x;

@@ -5,37 +5,17 @@ export default function AllNotification() {
     <Notifier
       isTrue={async () =>
         (await Promise.all(
-          ["/api/unread_messages", "/api/challenges_remaining"].map(
+          ["/api/unread_messages"].map(
             (x) => fetch(x).then((x) => x.text()).then((x) => x.length > 0),
           ),
         )).filter((x) => x).length > 0}
     />
   );
 }
-export function MessagesNotification() {
-  return (
-    <Notifier
-      isTrue={() =>
-        fetch("/api/unread_messages").then((x) => x.text()).then((x) =>
-          x.length > 0
-        )}
-    />
-  );
-}
-export function ChallengesNotification() {
-  return (
-    <Notifier
-      isTrue={() =>
-        fetch("/api/challenges_remaining").then((x) => x.text()).then((x) =>
-          x.length > 0
-        )}
-    />
-  );
-}
 function Notifier({ isTrue }: { isTrue(): Promise<boolean> }) {
   const [unread, setUnread] = useState(false);
   useEffect(() => {
-    isTrue().then(x => setUnread(!!x));
+    isTrue().then((x) => setUnread(!!x));
   }, []);
   return (
     <span class={"m-1 relative h-3 w-3 " + (unread ? "inline-flex" : "hidden")}>

@@ -52,6 +52,8 @@ scorings AS (
         day
     FROM
         submissions
+    WHERE
+        challenge_id IS NULL
 ),
 update_scores AS (
     UPDATE

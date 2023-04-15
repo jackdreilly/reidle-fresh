@@ -5,7 +5,6 @@ import { SessionData, SessionHandler } from "@/utils/utils.ts";
 interface Data {
   email?: string;
   notifications_enabled?: boolean;
-  challenge_notifications_enabled?: boolean;
 }
 
 export const handler: SessionHandler<Data> = {
@@ -18,8 +17,7 @@ export const handler: SessionHandler<Data> = {
       >`SELECT
           name,
           email,
-          notifications_enabled,
-          challenge_notifications_enabled
+          notifications_enabled
         FROM
           players
         WHERE
@@ -33,28 +31,23 @@ export const handler: SessionHandler<Data> = {
     const form = await req.formData();
     const email = form.get("email")?.toString()?.toLowerCase();
     const notifications_enabled = form.has("notifications_enabled") && !!email;
-    const challenge_notifications_enabled =
-      form.has("challenge_notifications_enabled") && !!email;
     await ctx.state.connection.queryObject`
       INSERT INTO
         players (
           name,
           email,
-          notifications_enabled,
-          challenge_notifications_enabled
+          notifications_enabled
         )
       VALUES(
         ${ctx.state.name},
         NULLIF(${email}, ''),
-        ${notifications_enabled},
-        ${challenge_notifications_enabled}
+        ${notifications_enabled}
       )
       ON CONFLICT (name)
           DO UPDATE
             SET
               email = EXCLUDED.email,
-              notifications_enabled = EXCLUDED.notifications_enabled,
-              challenge_notifications_enabled = EXCLUDED.challenge_notifications_enabled
+              notifications_enabled = EXCLUDED.notifications_enabled
       `;
     return new Response("", { status: 303, headers: { location: "/account" } });
   },
@@ -67,7 +60,6 @@ export default function Page(
       email,
       notifications_enabled,
       playedToday,
-      challenge_notifications_enabled,
     },
   }: PageProps<
     Data & SessionData
@@ -113,24 +105,6 @@ export default function Page(
             class="ml-2 text-sm font-medium text-gray-900"
           >
             Reminder Notifications
-          </label>
-        </div>
-        <div class="flex items-start mb-6">
-          <div class="flex items-center h-5">
-            <input
-              id="challenge_notifications_enabled"
-              type="checkbox"
-              value=""
-              class="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-blue-300"
-              name="challenge_notifications_enabled"
-              checked={challenge_notifications_enabled}
-            />
-          </div>
-          <label
-            for="challenge_notifications_enabled"
-            class="ml-2 text-sm font-medium text-gray-900"
-          >
-            Challenge Update Emails
           </label>
         </div>
         <button
