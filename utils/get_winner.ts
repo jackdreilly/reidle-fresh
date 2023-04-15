@@ -40,6 +40,8 @@ last_week AS (
         submissions, last_day
     WHERE
         day BETWEEN start_day AND last_day
+    AND
+        challenge_id IS NULL
 ),
 
 all_days AS (

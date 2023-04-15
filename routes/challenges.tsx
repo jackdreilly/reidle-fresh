@@ -194,7 +194,7 @@ export default function Page(
                   { challenge_id, leader, participants, created_at },
                 ) => (
                   <TableRow
-                    class={leader?.name === name ? "bg-yellow-100" : ""}
+                    class={leader?.name === name ? "bg-green-100" : ""}
                   >
                     <TableCell>
                       <a href={`/challenges/challenge/${challenge_id}`}>

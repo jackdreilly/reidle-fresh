@@ -33,6 +33,8 @@ export async function fetchWeek(
             submissions
         WHERE
             day BETWEEN ${startDay} AND ${endDay}
+        AND
+            challenge_id IS NULL
     ),
 
     name_day_ids AS (

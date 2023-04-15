@@ -25,7 +25,7 @@ export const handler: SessionHandler<Data> = {
         PENALTY,
         rank,
         day
-    from SUBMISSIONS where NAME = ${name}
+    from SUBMISSIONS where NAME = ${name} AND challenge_id IS NULL
 ),
 
 TOTAL_SUBMISSIONS as (
