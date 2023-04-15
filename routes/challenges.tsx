@@ -85,7 +85,7 @@ export const handler: SessionHandler<Data> = {
       INSERT INTO challenges (challenger, answer, starting_word)
         SELECT
           ${ctx.state.name},
-          (SELECT c1 FROM words ORDER BY random() LIMIT 1),
+          (SELECT c1 FROM answers ORDER BY random() LIMIT 1),
           (SELECT c1 FROM words ORDER BY random() LIMIT 1)
         RETURNING challenge_id`.then((x) => x.rows[0].challenge_id);
     return new Response("ok", {
@@ -132,12 +132,26 @@ export default function Page(
           <div>
             <h1 class="text-xl m-4">To Play</h1>
             <Table>
-              <TableHead columns={["Leader", "Players", "Play"]} />
+              <TableHead columns={["Play", "Leader", "Players"]} />
               <TableBody>
                 {unplayed.map((
                   { challenge_id, leader, participants, created_at },
                 ) => (
                   <TableRow>
+                    <TableCell>
+                      <a href={`/challenges/challenge/${challenge_id}/play`}>
+                        <svg
+                          height="30"
+                          width="30"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                          xmlns="http://www.w3.org/2000/svg"
+                          aria-hidden="true"
+                        >
+                          <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+                        </svg>
+                      </a>
+                    </TableCell>
                     <TableCell>
                       {leader
                         ? (
@@ -163,20 +177,6 @@ export default function Page(
                         ))}
                       </ul>
                     </TableCell>
-                    <TableCell>
-                      <a href={`/challenges/challenge/${challenge_id}/play`}>
-                        <svg
-                          height="30"
-                          width="30"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                          xmlns="http://www.w3.org/2000/svg"
-                          aria-hidden="true"
-                        >
-                          <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
-                        </svg>
-                      </a>
-                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -189,7 +189,7 @@ export default function Page(
           <div>
             <h1 class="text-xl m-4">Played</h1>
             <Table>
-              <TableHead columns={["Leader", "Players", "See"]} />
+              <TableHead columns={["See", "Leader", "Players"]} />
               <TableBody>
                 {played.map((
                   { challenge_id, leader, participants, created_at },
@@ -197,31 +197,6 @@ export default function Page(
                   <TableRow
                     class={leader?.name === name ? "bg-yellow-100" : ""}
                   >
-                    <TableCell>
-                      {leader
-                        ? (
-                          <div class="flex">
-                            <a class="mx-1" href={`/players/${leader.name}`}>
-                              {leader.name}
-                            </a>
-                            <div>
-                              (<TimerText seconds={leader.time} />)
-                            </div>
-                          </div>
-                        )
-                        : null}
-                    </TableCell>
-                    <TableCell>
-                      <ul class="flex">
-                        {(participants ?? []).map((participant) => (
-                          <li class="mx-1">
-                            <a href={`/players/${participant}`}>
-                              {participant}
-                            </a>
-                          </li>
-                        ))}
-                      </ul>
-                    </TableCell>
                     <TableCell>
                       <a href={`/challenges/challenge/${challenge_id}`}>
                         <svg
@@ -255,6 +230,31 @@ export default function Page(
                           </g>
                         </svg>
                       </a>
+                    </TableCell>
+                    <TableCell>
+                      {leader
+                        ? (
+                          <div class="flex">
+                            <a class="mx-1" href={`/players/${leader.name}`}>
+                              {leader.name}
+                            </a>
+                            <div>
+                              (<TimerText seconds={leader.time} />)
+                            </div>
+                          </div>
+                        )
+                        : null}
+                    </TableCell>
+                    <TableCell>
+                      <ul class="flex">
+                        {(participants ?? []).map((participant) => (
+                          <li class="mx-1">
+                            <a href={`/players/${participant}`}>
+                              {participant}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
                     </TableCell>
                   </TableRow>
                 ))}
