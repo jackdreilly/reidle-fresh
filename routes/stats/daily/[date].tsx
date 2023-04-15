@@ -29,6 +29,8 @@ export const handler: SessionHandler<Data> = {
               submissions
             WHERE
               day = ${date}
+            AND
+              challenge_id IS NULL
             ORDER BY
               "rank"
           `.then((x) => x.rows);

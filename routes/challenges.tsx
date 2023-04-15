@@ -73,7 +73,6 @@ export const handler: SessionHandler<Data> = {
         '[]') unplayed,
         (select winner_records from winner_records) winner_records
       `.then((x) => {
-        console.log(x);
         return x.rows[0];
       }),
     );
