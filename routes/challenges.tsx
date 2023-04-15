@@ -184,7 +184,7 @@ export default function Page(
           </div>
         )
         : null}
-      {played
+      {played.length
         ? (
           <div>
             <h1 class="text-xl m-4">Played</h1>
