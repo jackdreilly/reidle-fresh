@@ -238,10 +238,17 @@ export default function Game(
     if (
       !won && challenge_id && winnersTime && totalSeconds > winnersTime
     ) {
-      console.log("yo");
-      setWon(new Date());
+      setCurrentWord(word);
     }
   }, [totalSeconds]);
+  useEffect(() => {
+    if (
+      !won && challenge_id && winnersTime && totalSeconds > winnersTime &&
+      currentWord === word
+    ) {
+      scoreWord();
+    }
+  }, [currentWord]);
   return (
     <>
       <div class="w-full flex flex-col h-full max-w-6xl flex-grow-1 text-center text-lg">
