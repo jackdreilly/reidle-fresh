@@ -7,6 +7,7 @@ interface PlayData {
   word: string;
   startingWord: string;
   winnersTime: number;
+  winner?: string;
 }
 
 export const handler: SessionHandler<PlayData> = {
@@ -24,11 +25,26 @@ SELECT
                     "submissions"
                 WHERE
                     "day" = CURRENT_DATE
+                AND
+                    "challenge_id" IS NULL
                 ORDER BY
                     "time"
                 LIMIT 1
             ), 0
         )                      AS "winnersTime",
+        (
+            SELECT
+                name
+            FROM
+                "submissions"
+            WHERE
+                "day" = CURRENT_DATE
+            AND
+                "challenge_id" IS NULL
+            ORDER BY
+                "time"
+            LIMIT 1
+        ) AS "winner",
     UPPER(word) AS "startingWord",
     UPPER(answer) AS "word"
 FROM
@@ -42,7 +58,7 @@ LIMIT 1
 };
 
 export default function Page(
-  { data: { word, startingWord, winnersTime, playedToday } }: PageProps<
+  { data: { word, startingWord, winnersTime, playedToday, winner } }: PageProps<
     PlayData & SessionData
   >,
 ) {
@@ -53,6 +69,7 @@ export default function Page(
         word={word}
         startingWord={startingWord}
         winnersTime={winnersTime}
+        winner={winner}
       />
     </GameTemplate>
   );

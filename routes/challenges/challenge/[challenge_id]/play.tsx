@@ -7,6 +7,7 @@ interface ChallengeWithWords {
   answer: string;
   already_played: boolean;
   best_time?: number;
+  best_name?: string;
   challenge_id: number;
 }
 export const handler: SessionHandler<ChallengeWithWords> = {
@@ -35,7 +36,17 @@ export const handler: SessionHandler<ChallengeWithWords> = {
               submissions
             WHERE
                 challenge_id = ${challenge_id}
-          ) AS best_time
+          ) AS best_time,
+          (
+            SELECT
+                name
+            FROM
+              submissions
+            WHERE
+                challenge_id = ${challenge_id}
+            ORDER BY time
+            LIMIT 1
+          ) AS best_name
       FROM
           challenges
       WHERE
@@ -54,10 +65,18 @@ export const handler: SessionHandler<ChallengeWithWords> = {
 };
 
 export default function Challenge(
-  { data: { starting_word, answer, playedToday, challenge_id, best_time } }:
-    PageProps<
-      ChallengeWithWords & SessionData
-    >,
+  {
+    data: {
+      starting_word,
+      answer,
+      playedToday,
+      challenge_id,
+      best_time,
+      best_name,
+    },
+  }: PageProps<
+    ChallengeWithWords & SessionData
+  >,
 ) {
   return (
     <GameTemplate
@@ -71,6 +90,7 @@ export default function Challenge(
         winnersTime={best_time}
         startingWord={starting_word.toUpperCase()}
         word={answer.toUpperCase()}
+        winner={best_name}
       />
     </GameTemplate>
   );

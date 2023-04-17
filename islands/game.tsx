@@ -10,9 +10,11 @@ interface GameProperties {
   startingWord: string;
   winnersTime?: number | null;
   challenge_id?: number;
+  winner?: string;
 }
 export default function Game(
-  { word, startingWord, isPractice, winnersTime, challenge_id }: GameProperties,
+  { word, startingWord, isPractice, winnersTime, challenge_id, winner }:
+    GameProperties,
 ) {
   const [playback, setPlayback] = useState<Playback>({ events: [] });
   const [penalties, setPenalties] = useState(0);
@@ -255,16 +257,21 @@ export default function Game(
         <div class="m-1 h-8 flex place-content-evenly">
           {!won && wordle
             ? (
-              <TimerText
-                seconds={challenge_id && winnersTime
-                  ? Math.max(0, winnersTime - totalSeconds)
-                  : totalSeconds}
-                class={"mx-2 text-gray " +
-                  (challenge_id && winnersTime &&
-                      (winnersTime - totalSeconds) < 10
-                    ? "text-red-800 animate-pulse font-bold"
-                    : "")}
-              />
+              <div>
+                {winner && challenge_id !== undefined && (
+                  <span class="pr-2 font-bold">{winner}</span>
+                )}
+                <TimerText
+                  seconds={challenge_id && winnersTime
+                    ? Math.max(0, winnersTime - totalSeconds)
+                    : totalSeconds}
+                  class={"mx-2 text-gray " +
+                    (challenge_id && winnersTime &&
+                        (winnersTime - totalSeconds) < 10
+                      ? "text-red-800 animate-pulse font-bold"
+                      : "")}
+                />
+              </div>
             )
             : <div />}
           {penalties
@@ -277,10 +284,15 @@ export default function Game(
             : <div />}
           {(!challenge_id && winnersTime && winnersTime > 0)
             ? (
-              <TimerText
-                seconds={winnersTime}
-                class="mx-2 text-green-400"
-              />
+              <div>
+                {winner && (
+                  <span class="pr-2 text-green-400 font-bold">{winner}</span>
+                )}
+                <TimerText
+                  seconds={winnersTime}
+                  class="mx-2 text-green-400"
+                />
+              </div>
             )
             : <div />}
           {isPractice && !won

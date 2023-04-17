@@ -20,6 +20,7 @@ interface Data {
     num_wins: number;
     num_losses: number;
   }[];
+  pending_challenges: number;
 }
 export const handler: SessionHandler<Data> = {
   async GET(req, ctx) {
@@ -85,7 +86,8 @@ export const handler: SessionHandler<Data> = {
         select challenge_id, json_agg(name) as players from submissions inner join history using (challenge_id) INNER JOIN history_winners using (challenge_id) WHERE name != ${ctx.state.name} and name != winner group by challenge_id
       ),
       history_json as (select json_agg(json_build_object('players', COALESCE(players, '[]'), 'challenge_id', challenge_id, 'time', time, 'word', word, 'winner', json_build_object('name', winner, 'time', winning_time)) order by challenge_id desc) as history from history natural inner join history_winners natural LEFT join history_players)
-      select 
+      select
+        (select count(distinct challenge_id) from submissions inner join challenges using (challenge_id) where is_this_week(challenges.created_at) and not exists (select * from submissions where challenge_id = challenges.challenge_id and name = ${ctx.state.name})) as pending_challenges,
         coalesce(total_points, '[]') as total_points,
         coalesce(history, '[]') as history
       from history_json full outer join total_points_json on true
@@ -94,7 +96,15 @@ export const handler: SessionHandler<Data> = {
   },
 };
 export default function Page(
-  { data: { playedToday, total_points, history, name: myName } }: PageProps<
+  {
+    data: {
+      playedToday,
+      total_points,
+      history,
+      name: myName,
+      pending_challenges,
+    },
+  }: PageProps<
     Data & SessionData
   >,
 ) {
@@ -109,7 +119,10 @@ export default function Page(
           href="/challenges/play"
           class="px-3 py-2 bg-green-500 text-white rounded hover:bg-green-700 flex gap-2"
         >
-          <IconPlayerPlay class="w-6 h-6" />Start Challenges Now!
+          <IconPlayerPlay class="w-6 h-6" />
+          {pending_challenges
+            ? `${pending_challenges} Pending Challenge${pending_challenges > 1 ? "s" :""}!`
+            : "Start New Challenge!"}
         </a>
       </div>
       <h1 class="my-4">This Week</h1>
