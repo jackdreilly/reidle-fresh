@@ -153,7 +153,7 @@ export default function Page(
               <TimerText seconds={time} />,
               <div>
                 <span>{name}</span>
-                <span>
+                <span class="mx-2">
                   <TimerText seconds={winning_time} />
                 </span>
               </div>,
