@@ -149,15 +149,15 @@ export default function Page(
               >
                 <IconEye class="w-6 h-6" />
               </a>,
-              <div class="mx-2">{word}</div>,
-              <TimerText class="mx-2" seconds={time} />,
+              <div>{word}</div>,
+              <TimerText seconds={time} />,
               <div>
-                <span class="mx-2">{name}</span>
+                <span>{name}</span>
                 <span>
                   <TimerText seconds={winning_time} />
                 </span>
               </div>,
-              <div class="mx-2">{players.join(", ")}</div>,
+              <div>{players.join(", ")}</div>,
             ].map((x) => <TableCell>{x}</TableCell>)}
           </TableRow>
         ))}
