@@ -26,7 +26,7 @@ export const handler: SessionHandler<Data> = {
           'time', time,
           'penalty', penalty,
           'paste', paste,
-          'id', id
+          'submission_id', submission_id
           ) order by time
         ) from submissions where challenge_id = ${challenge_id}
       ), json_build_array()) as submissions
@@ -47,25 +47,6 @@ export default function Page(
       title="Challenge"
       playedToday={playedToday}
     >
-      <a
-        class="font-medium text-blue-600 dark:text-blue-500 hover:underline float align-center"
-        href="/challenges"
-      >
-        <svg
-          class="h-5 w-5 inline mx-2"
-          fill="currentColor"
-          viewBox="0 0 20 20"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-        >
-          <path
-            clipRule="evenodd"
-            fillRule="evenodd"
-            d="M17 10a.75.75 0 01-.75.75H5.612l4.158 3.96a.75.75 0 11-1.04 1.08l-5.5-5.25a.75.75 0 010-1.08l5.5-5.25a.75.75 0 111.04 1.08L5.612 9.25H16.25A.75.75 0 0117 10z"
-          />
-        </svg>
-        Back to challenges
-      </a>
       <h1>Challenge {challenge_id}</h1>
       {played ? null : (
         <a

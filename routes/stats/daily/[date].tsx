@@ -24,7 +24,7 @@ export const handler: SessionHandler<Data> = {
       DailySubmission
     >`
             SELECT
-              id, name, time, penalty, paste
+              submission_id, name, time, penalty, paste
             FROM
               submissions
             WHERE
@@ -72,5 +72,5 @@ export interface DailySubmission {
   time: number;
   penalty: number;
   paste: string;
-  id: number;
+  submission_id: number;
 }

@@ -5,13 +5,13 @@
 import config from "./deno.json" assert { type: "json" };
 import * as $0 from "./routes/_middleware.tsx";
 import * as $1 from "./routes/account.tsx";
-import * as $2 from "./routes/admin.tsx";
-import * as $3 from "./routes/api/inngest.ts";
-import * as $4 from "./routes/api/submit.ts";
-import * as $5 from "./routes/api/unread_messages.ts";
-import * as $6 from "./routes/challenges.tsx";
-import * as $7 from "./routes/challenges/challenge/[challenge_id]/index.tsx";
-import * as $8 from "./routes/challenges/challenge/[challenge_id]/play.tsx";
+import * as $2 from "./routes/api/inngest.ts";
+import * as $3 from "./routes/api/submit.ts";
+import * as $4 from "./routes/api/unread_messages.ts";
+import * as $5 from "./routes/challenges/challenge/[challenge_id]/index.tsx";
+import * as $6 from "./routes/challenges/challenge/[challenge_id]/play.tsx";
+import * as $7 from "./routes/challenges/index.tsx";
+import * as $8 from "./routes/challenges/play.tsx";
 import * as $9 from "./routes/index.tsx";
 import * as $10 from "./routes/messages.tsx";
 import * as $11 from "./routes/messages/[message_id]/delete.tsx";
@@ -26,7 +26,7 @@ import * as $19 from "./routes/stats/past_winners.tsx";
 import * as $20 from "./routes/stats/this_week.tsx";
 import * as $21 from "./routes/stats/today.tsx";
 import * as $22 from "./routes/stats/weekly/[startDay].tsx";
-import * as $23 from "./routes/submissions/[id]/playback.tsx";
+import * as $23 from "./routes/submissions/[submission_id]/playback.tsx";
 import * as $24 from "./routes/unsubscribe.tsx";
 import * as $$0 from "./islands/AllNotification.tsx";
 import * as $$1 from "./islands/confetti.tsx";
@@ -37,13 +37,13 @@ const manifest = {
   routes: {
     "./routes/_middleware.tsx": $0,
     "./routes/account.tsx": $1,
-    "./routes/admin.tsx": $2,
-    "./routes/api/inngest.ts": $3,
-    "./routes/api/submit.ts": $4,
-    "./routes/api/unread_messages.ts": $5,
-    "./routes/challenges.tsx": $6,
-    "./routes/challenges/challenge/[challenge_id]/index.tsx": $7,
-    "./routes/challenges/challenge/[challenge_id]/play.tsx": $8,
+    "./routes/api/inngest.ts": $2,
+    "./routes/api/submit.ts": $3,
+    "./routes/api/unread_messages.ts": $4,
+    "./routes/challenges/challenge/[challenge_id]/index.tsx": $5,
+    "./routes/challenges/challenge/[challenge_id]/play.tsx": $6,
+    "./routes/challenges/index.tsx": $7,
+    "./routes/challenges/play.tsx": $8,
     "./routes/index.tsx": $9,
     "./routes/messages.tsx": $10,
     "./routes/messages/[message_id]/delete.tsx": $11,
@@ -58,7 +58,7 @@ const manifest = {
     "./routes/stats/this_week.tsx": $20,
     "./routes/stats/today.tsx": $21,
     "./routes/stats/weekly/[startDay].tsx": $22,
-    "./routes/submissions/[id]/playback.tsx": $23,
+    "./routes/submissions/[submission_id]/playback.tsx": $23,
     "./routes/unsubscribe.tsx": $24,
   },
   islands: {

@@ -7,7 +7,7 @@ import { moment } from "https://deno.land/x/deno_moment@v1.1.2/mod.ts";
 interface Message {
   message: string;
   name: string;
-  id: number;
+  message_id: number;
   created_at: string;
 }
 interface Data {
@@ -55,7 +55,7 @@ SELECT
     "message",
     "name",
     "created_at",
-    "id"
+    "message_id"
 FROM
     "messages"
 WHERE
@@ -95,7 +95,7 @@ export default function Page(
         <Button>Send</Button>
       </form>
       <ul>
-        {messages.map(({ message, id, name, created_at }, i) => (
+        {messages.map(({ message, message_id, name, created_at }, i) => (
           <li class="border-b-1 p-2">
             <span class="font-bold">{name}</span>: {message}
             {myName === name
@@ -103,7 +103,7 @@ export default function Page(
                 <form
                   style={{ display: "inline" }}
                   method="POST"
-                  action={`/messages/${id}/delete`}
+                  action={`/messages/${message_id}/delete`}
                 >
                   <input
                     class="cursor-pointer"

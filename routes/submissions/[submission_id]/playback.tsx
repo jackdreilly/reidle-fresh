@@ -12,7 +12,7 @@ export const handler: SessionHandler<Data> = {
     return ctx.state.render(ctx, {
       playback: await ctx.state.connection.queryObject<
         { playback: Playback }
-      >`select playback from submissions where id = ${ctx.params.id} limit 1`
+      >`select playback from submissions where submission_id = ${ctx.params.submission_id} limit 1`
         .then((x) => x.rows[0].playback),
     });
   },

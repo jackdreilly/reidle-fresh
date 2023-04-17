@@ -29,8 +29,8 @@ SELECT
                 LIMIT 1
             ), 0
         )                      AS "winnersTime",
-    UPPER(CONVERT_FROM(DECODE("word", 'base64'), 'UTF8'))   AS "startingWord",
-    UPPER(CONVERT_FROM(DECODE("answer", 'base64'), 'UTF8')) AS "word"
+    UPPER(word) AS "startingWord",
+    UPPER(answer) AS "word"
 FROM
     "daily_words"
 WHERE

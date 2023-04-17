@@ -64,7 +64,7 @@ export default function WeekTable(
                 </a>
               </TableRowHeader>
               {table[i].slice(2).map((v, j) => {
-                const id = ids[i][j + 2] ?? -1;
+                const submission_id = ids[i][j + 2] ?? -1;
                 return (
                   <TableCell
                     style={{
@@ -73,10 +73,10 @@ export default function WeekTable(
                       textAlign: "center",
                     }}
                   >
-                    {id < 0 ? v : (
+                    {submission_id < 0 ? v : (
                       <a
                         class="leading-[35px] w-full block"
-                        href={`/submissions/${id}/playback`}
+                        href={`/submissions/${submission_id}/playback`}
                       >
                         {v}
                       </a>

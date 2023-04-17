@@ -21,13 +21,8 @@ export default async function getWinner(cxn: PoolClient): Promise<string> {
   return cxn.queryObject<Result>`
 WITH last_day AS (
     SELECT
-        CURRENT_DATE - EXTRACT(
-            DOW FROM CURRENT_DATE
-        )::INTEGER AS last_day,
-        CURRENT_DATE - EXTRACT(
-            DOW FROM CURRENT_DATE
-        )::INTEGER - 6::INTEGER AS start_day
-
+        (DATE_TRUNC('week', now())::DATE - interval '1' day)::DATE as last_day,
+        (DATE_TRUNC('week', now())::DATE - interval '7' day)::DATE as start_day
 ),
 
 last_week AS (

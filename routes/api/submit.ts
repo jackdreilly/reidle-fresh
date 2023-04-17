@@ -41,7 +41,7 @@ SELECT
     await ctx.state.connection.queryArray`
 WITH existing AS (
     SELECT
-        id,
+        submission_id,
         time AS "time"
     FROM
         submissions
@@ -55,7 +55,7 @@ WITH existing AS (
 
 previous AS (
     SELECT
-        CAST(NULL AS BIGINT) AS id,
+        CAST(NULL AS BIGINT) AS submission_id,
         CAST(${time} AS REAL) AS "time"
 ),
 
@@ -93,7 +93,7 @@ updates AS (
     FROM
         scored
     WHERE
-        submissions.id = scored.id
+        submissions.submission_id = scored.submission_id
 )
 INSERT INTO
 submissions(
@@ -118,7 +118,7 @@ SELECT
 FROM
     scored
 WHERE
-    id IS NULL
+    submission_id IS NULL
       `;
     await sendEmail(
       { subject, text },

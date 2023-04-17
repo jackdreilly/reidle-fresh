@@ -23,7 +23,7 @@ export function DailyTable(
     >
       <TableBody>
         {submissions.map((
-          { name, time, penalty, paste, id },
+          { name, time, penalty, paste, submission_id },
         ) => (
           <TableRow class={name === myName ? "bg-yellow-100" : ""}>
             <TableRowHeader>
@@ -48,7 +48,7 @@ export function DailyTable(
             <TableCell>
               <a
                 class={hide ? " invisible" : ""}
-                href={`/submissions/${id}/playback` +
+                href={`/submissions/${submission_id}/playback` +
                   (challenge ? "?challenge" : "")}
               >
                 <svg

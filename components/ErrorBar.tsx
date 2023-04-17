@@ -31,25 +31,25 @@ export default function ErrorBar(
       {lost
         ? (
           <div class="text-red-600">
-            Not fast enough to win!<a
-              href={`/challenges/challenge/${challenge_id}`}
+            <a
+              href={`/challenges/play`}
               class="p-1 border-2 border-black rounded mx-2"
             >
-              Back to Challenge
+              Next Challenge
             </a>
           </div>
         )
         : winTime
         ? (
           <div class="text-green-800">
-            You won in <TimerText seconds={winTime} />!
+            <TimerText seconds={winTime} />!
             {challenge_id !== undefined
               ? (
                 <a
-                  href={`/challenges/challenge/${challenge_id}`}
+                  href={`/challenges/play`}
                   class="p-1 border-2 border-black rounded mx-2"
                 >
-                  Back to Challenge
+                  Next Challenge
                 </a>
               )
               : (

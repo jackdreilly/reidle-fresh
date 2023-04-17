@@ -1,7 +1,7 @@
 import { PoolClient } from "https://deno.land/x/postgres@v0.14.0/mod.ts";
 
 interface Submission {
-  id: number;
+  submission_id: number;
   name: string;
   day: number;
   score: number;
@@ -24,7 +24,7 @@ export async function fetchWeek(
   const submissions = await connection.queryObject<Submission>`
     WITH last_week AS (
         SELECT
-            id,
+            submission_id,
             name,
             time,
             score,
@@ -38,7 +38,7 @@ export async function fetchWeek(
     ),
 
     name_day_ids AS (
-      SELECT DISTINCT id, name, day FROM last_week
+      SELECT DISTINCT submission_id, name, day FROM last_week
     ),
     
     all_days AS (
@@ -75,7 +75,7 @@ export async function fetchWeek(
     )
     
     SELECT
-        id,
+        submission_id,
         day,
         name,
         score_filled AS score,
@@ -105,7 +105,8 @@ export async function fetchWeek(
   const table = names.map((_) => ["", "", ...dates].map((_) => 5));
   const ids = names.map((_) => ["", "", ...dates].map((_) => -1));
   for (
-    const { day, score, total_score, name, total_time, id } of submissions
+    const { day, score, total_score, name, total_time, submission_id }
+      of submissions
   ) {
     const name_index = nameLookup[name];
     const date_index = dateLookup[day];
@@ -113,7 +114,7 @@ export async function fetchWeek(
     row[date_index] = score;
     row[0] = total_score;
     row[1] = total_time;
-    ids[name_index][date_index] = id;
+    ids[name_index][date_index] = submission_id;
   }
   return {
     dates,
