@@ -14,7 +14,7 @@ a as (
     WHERE
         challenge_id IS NOT NULL
     AND
-        date_trunc('week', created_at) = date_trunc('week', now())
+        created_at::DATE = CURRENT_DATE
     AND
         NOT EXISTS (
             SELECT

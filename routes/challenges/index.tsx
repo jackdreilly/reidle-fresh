@@ -34,7 +34,7 @@ export const handler: SessionHandler<Data> = {
               count(*) as num_players
           from submissions
           inner join challenges USING (challenge_id)
-      where is_this_week(challenges.created_at)
+      where challenges.created_at::DATE = CURRENT_DATE
       group by 1
       having count(*) > 1
       ),
@@ -77,7 +77,7 @@ export const handler: SessionHandler<Data> = {
         select json_agg(json_build_object('name', name, 'total_points', total_points, 'num_wins', num_wins, 'num_losses', num_losses)) as total_points from total_points
       ),
       history as (
-        select challenge_id, time, word from submissions inner join challenges using (challenge_id) where name = ${ctx.state.name} and challenge_id is not null and is_this_week(challenges.created_at)
+        select challenge_id, time, word from submissions inner join challenges using (challenge_id) where name = ${ctx.state.name} and challenge_id is not null and challenges.created_at::DATE = CURRENT_DATE
       ),
       history_winners as (
         select distinct on (challenge_id) challenge_id, submissions.name as winner, submissions.time as winning_time from submissions inner join history using (challenge_id) order by challenge_id, submissions.time
@@ -87,7 +87,7 @@ export const handler: SessionHandler<Data> = {
       ),
       history_json as (select json_agg(json_build_object('players', COALESCE(players, '[]'), 'challenge_id', challenge_id, 'time', time, 'word', word, 'winner', json_build_object('name', winner, 'time', winning_time)) order by challenge_id desc) as history from history natural inner join history_winners natural LEFT join history_players)
       select
-        (select count(distinct challenge_id) from submissions inner join challenges using (challenge_id) where is_this_week(challenges.created_at) and not exists (select * from submissions where challenge_id = challenges.challenge_id and name = ${ctx.state.name})) as pending_challenges,
+        (select count(distinct challenge_id) from submissions inner join challenges using (challenge_id) where challenges.created_at::DATE = CURRENT_DATE and not exists (select * from submissions where challenge_id = challenges.challenge_id and name = ${ctx.state.name})) as pending_challenges,
         coalesce(total_points, '[]') as total_points,
         coalesce(history, '[]') as history
       from history_json full outer join total_points_json on true
@@ -125,7 +125,7 @@ export default function Page(
             : "Start New Challenge!"}
         </a>
       </div>
-      <h1 class="my-4">This Week</h1>
+      <h1 class="my-4">Today</h1>
       <Table
         columns={["Name", "Score", "W", "L"]}
       >
