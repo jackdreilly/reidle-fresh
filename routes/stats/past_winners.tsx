@@ -9,6 +9,7 @@ import {
 } from "@/components/tables.tsx";
 import getWinner from "@/utils/get_winner.ts";
 import { SessionHandler } from "@/utils/utils.ts";
+import { Name } from "../../components/daily_table.tsx";
 interface Submission {
   name: string;
   week: string;
@@ -22,7 +23,7 @@ export const handler: SessionHandler<Data> = {
   async GET(_, ctx) {
     const name = ctx.state.name;
     await getWinner(ctx.state.connection);
-    return ctx.state.render(ctx,{
+    return ctx.state.render(ctx, {
       submissions: await ctx.state.connection.queryObject<Submission>`
       SELECT
         name,
@@ -38,7 +39,9 @@ export const handler: SessionHandler<Data> = {
 };
 
 export default function Page(
-  { data: { submissions, playedToday, name: myName } }: PageProps<Data & {playedToday: boolean}>,
+  { data: { submissions, playedToday, name: myName } }: PageProps<
+    Data & { playedToday: boolean }
+  >,
 ) {
   return (
     <StatsTemplate playedToday={playedToday} route="past_winners">
@@ -46,7 +49,9 @@ export default function Page(
         <TableBody>
           {submissions.map(({ name, week }, i) => (
             <TableRow class={name === myName ? "bg-yellow-100" : ""}>
-              <TableRowHeader>{name}</TableRowHeader>
+              <TableRowHeader>
+                <Name name={name} />
+              </TableRowHeader>
               <TableCell>
                 <a
                   class="font-medium text-blue-600 dark:text-blue-500 hover:underline"

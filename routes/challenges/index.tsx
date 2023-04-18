@@ -5,6 +5,7 @@ import TimerText from "@/components/timer_text.tsx";
 import { SessionData, SessionHandler } from "@/utils/utils.ts";
 import IconEye from "https://deno.land/x/tabler_icons_tsx@0.0.3/tsx/eye.tsx";
 import IconPlayerPlay from "https://deno.land/x/tabler_icons_tsx@0.0.3/tsx/player-play.tsx";
+import { Name } from "../../components/daily_table.tsx";
 
 interface Data {
   history: {
@@ -121,7 +122,9 @@ export default function Page(
         >
           <IconPlayerPlay class="w-6 h-6" />
           {pending_challenges
-            ? `${pending_challenges} Pending Challenge${pending_challenges > 1 ? "s" :""}!`
+            ? `${pending_challenges} Pending Challenge${
+              pending_challenges > 1 ? "s" : ""
+            }!`
             : "Start New Challenge!"}
         </a>
       </div>
@@ -165,7 +168,9 @@ export default function Page(
               <div>{word}</div>,
               <TimerText seconds={time} />,
               <div>
-                <span>{name}</span>
+                <span>
+                  <Name name={name} />
+                </span>
                 <span class="mx-2">
                   <TimerText seconds={winning_time} />
                 </span>

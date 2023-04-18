@@ -7,6 +7,44 @@ import {
 } from "@/components/tables.tsx";
 import TimerText from "@/components/timer_text.tsx";
 import { DailySubmission } from "@/routes/stats/daily/[date].tsx";
+import IconCake from "https://deno.land/x/tabler_icons_tsx@0.0.3/tsx/cake.tsx";
+
+function isBirthday(name: string) {
+  const birthday = {
+    jack: [4, 18],
+    chris: [7, 28],
+    olga: [4, 12],
+    ioanna: [3, 27],
+    jimbo: [5, 8],
+  }[name];
+  if (!birthday) {
+    return false;
+  }
+  const now = new Date();
+  const bday = new Date(now.getUTCFullYear(), birthday[0] - 1, birthday[1]);
+  return Math.abs(now.getTime() - bday.getTime()) < (1000 * 60 * 60 * 24 * 5);
+}
+
+export function Birthday({ name }: { name: string }) {
+  if (isBirthday(name)) {
+    return <IconCake class="w-6 h-6 ml-1" />;
+  }
+  return null;
+}
+
+export function Name({ name }: { name: string }) {
+  return (
+    <div class="inline-block">
+      <a
+        href={`/players/${name}`}
+        class="flex items-center whitespace-nowrap text-blue-600 dark:text-blue-500 hover:underline"
+      >
+        {name.toLowerCase().trim().substring(0, 13)}
+        <Birthday name={name} />
+      </a>
+    </div>
+  );
+}
 
 export type DailyTableData = DailySubmission[];
 export function DailyTable(
@@ -27,13 +65,7 @@ export function DailyTable(
         ) => (
           <TableRow class={name === myName ? "bg-yellow-100" : ""}>
             <TableRowHeader>
-              <a
-                class="text-blue-600 dark:text-blue-500 hover:underline"
-                href={`/players/${name}`}
-              >
-                {name.slice(0, 13) +
-                  (name.toLowerCase() === "olga" ? "🎂" : "")}
-              </a>
+              <Name name={name} />
             </TableRowHeader>
             <TableCell>
               <TimerText seconds={time} />

@@ -4,6 +4,7 @@ import ReidleTemplate from "@/components/reidle_template.tsx";
 import { sendEmail } from "@/routes/api/inngest.ts";
 import { SessionData, SessionHandler } from "@/utils/utils.ts";
 import { moment } from "https://deno.land/x/deno_moment@v1.1.2/mod.ts";
+import { Name } from "../components/daily_table.tsx";
 interface Message {
   message: string;
   name: string;
@@ -97,7 +98,7 @@ export default function Page(
       <ul>
         {messages.map(({ message, message_id, name, created_at }, i) => (
           <li class="border-b-1 p-2 whitespace-break-spaces">
-            <span class="font-bold">{name}</span>: {message}
+            <span class="font-bold"><Name name={name} /></span>: {message}
             {myName === name
               ? (
                 <form

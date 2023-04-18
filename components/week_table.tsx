@@ -9,6 +9,7 @@ import {
 } from "@/components/tables.tsx";
 import { timerTime } from "@/utils/utils.ts";
 import { WeekData } from "@/utils/week.ts";
+import { Name } from "./daily_table.tsx";
 export interface WeekTableData extends WeekData {
   name: string;
   startDay: Date;
@@ -56,12 +57,7 @@ export default function WeekTable(
           {names.map((name, i) => (
             <TableRow>
               <TableRowHeader class={name === myName ? "bg-yellow-100" : ""}>
-                <a
-                  class="text-blue-600 dark:text-blue-500 hover:underline"
-                  href={`/players/${name}`}
-                >
-                  {name}
-                </a>
+                <Name name={name} />
               </TableRowHeader>
               {table[i].slice(2).map((v, j) => {
                 const submission_id = ids[i][j + 2] ?? -1;
