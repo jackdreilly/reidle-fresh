@@ -96,7 +96,7 @@ export default function Page(
       </form>
       <ul>
         {messages.map(({ message, message_id, name, created_at }, i) => (
-          <li class="border-b-1 p-2">
+          <li class="border-b-1 p-2 whitespace-break-spaces">
             <span class="font-bold">{name}</span>: {message}
             {myName === name
               ? (
