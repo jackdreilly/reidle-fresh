@@ -3,3 +3,4 @@ service-account.json
 *.db
 *firebase-adminsdk*.json
 .DS_Store
+__pycache__/
