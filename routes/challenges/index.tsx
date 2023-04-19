@@ -15,7 +15,13 @@ interface Data {
     players: string[];
     winner: { name: string; time: number };
   }[];
-  total_points: {
+  total_points_today: {
+    name: string;
+    total_points: number;
+    num_wins: number;
+    num_losses: number;
+  }[];
+  total_points_yesterday: {
     name: string;
     total_points: number;
     num_wins: number;
@@ -28,6 +34,8 @@ export const handler: SessionHandler<Data> = {
     return ctx.state.render(
       ctx,
       await ctx.state.connection.queryObject<Data>`
+      with
+      total_points_json_today as (
       with
       valid_challenges as (
           select
@@ -73,9 +81,57 @@ export const handler: SessionHandler<Data> = {
       from winner_points
       natural full outer join total_played
       order by total_points desc
+      )
+      select json_agg(json_build_object('name', name, 'total_points', total_points, 'num_wins', num_wins, 'num_losses', num_losses)) as total_points from total_points
       ),
-      total_points_json as (
-        select json_agg(json_build_object('name', name, 'total_points', total_points, 'num_wins', num_wins, 'num_losses', num_losses)) as total_points from total_points
+      total_points_json_yesterday as (
+      with
+      valid_challenges as (
+          select
+              challenge_id,
+              count(*) as num_players
+          from submissions
+          inner join challenges USING (challenge_id)
+      where challenges.created_at::DATE = CURRENT_DATE - INTERVAL '1' day
+      group by 1
+      having count(*) > 1
+      ),
+      total_played as (
+      select
+          name,
+          count(*) as total_played
+      from valid_challenges
+      natural inner join submissions
+      group by 1
+      ),
+      winners as (
+      select distinct on (challenge_id)
+          challenge_id,
+          name
+      from valid_challenges
+      natural inner join submissions
+      order by challenge_id, time
+      ),
+      winner_points as (
+      select
+          name,
+          sum(num_players) as winner_points,
+          count(*) as num_wins
+      from winners
+      natural inner join valid_challenges
+      group by 1
+      ),
+      total_points as (
+      select
+          name,
+          coalesce(num_wins, 0) as num_wins,
+          coalesce(total_played,0) - coalesce(num_wins, 0) as num_losses,
+          coalesce(winner_points, 0) - coalesce(total_played, 0) as total_points
+      from winner_points
+      natural full outer join total_played
+      order by total_points desc
+      )
+      select json_agg(json_build_object('name', name, 'total_points', total_points, 'num_wins', num_wins, 'num_losses', num_losses)) as total_points from total_points
       ),
       history as (
         select challenge_id, time, word from submissions inner join challenges using (challenge_id) where name = ${ctx.state.name} and challenge_id is not null and challenges.created_at::DATE = CURRENT_DATE
@@ -89,9 +145,12 @@ export const handler: SessionHandler<Data> = {
       history_json as (select json_agg(json_build_object('players', COALESCE(players, '[]'), 'challenge_id', challenge_id, 'time', time, 'word', word, 'winner', json_build_object('name', winner, 'time', winning_time)) order by challenge_id desc) as history from history natural inner join history_winners natural LEFT join history_players)
       select
         (select count(distinct challenge_id) from submissions inner join challenges using (challenge_id) where challenges.created_at::DATE = CURRENT_DATE and not exists (select * from submissions where challenge_id = challenges.challenge_id and name = ${ctx.state.name})) as pending_challenges,
-        coalesce(total_points, '[]') as total_points,
+        coalesce(total_points_json_today.total_points, '[]') as total_points_today,
+        coalesce(total_points_json_yesterday.total_points, '[]') as total_points_yesterday,
         coalesce(history, '[]') as history
-      from history_json full outer join total_points_json on true
+      from history_json 
+      full outer join total_points_json_today on true
+      full outer join total_points_json_yesterday on true
     `.then((x) => x.rows[0]),
     );
   },
@@ -100,7 +159,8 @@ export default function Page(
   {
     data: {
       playedToday,
-      total_points,
+      total_points_today,
+      total_points_yesterday,
       history,
       name: myName,
       pending_challenges,
@@ -132,7 +192,7 @@ export default function Page(
       <Table
         columns={["Name", "Score", "W", "L"]}
       >
-        {total_points.map((
+        {total_points_today.map((
           { name, total_points, num_losses, num_wins },
         ) => (
           <TableRow class={name === myName ? "bg-yellow-100" : ""}>
@@ -177,6 +237,20 @@ export default function Page(
               </div>,
               <div>{players.join(", ")}</div>,
             ].map((x) => <TableCell>{x}</TableCell>)}
+          </TableRow>
+        ))}
+      </Table>
+      <h1 class="my-4">Yesterday</h1>
+      <Table
+        columns={["Name", "Score", "W", "L"]}
+      >
+        {total_points_yesterday.map((
+          { name, total_points, num_losses, num_wins },
+        ) => (
+          <TableRow class={name === myName ? "bg-yellow-100" : ""}>
+            {[name, total_points, num_wins, num_losses].map((x) => (
+              <TableCell>{x}</TableCell>
+            ))}
           </TableRow>
         ))}
       </Table>
