@@ -21,8 +21,13 @@ function isBirthday(name: string) {
     return false;
   }
   const now = new Date();
-  const bday = new Date(now.getUTCFullYear(), birthday[0] - 1, birthday[1]);
-  return Math.abs(now.getTime() - bday.getTime()) < (1000 * 60 * 60 * 24 * 5);
+  return [-1, 0, 1].filter((y) =>
+    Math.abs(
+      now.getTime() -
+        new Date(now.getUTCFullYear() + y, birthday[0] - 1, birthday[1])
+          .getTime(),
+    ) < (1000 * 60 * 60 * 24 * 5)
+  ).length > 0;
 }
 
 export function Birthday({ name }: { name: string }) {
