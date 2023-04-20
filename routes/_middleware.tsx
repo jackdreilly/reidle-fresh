@@ -16,7 +16,8 @@ export const handler: MiddlewareHandler<SessionData> = (req, ctx) => {
   ) {
     return ctx.next();
   }
-  const name = cookie.getCookies(req.headers)["name"] ?? "";
+  const rawName = cookie.getCookies(req.headers)["name"] ?? "";
+  const name = rawName === "natalie" ? "natnat" : rawName;
   ctx.state.name = name;
   if (ctx.state.name === "undefined") {
     ctx.state.name = "";
