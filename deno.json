@@ -1,7 +1,8 @@
 {
   "tasks": {
     "start": "deno run -A --watch=static/,routes/ dev.ts",
-    "inngest": "npx inngest-cli@latest dev -u http://localhost:8000/api/inngest"
+    "inngest": "npx inngest-cli@latest dev -u http://localhost:8000/api/inngest",
+    "sql": "deno run -A build_sql.ts"
   },
   "importMap": "./import_map.json",
   "compilerOptions": {

@@ -1,6 +1,6 @@
 import { asset } from "$fresh/runtime.ts";
 import { HandlerContext, Handlers } from "$fresh/server.ts";
-import { PoolClient } from "https://deno.land/x/postgres@v0.14.0/mod.ts";
+import { PoolClient } from "psql";
 
 export type SessionData = {
   connection: PoolClient;

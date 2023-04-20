@@ -1,0 +1,167 @@
+version: 2
+
+models:
+  - name: challenges_json
+    tests:
+      - not_empty
+    columns:
+      - name: history
+        tests:
+          - not_null
+          - array_not_empty
+      - name: today_leaderboard
+        tests:
+          - not_null
+          - array_not_empty
+      - name: yesterday_leaderboard
+        tests:
+          - not_null
+  - name: scorable_submissions
+    tests:
+      - not_empty
+  - name: total_points
+    tests:
+      - not_empty
+    columns:
+      - name: is_today
+        tests:
+          - not_null
+      - name: name
+        tests:
+          - not_null
+      - name: num_wins
+        tests:
+          - non_negative
+          - not_null
+      - name: num_losses
+        tests:
+          - non_negative
+          - not_null
+      - name: total_points
+        tests:
+          - not_null
+  - name: winner_points
+    tests:
+      - not_empty
+    columns:
+      - name: is_today
+        tests:
+          - not_null
+      - name: name
+        tests:
+          - not_null
+      - name: winner_points
+        tests:
+          - positive
+          - not_null
+  - name: loser_points
+    tests:
+      - not_empty
+    columns:
+      - name: is_today
+        tests:
+          - not_null
+      - name: name
+        tests:
+          - not_null
+      - name: loser_points
+        tests:
+          - positive
+          - not_null
+  - name: my_history_json
+    tests:
+      - single_row
+  - name: last_two_days_submissions
+    tests:
+      - not_empty
+    columns:
+      - name: player_count
+        tests:
+          - not_null
+          - positive
+      - name: challenge_id
+        tests:
+          - not_null
+          - relationships:
+              to: source('reidle', 'challenges')
+              field: challenge_id
+      - name: time
+        tests:
+          - not_null
+          - positive
+      - name: name
+        description: "name of submission"
+        tests:
+          - not_null
+          - relationships:
+              to: source('reidle', 'players')
+              field: name
+  - name: challenge_players
+    tests:
+      - not_empty
+    columns:
+      - name: challenge_id
+        tests:
+          - not_null
+          - relationships:
+              to: source('reidle', 'challenges')
+              field: challenge_id
+      - name: players
+        tests:
+          - not_null
+          - array_not_empty
+  - name: my_history
+    tests:
+      - not_empty
+  - name: last_two_days_challenges
+    tests:
+      - not_empty
+    columns:
+      - name: answer
+        tests:
+          - not_null
+          - relationships:
+              to: source('reidle', 'answers')
+              field: answer
+      - name: is_today
+        tests:
+          - accepted_values:
+              values: [false, true]
+          - not_null
+          
+      - name: challenge_id
+        tests:
+          - not_null
+          - unique
+  - name: challenge_winners
+    tests:
+      - not_empty
+    columns:
+      - name: challenge_id
+        description: "The primary key for this table"
+        tests:
+          - unique
+          - not_null
+          - relationships:
+              to: source('reidle', 'challenges')
+              field: challenge_id
+      - name: winner
+        description: "winner"
+        tests:
+          - not_null
+          - relationships:
+              to: source('reidle', 'players')
+              field: name
+      - name: winner_time
+        description: "time of winner"
+        tests:
+          - positive
+          - not_null
+sources:
+  - name: reidle
+    schema: public
+    tables:
+      - name: challenges
+      - name: submissions
+      - name: players
+      - name: answers

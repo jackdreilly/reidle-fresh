@@ -1,8 +1,7 @@
 import { PageProps } from "$fresh/server.ts";
-import Input from "@/components/input.tsx";
 import ReidleTemplate from "@/components/reidle_template.tsx";
 import { SessionData, SessionHandler } from "@/utils/utils.ts";
-import { PoolClient } from "https://deno.land/x/postgres@v0.14.0/mod.ts";
+import { PoolClient } from "psql";
 
 interface Data {
   email?: string;

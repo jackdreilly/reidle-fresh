@@ -56,7 +56,7 @@ class Submission(TableBase, table=True):
     playback: dict[str, Any] = Field(
         sa_column=Column(JSON, server_default="'[]'::json", nullable=False),
     )
-    challenge_id: int | None = Field(foreign_key="challenges.challenge_id")
+    challenge_id: int | None = Field(foreign_key="challenges.challenge_id", index=True)
     time: float
     penalty: float
     word: str
@@ -77,7 +77,7 @@ class Challenge(TableBase, table=True):
     challenge_id: int = seq_field()
     starting_word: str = Field(foreign_key="words.word")
     answer: str = Field(foreign_key="answers.answer")
-    created_at: datetime = created_at_field()
+    created_at: datetime = created_at_field(True)
 
 
 class DailyWord(TableBase, table=True):

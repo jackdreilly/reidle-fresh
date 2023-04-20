@@ -1,4 +1,4 @@
-import { PoolClient } from "https://deno.land/x/postgres@v0.14.0/mod.ts";
+import { PoolClient } from "psql";
 
 interface Submission {
   submission_id: number;

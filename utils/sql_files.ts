@@ -1,0 +1,1 @@
+export const sql_files = ["challenges_json"] as const;

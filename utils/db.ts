@@ -1,4 +1,4 @@
-import { Pool, PoolClient } from "https://deno.land/x/postgres@v0.14.0/mod.ts";
+import { Pool, PoolClient } from "psql";
 
 const pool = new Pool(Deno.env.get("POSTGRES_URL")!, 4, true);
 export async function run<T>(
