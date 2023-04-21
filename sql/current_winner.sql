@@ -1,11 +1,46 @@
+
 with
- __dbt__cte__week_table as (
-with
+existing as (
+    select name
+    from
+        "postgres"."public"."winners"
+    where
+        
+date_trunc('week', week) = date_trunc('week', current_date - interval '1 week')
+
+),
+
+computed as (
+    select
+        name,
+        date_trunc('week', 
+NOW() - INTERVAL '7 days'
+)::DATE as "week"
+    from 
+(select
+    name,
+    json_build_object(
+        'days', json_agg(
+            json_build_object(
+                'day', day,
+                'time', round_time,
+                'score', score,
+                'submission_id', submission_id
+            )
+        ),
+        'totals', json_build_object(
+            'time', round(sum(round_time)),
+            'score', round(exp(sum(ln(score))))
+        )
+    ) as results
+from
+    
+(with
 start_of_week as (
     select
         date_trunc(
             'week', 
-$week::DATE
+NOW() - INTERVAL '7 days'
 
         )::date as start_of_week
 ),
@@ -80,45 +115,12 @@ select
         else 5
     end as score
 from
-    full_subs
-),  __dbt__cte__week_json as (
-select
-    name,
-    json_build_object(
-        'days', json_agg(
-            json_build_object(
-                'day', day,
-                'time', round_time,
-                'score', score,
-                'submission_id', submission_id
-            )
-        ),
-        'totals', json_build_object(
-            'time', round(sum(round_time)),
-            'score', round(exp(sum(ln(score))))
-        )
-    ) as results
-from
-    __dbt__cte__week_table
+    full_subs)
+ AS week_table
 group by name
-order by round(exp(sum(ln(score)))) asc, sum(round_time) asc
-),existing as (
-    select name
-    from
-        "postgres"."public"."winners"
-    where
-        
-date_trunc('week', week) = date_trunc('week', current_date - interval '1 week')
-
-),
-
-computed as (
-    select
-        name,
-        date_trunc('week', 
-NOW() - INTERVAL '7 days'
-)::DATE as "week"
-    from __dbt__cte__week_json where not exists (select 1 from existing)
+order by round(exp(sum(ln(score)))) asc, sum(round_time) asc)
+ as week_json
+    where not exists (select 1 from existing)
     limit 1
 ),
 
