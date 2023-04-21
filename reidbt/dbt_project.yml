@@ -18,3 +18,5 @@ models:
 vars:
   export: false
   name: "'jack'"
+  week: 'NOW()'
+  challenge_id: 36

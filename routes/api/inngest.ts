@@ -6,6 +6,7 @@ import * as sendgrid from "https://deno.land/x/sendgrid@0.0.3/mod.ts";
 import { IAddress } from "https://deno.land/x/sendgrid@0.0.3/mod.ts";
 import { serve } from "https://esm.sh/v111/inngest@1.4.0/deno/fresh";
 import render from "preact-render-to-string";
+import { runSql } from "../../utils/sql_files.ts";
 
 export function sendEmail(data: SendEmailData) {
   return inngest.send("email/send", { data, user: { name: "fake" } });
@@ -68,9 +69,9 @@ const reminderEmailFunction = inngest.createFunction(
   { name: "email/reminder" },
   { cron: "TZ=UTC 0 20 * * *" },
   async () => {
-    const bcc = await run((c) =>
-      c.queryObject<IAddress>`select email, name from emails_to_send`
-    ).then((x) => x.rows);
+    const bcc = await run((connection) =>
+      runSql({ file: "emails_to_send", connection })
+    );
     sendEmail({
       to: [],
       html: render(ReminderEmail()),

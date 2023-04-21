@@ -1,6 +1,7 @@
 import { PageProps } from "$fresh/server.ts";
 import ReidleTemplate from "@/components/reidle_template.tsx";
 import { SessionData, SessionHandler } from "@/utils/utils.ts";
+import { runSql } from "../utils/sql_files.ts";
 
 interface Data {
   email?: string;
@@ -12,19 +13,12 @@ export const handler: SessionHandler<Data> = {
     const { state: { name } } = ctx;
     return ctx.state.render(
       ctx,
-      await ctx.state.connection.queryObject<
-        Data
-      >`SELECT
-          name,
-          email,
-          notifications_enabled
-        FROM
-          players
-        WHERE
-          name = ${name}
-        LIMIT
-          1`
-        .then((x) => x.rows[0] ?? { name }),
+      await runSql({
+        file: "my_account",
+        connection: ctx.state.connection,
+        args: { name },
+        single_row: true,
+      }) ?? { name },
     );
   },
   async POST(req, ctx) {

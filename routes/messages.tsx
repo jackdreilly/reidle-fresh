@@ -1,19 +1,14 @@
 import { PageProps } from "$fresh/server.ts";
 import Button from "@/components/button.tsx";
+import { Name } from "@/components/daily_table.tsx";
 import ReidleTemplate from "@/components/reidle_template.tsx";
 import { sendEmail } from "@/routes/api/inngest.ts";
+import { runSql, Schemas } from "@/utils/sql_files.ts";
 import { SessionData, SessionHandler } from "@/utils/utils.ts";
 import { moment } from "https://deno.land/x/deno_moment@v1.1.2/mod.ts";
-import { Name } from "../components/daily_table.tsx";
-interface Message {
-  message: string;
-  name: string;
-  message_id: number;
-  created_at: string;
-}
+type Message = Schemas["message_reads"]["output"][number];
 interface Data {
   messages: Message[];
-  name: string;
 }
 
 export const handler: SessionHandler<Data> = {
@@ -46,27 +41,11 @@ export const handler: SessionHandler<Data> = {
   async GET(_, ctx) {
     const name = ctx.state.name;
     return ctx.state.render(ctx, {
-      messages: await ctx.state.connection.queryObject<Message>`
-WITH "read_receipt" AS (
-    INSERT INTO "message_reads" ("name", "last_read")
-        VALUES (${name}, NOW())
-        ON CONFLICT ("name") DO UPDATE SET "last_read" = NOW()
-)
-SELECT
-    "message",
-    "name",
-    "created_at",
-    "message_id"
-FROM
-    "messages"
-WHERE
-    created_at::DATE
-      >=
-      (CURRENT_DATE - INTERVAL '1' MONTH)
-ORDER BY
-    "created_at"
-        DESC
-      `.then((x) => x.rows),
+      messages: await runSql({
+        file: "message_reads",
+        connection: ctx.state.connection,
+        args: { name },
+      }),
       name,
     });
   },
@@ -98,7 +77,9 @@ export default function Page(
       <ul>
         {messages.map(({ message, message_id, name, created_at }, i) => (
           <li class="border-b-1 p-2 whitespace-break-spaces">
-            <span class="font-bold"><Name name={name} /></span>: {message}
+            <span class="font-bold">
+              <Name name={name} />
+            </span>: {message}
             {myName === name
               ? (
                 <form

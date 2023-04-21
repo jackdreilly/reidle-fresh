@@ -6,6 +6,7 @@ import {
 import { SessionData } from "@/utils/utils.ts";
 import * as cookie from "https://deno.land/std@0.178.0/http/cookie.ts";
 import { run } from "@/utils/db.ts";
+import { runSql } from "../utils/sql_files.ts";
 
 export const handler: MiddlewareHandler<SessionData> = (req, ctx) => {
   const splits = req.url.split("/");
@@ -30,18 +31,13 @@ export const handler: MiddlewareHandler<SessionData> = (req, ctx) => {
   }
   return run(async (cxn) => {
     ctx.state.connection = cxn;
-    ctx.state.playedTodayPromise = (async () =>
-      playedToday(name, req) ||
-      (await ctx.state.connection.queryObject<{ count: number }>`
-  SELECT COUNT(*) AS "count"
-  FROM submissions
-  WHERE
-    CURRENT_DATE = day
-    AND challenge_id is null
-    AND name = ${name}
-    `.then((x) => x.rows[0].count > 0).then((x) => {
-        return x;
-      })))();
+    ctx.state.playedTodayPromise = playedToday(name, req) ? true : runSql({
+      file: "played_today",
+      connection: cxn,
+      args: { name },
+      single_row: true,
+    }).then((x) => x.played);
+
     ctx.state.render = async (ctxSuper, data) => {
       ctx.state.playedToday = await ctx.state.playedTodayPromise;
       return ctxSuper.render({

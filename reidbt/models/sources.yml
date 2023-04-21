@@ -1,0 +1,14 @@
+version: 2
+sources:
+  - name: reidle
+    schema: public
+    tables:
+      - name: challenges
+      - name: submissions
+      - name: players
+      - name: message_reads
+      - name: messages
+      - name: daily_words
+      - name: answers
+      - name: winners
+      - name: words

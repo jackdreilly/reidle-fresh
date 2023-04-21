@@ -6,7 +6,7 @@ export type SessionData = {
   connection: PoolClient;
   name: string;
   playedToday: boolean;
-  playedTodayPromise: Promise<boolean>;
+  playedTodayPromise: Promise<boolean> | boolean;
   render<T>(
     ctx: HandlerContext<T, SessionData>,
     data: T,

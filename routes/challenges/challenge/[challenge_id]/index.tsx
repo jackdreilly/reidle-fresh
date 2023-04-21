@@ -1,37 +1,27 @@
 import { PageProps } from "$fresh/server.ts";
-import { DailyTable, DailyTableData } from "@/components/daily_table.tsx";
+import { DailyTable } from "@/components/daily_table.tsx";
 import ReidleTemplate from "@/components/reidle_template.tsx";
 import { SessionData, SessionHandler } from "@/utils/utils.ts";
-interface Data {
-  challenge_id: number;
-  played: boolean;
-  submissions: DailyTableData;
-}
+import { runSql, Schemas } from "../../../../utils/sql_files.ts";
+type Data = Schemas["challenge_page"]["output"] & { challenge_id: number };
 export const handler: SessionHandler<Data> = {
   async GET(req, ctx) {
-    const { params: { challenge_id }, state: { connection, name, render } } =
-      ctx;
+    const {
+      params: { challenge_id: cid },
+      state: { connection, name, render },
+    } = ctx;
+    const challenge_id = parseInt(cid);
     return render(
       ctx,
-      await connection.queryObject<Data>`
-      select
-      challenge_id,
-      EXISTS (
-        select 1 from submissions where name = ${name} and challenge_id = ${challenge_id}
-      ) as played,
-      coalesce((
-        select json_agg(
-          json_build_object(
-          'name', name,
-          'time', time,
-          'penalty', penalty,
-          'paste', paste,
-          'submission_id', submission_id
-          ) order by time
-        ) from submissions where challenge_id = ${challenge_id}
-      ), json_build_array()) as submissions
-    from challenges where challenge_id = ${challenge_id};
-      `.then((r) => r.rows[0]),
+      {
+        challenge_id,
+        ...await runSql({
+          file: "challenge_page",
+          single_row: true,
+          connection,
+          args: { name, challenge_id },
+        }),
+      },
     );
   },
 };

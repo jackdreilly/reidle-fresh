@@ -1,7 +1,7 @@
 import { PageProps } from "$fresh/server.ts";
 import ReidleTemplate from "@/components/reidle_template.tsx";
 import { SessionData, SessionHandler } from "@/utils/utils.ts";
-import { PoolClient } from "psql";
+import { runSql } from "../utils/sql_files.ts";
 
 interface Data {
   email?: string;
@@ -10,8 +10,14 @@ interface Data {
 
 export const handler: SessionHandler<Data> = {
   async GET(req, ctx) {
-    const email = new URL(req.url).searchParams.get("email") ??
-      await getEmail(ctx.state.name, ctx.state.connection);
+    const email: string | undefined =
+      new URL(req.url).searchParams.get("email") ??
+        await runSql({
+          file: "my_account",
+          connection: ctx.state.connection,
+          args: { name: ctx.state.name },
+          single_row: true,
+        }).then(({ email }) => email);
     return ctx.state.render(ctx, { email });
   },
   async POST(req, ctx) {
@@ -69,17 +75,4 @@ export default function Page(
         )}
     </ReidleTemplate>
   );
-}
-
-async function getEmail(
-  name: string | null,
-  connection: PoolClient,
-): Promise<string | undefined> {
-  if (!name) {
-    return undefined;
-  }
-  const response = await connection.queryObject<
-    { email: string }
-  >`select email from players where name = ${name} limit 1`;
-  return response.rows[0]?.email;
 }

@@ -4,7 +4,7 @@ export default function StatsTemplate(
   { children, route, playedToday }: {
     children?: ComponentChildren;
     route?: "today" | "this_week" | "past_winners";
-    playedToday: boolean,
+    playedToday: boolean;
   },
 ) {
   return (

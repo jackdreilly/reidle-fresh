@@ -157,11 +157,3 @@ models:
         tests:
           - positive
           - not_null
-sources:
-  - name: reidle
-    schema: public
-    tables:
-      - name: challenges
-      - name: submissions
-      - name: players
-      - name: answers

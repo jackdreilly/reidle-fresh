@@ -1,40 +1,24 @@
 import { PageProps } from "$fresh/server.ts";
+import { Name } from "@/components/daily_table.tsx";
 import ReidleTemplate from "@/components/reidle_template.tsx";
 import { Table, TableCell, TableRow } from "@/components/tables.tsx";
 import TimerText from "@/components/timer_text.tsx";
+import { runSql, Schemas } from "@/utils/sql_files.ts";
 import { SessionData, SessionHandler } from "@/utils/utils.ts";
 import IconEye from "https://deno.land/x/tabler_icons_tsx@0.0.3/tsx/eye.tsx";
 import IconPlayerPlay from "https://deno.land/x/tabler_icons_tsx@0.0.3/tsx/player-play.tsx";
-import { Name } from "@/components/daily_table.tsx";
-import { sql } from "@/utils/sql.ts";
-
-type Leaderboard = {
-  name: string;
-  total_points: number;
-  num_wins: number;
-  num_losses: number;
-}[];
-interface Data {
-  history: {
-    challenge_id: number;
-    time: number;
-    answer: string;
-    players: string[];
-    winner: { name: string; time: number };
-  }[];
-  today_leaderboard: Leaderboard;
-  yesterday_leaderboard: Leaderboard;
-  pending_challenges: number;
-}
+type Data = Schemas["challenges_json"]["output"];
 export const handler: SessionHandler<Data> = {
   async GET(req, ctx) {
     const { state: { name } } = ctx;
     return ctx.state.render(
       ctx,
-      await ctx.state.connection.queryObject<Data>(
-        sql.challenges_json,
-        { name },
-      ).then((x) => x.rows[0]),
+      await runSql({
+        file: "challenges_json",
+        connection: ctx.state.connection,
+        args: { name },
+        single_row: true,
+      }),
     );
   },
 };

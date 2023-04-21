@@ -1,6 +1,7 @@
 select
     starting_word,
-    answer
-from {{ source("reidle", "challenges") }}
+    answer,
+    challenge_id
+from {{ reidle("challenges") }}
 order by created_at desc
 limit 10
