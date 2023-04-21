@@ -168,12 +168,7 @@ export async function runSql<T extends MyKeys>(
     await Deno.copyFile(
       `reidbt/target/compiled/reidbt/models/${file}.sql`,
       `sql/${file}.sql`,
-    ).catch(async () => {
-      await Deno.copyFile(
-        `reidbt/target/compiled/reidbt/analyses/${file}.sql`,
-        `sql/${file}.sql`,
-      );
-    });
+    );
     return await Deno.readTextFile(`sql/${file}.sql`);
   })();
   cache.set(file, sql_string);
