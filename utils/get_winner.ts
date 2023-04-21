@@ -8,5 +8,6 @@ export default async function getWinner(
     file: "current_winner",
     connection,
     single_row: true,
+    args: { week: new Date(new Date().getTime() - 1000 * 60 * 60 * 24 * 7) },
   })).name;
 }

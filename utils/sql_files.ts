@@ -125,7 +125,7 @@ export interface Schemas {
     output: {
       name: string;
     };
-    input: undefined;
+    input: WeekInput;
   };
 }
 type MyKeys = keyof Schemas;

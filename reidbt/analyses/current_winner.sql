@@ -1,6 +1,3 @@
-{{
-    config(last_week=true)
-}}
 with
 existing as (
     select name

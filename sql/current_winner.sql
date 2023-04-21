@@ -4,9 +4,7 @@ with
 start_of_week as (
     select
         date_trunc(
-            'week', 
-$week::DATE
-
+            'week', $week::DATE
         )::date as start_of_week
 ),
 
@@ -115,9 +113,7 @@ date_trunc('week', week) = date_trunc('week', current_date - interval '1 week')
 computed as (
     select
         name,
-        date_trunc('week', 
-NOW() - INTERVAL '7 days'
-)::DATE as "week"
+        date_trunc('week', $week::DATE)::DATE as "week"
     from __dbt__cte__week_json where not exists (select 1 from existing)
     limit 1
 ),
