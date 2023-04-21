@@ -8,6 +8,9 @@ interface Data {
   stats: Schemas["player_stats"]["output"];
 }
 
+const height = 200;
+const width = 400;
+
 export const handler: SessionHandler<Data> = {
   async GET(_, ctx) {
     const name = ctx.params.name ?? "";
@@ -45,6 +48,8 @@ export default function Page(
       <div class="p-4 mx-auto max-w-screen-md">
         <Chart
           options={{ devicePixelRatio: 1 }}
+          width={width}
+          height={height}
           type="bar"
           data={{
             labels: scores.map(([a, _]) =>
@@ -62,6 +67,8 @@ export default function Page(
       <div class="p-4 mx-auto max-w-screen-md">
         <Chart
           options={{ devicePixelRatio: 1 }}
+          width={width}
+          height={height}
           type="bar"
           data={{
             labels: times.map(([a, _]) => timerTime(a)),
@@ -75,6 +82,8 @@ export default function Page(
       <div class="p-4 mx-auto max-w-screen-md">
         <Chart
           options={{ devicePixelRatio: 1 }}
+          width={width}
+          height={height}
           type="bar"
           data={{
             labels: penalties.map(([a, _]) => timerTime(a)),
@@ -88,6 +97,8 @@ export default function Page(
       <div class="p-4 mx-auto max-w-screen-md">
         <Chart
           options={{ devicePixelRatio: 1 }}
+          width={width}
+          height={height}
           type="line"
           data={{
             labels: week.map(({ week }) => week.slice(5, 10)),
@@ -101,6 +112,8 @@ export default function Page(
       <div class="p-4 mx-auto max-w-screen-md">
         <Chart
           options={{ devicePixelRatio: 1 }}
+          width={width}
+          height={height}
           type="line"
           data={{
             labels: week.map(({ week }) => week.slice(5, 10)),
@@ -114,6 +127,8 @@ export default function Page(
       <div class="p-4 mx-auto max-w-screen-md">
         <Chart
           options={{ devicePixelRatio: 1 }}
+          height={height}
+          width={width}
           type="line"
           data={{
             labels: week.map(({ week }) => week.slice(5, 10)),

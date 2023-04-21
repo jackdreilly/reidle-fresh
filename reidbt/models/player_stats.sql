@@ -165,10 +165,10 @@ BY_WEEK_JSON as (
 
 select
     TOTAL_SUBMISSIONS.TOTAL as "total",
-    BY_SCORE_JSON.BY_SCORE as "rank",
-    BY_PENALTY_JSON.BY_PENALTY as "penalty",
-    BY_TIME_JSON.BY_TIME as "time",
-    BY_WEEK_JSON.BY_WEEK as "week"
+    {{ or_array('BY_SCORE_JSON.BY_SCORE') }} as "rank",
+    {{ or_array('BY_PENALTY_JSON.BY_PENALTY') }} as "penalty",
+    {{ or_array('BY_TIME_JSON.BY_TIME') }} as "time",
+    {{ or_array('BY_WEEK_JSON.BY_WEEK') }} as "week"
 from
     BY_SCORE_JSON,
     BY_PENALTY_JSON,
