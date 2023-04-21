@@ -12,5 +12,5 @@ created AS (
         NOT EXISTS (SELECT 1 FROM my_next_challenge
         ) -- noqa: PRS
     RETURNING challenge_id
-),
+)
 {{ coalesce_tables('challenge_id', ['my_next_challenge', 'created']) }}

@@ -62,7 +62,9 @@ export default function Page(
             <HeadColumn>
               <a
                 class="text-blue-600 dark:text-blue-500 hover:underline"
-                href={`/stats/daily/${new Date(day).toISOString().slice(0, 10)}`}
+                href={`/stats/daily/${
+                  new Date(day).toISOString().slice(0, 10)
+                }`}
               >
                 {" MTWRFSU"[new Date(day).getUTCDay()]}
               </a>
@@ -88,7 +90,7 @@ export default function Page(
                     textAlign: "center",
                   }}
                 >
-                  {submission_id === undefined ? score : (
+                  {!submission_id ? score : (
                     <a
                       class="leading-[35px] w-full block"
                       href={`/submissions/${submission_id}/playback`}

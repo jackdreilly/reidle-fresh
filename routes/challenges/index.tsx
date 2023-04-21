@@ -63,9 +63,9 @@ export default function Page(
           { name, total_points, num_losses, num_wins },
         ) => (
           <TableRow class={name === myName ? "bg-yellow-100" : ""}>
-            {[name, total_points, num_wins, num_losses].map((x) => (
-              <TableCell>{x}</TableCell>
-            ))}
+            {[<Name name={name} />, total_points, num_wins, num_losses].map((
+              x,
+            ) => <TableCell>{x}</TableCell>)}
           </TableRow>
         ))}
       </Table>
