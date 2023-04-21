@@ -93,6 +93,8 @@ select
             'answer', last_two_days_challenges.answer,
             'time', my_history.time
         )
+        order by
+            last_two_days_challenges.challenge_id desc
     ) as history
 from
     __dbt__cte__my_history as my_history
