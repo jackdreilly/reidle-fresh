@@ -1,6 +1,6 @@
-{% set week %}
-NOW() - INTERVAL '7 days'
-{% endset %}
+{{
+    config(last_week=true)
+}}
 with
 existing as (
     select name
@@ -13,9 +13,8 @@ existing as (
 computed as (
     select
         name,
-        date_trunc('week', {{ week }})::DATE as "week"
-    from {{ week_json(week) }} as week_json
-    where not exists (select 1 from existing)
+        date_trunc('week', {{ week() }})::DATE as "week"
+    from {{ ref("week_json") }} where not exists (select 1 from existing)
     limit 1
 ),
 

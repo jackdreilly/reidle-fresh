@@ -1,9 +1,8 @@
-{% macro week_table(the_week) %}
-(with
+with
 start_of_week as (
     select
         date_trunc(
-            'week', {{ the_week }}
+            'week', {{ week() }}
         )::date as start_of_week
 ),
 
@@ -77,5 +76,4 @@ select
         else 5
     end as score
 from
-    full_subs)
-{% endmacro %}
+    full_subs

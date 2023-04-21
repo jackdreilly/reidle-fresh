@@ -17,19 +17,6 @@ FROM
     __dbt__cte__last_two_days_challenges AS last_two_days_challenges
 NATURAL INNER JOIN
     "postgres"."public"."submissions" AS submissions
-),  __dbt__cte__pending_challenges as (
-WITH
-today_challenges AS (
-    SELECT
-        s.challenge_id,
-        s.name
-    FROM __dbt__cte__last_two_days_challenges AS c
-    NATURAL INNER JOIN __dbt__cte__last_two_days_submissions AS s
-    WHERE c.is_today
-)
-SELECT challenge_id FROM today_challenges
-EXCEPT
-SELECT challenge_id FROM today_challenges WHERE name = $name
 ),  __dbt__cte__my_history as (
 SELECT
     last_two_days_challenges.challenge_id,
@@ -200,13 +187,32 @@ SELECT COALESCE((
     WHERE
         NOT is_today
 ), '[]') AS yesterday_leaderboard
-)SELECT
+),  __dbt__cte__pending_challenges as (
+WITH
+today_challenges AS (
+    SELECT
+        s.challenge_id,
+        s.name
+    FROM __dbt__cte__last_two_days_challenges AS c
+    NATURAL INNER JOIN __dbt__cte__last_two_days_submissions AS s
+    WHERE c.is_today
+),
+
+challenge_ids AS (
+    SELECT challenge_id FROM today_challenges
+    EXCEPT
+    SELECT challenge_id FROM today_challenges WHERE name = $name
+)
+
+SELECT COUNT(*) AS pending_challenges FROM challenge_ids
+)-- challenges_json.sql
+SELECT
     today_leaderboard.today_leaderboard AS today_leaderboard,
     yesterday_leaderboard.yesterday_leaderboard AS yesterday_leaderboard,
-    (SELECT count(*) FROM __dbt__cte__pending_challenges
-    ) AS pending_challenges,
-    coalesce(my_history_json.history, '[]') AS history
+    pending_challenges.pending_challenges AS pending_challenges,
+    COALESCE(my_history_json.history, '[]') AS history
 FROM
     __dbt__cte__my_history_json AS my_history_json,
     __dbt__cte__today_leaderboard AS today_leaderboard,
-    __dbt__cte__yesterday_leaderboard AS yesterday_leaderboard
+    __dbt__cte__yesterday_leaderboard AS yesterday_leaderboard,
+    __dbt__cte__pending_challenges AS pending_challenges
