@@ -2,7 +2,7 @@ SELECT
     name,
     time
 FROM
-    {{ reidle('submissions') }}
+    {{ ref('submissions') }}
 WHERE
     challenge_id IS NULL
     AND

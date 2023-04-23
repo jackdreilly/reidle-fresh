@@ -5,7 +5,7 @@ with subs as (
         "penalty",
         "name",
         "paste"
-    from {{ reidle("submissions") }}
+    from {{ ref("submissions") }}
     where "challenge_id" = {{ challenge_id() }}
 )
 

@@ -2,7 +2,7 @@ select
     upper(word) as word,
     upper(answer) as answer
 from
-    {{ reidle('daily_words') }}
+    {{ ref('daily_words') }}
 where
     day = current_date
 limit 1

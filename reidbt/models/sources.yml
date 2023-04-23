@@ -1,14 +1,71 @@
 version: 2
+
 sources:
   - name: reidle
     schema: public
     tables:
-      - name: challenges
-      - name: submissions
-      - name: players
-      - name: message_reads
-      - name: messages
-      - name: daily_words
+      - name: alembic_version
+        columns:
+          - name: version_num
+
       - name: answers
+        columns:
+          - name: answer
+
+      - name: challenges
+        columns:
+          - name: challenge_id
+          - name: created_at
+          - name: starting_word
+          - name: answer
+
+      - name: daily_words
+        columns:
+          - name: day
+          - name: word
+          - name: answer
+
+      - name: message_reads_source
+        identifier: message_reads
+        columns:
+          - name: name
+          - name: last_read
+
+      - name: messages_source
+        identifier: messages
+        columns:
+          - name: message_id
+          - name: created_at
+          - name: name
+          - name: message
+
+      - name: players
+        columns:
+          - name: name
+          - name: email
+          - name: notifications_enabled
+          - name: created_at
+
+      - name: submissions
+        columns:
+          - name: submission_id
+          - name: created_at
+          - name: name
+          - name: time
+          - name: penalty
+          - name: paste
+          - name: playback
+          - name: word
+          - name: day
+          - name: score
+          - name: rank
+          - name: challenge_id
+
       - name: winners
+        columns:
+          - name: week
+          - name: name
+
       - name: words
+        columns:
+          - name: word

@@ -4,7 +4,7 @@ SELECT
     created_at,
     message_id
 FROM
-    {{ reidle('messages') }}
+    {{ ref('messages_source') }}
 WHERE
     created_at::DATE
     >=

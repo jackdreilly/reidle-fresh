@@ -25,9 +25,6 @@ date_trunc('week', {{field}}) = date_trunc('week', current_date - interval '1 we
 date_trunc('week', {{field}}) = date_trunc('week', current_date)
 {% endmacro %}
 
-{%- macro reidle(table) -%}
-{{source('reidle', table)}}
-{%- endmacro -%}
 {%- macro week() -%}
 {{export_var('week')}}::DATE
 {%- endmacro -%}

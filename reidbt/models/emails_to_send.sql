@@ -1,7 +1,7 @@
 SELECT DISTINCT
     name,
     email
-FROM {{ reidle('players') }}
+FROM {{ ref('players') }}
 WHERE
     notifications_enabled
     AND email IS NOT NULL

@@ -6,4 +6,4 @@ SELECT
 FROM
     {{ ref("last_two_days_challenges") }} AS last_two_days_challenges
 NATURAL INNER JOIN
-    {{ reidle("submissions") }} AS submissions
+    {{ ref("submissions") }} AS submissions

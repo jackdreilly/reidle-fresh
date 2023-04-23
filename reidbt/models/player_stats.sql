@@ -4,7 +4,7 @@ with MYSUBMISSIONS as (
         PENALTY,
         RANK,
         DAY
-    from {{ reidle('submissions') }}
+    from {{ ref('submissions') }}
     where NAME = {{ me() }} and CHALLENGE_ID is null
 ),
 

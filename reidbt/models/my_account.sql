@@ -2,5 +2,5 @@ select
     name,
     email,
     notifications_enabled
-from {{ reidle("players") }}
+from {{ ref("players") }}
 where name = {{ me() }}
