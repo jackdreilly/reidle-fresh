@@ -21,8 +21,6 @@ type Data = {
 export const handler: SessionHandler<Data> = {
   async GET(_, ctx) {
     const week = new Date(ctx.params["startDay"]);
-    // set to monday
-    week.setDate(week.getDate() - week.getDay() + 1);
     return ctx.state.render(
       ctx,
       {
@@ -66,7 +64,7 @@ export default function Page(
                   new Date(day).toISOString().slice(0, 10)
                 }`}
               >
-                {" MTWRFSU"[new Date(day).getUTCDay()]}
+                {"MTWRFSU"[(new Date(day).getUTCDay() + 6) % 7]}
               </a>
             </HeadColumn>
           ))}
