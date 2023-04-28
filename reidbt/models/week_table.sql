@@ -70,7 +70,10 @@ select
             then
                 least(
                     row_number()
-                        over (partition by day order by played desc, round_time),
+                        over (
+                            partition by day
+                            order by played desc, round_time asc
+                        ),
                     4
                 )
         else 5

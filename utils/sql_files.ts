@@ -106,6 +106,10 @@ export interface Schemas {
     input: NameInput;
     output: { challenge_id: number };
   };
+  pending_challenges_count: {
+    input: NameInput;
+    output: { pending_challenges: number };
+  };
   challenges_json: {
     input: NameInput;
     output: {

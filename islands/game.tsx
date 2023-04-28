@@ -16,6 +16,7 @@ export default function Game(
   { word, startingWord, isPractice, winnersTime, challenge_id, winner }:
     GameProperties,
 ) {
+  const [pendingChallenges, setPendingChallenges] = useState(0);
   const [playback, setPlayback] = useState<Playback>({ events: [] });
   const [penalties, setPenalties] = useState(0);
   const [startTime, setStartTime] = useState(new Date());
@@ -189,7 +190,7 @@ export default function Game(
     if (!won || isPractice) {
       return;
     }
-    fetch("/api/submit", {
+    const response = fetch("/api/submit", {
       method: "POST",
       headers: {
         "Accept": "application/json",
@@ -205,9 +206,16 @@ export default function Game(
           w.map(({ score }) => ["🟩", "🟨", "⬜"][score]).join("")
         ).join("\n"),
       }),
-    }).then((a) =>
-      a.status !== 200 ? addError("You already played today", 0) : null
-    ).catch(() => addError("An error occurred, play again", 0));
+    }).then(async (response) => {
+      if (response.status !== 200) {
+        addError("You already played today", 0);
+      }
+      const json_response: { pending_challenges: number } | undefined =
+        await response.json().catch(() => undefined);
+      if (json_response?.pending_challenges) {
+        setPendingChallenges(json_response.pending_challenges);
+      }
+    }).catch(() => addError("An error occurred, play again", 0));
   }, [won]);
   const activeRow = previousWords.length;
   const activeCol = currentWord.length;
@@ -322,6 +330,7 @@ export default function Game(
             : undefined}
         </div>
         <ErrorBar
+          pendingChallenges={pendingChallenges}
           wordle={wordle}
           penalty={penalties}
           winTime={won ? totalSeconds : null}

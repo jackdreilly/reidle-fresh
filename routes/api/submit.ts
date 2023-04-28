@@ -1,5 +1,6 @@
 import { sendEmail } from "@/routes/api/inngest.ts";
-import { SessionHandler, timerTime } from "@/utils/utils.ts";
+import { jsonResponse, SessionHandler, timerTime } from "@/utils/utils.ts";
+import { runSql } from "../../utils/sql_files.ts";
 
 export const handler: SessionHandler<null> = {
   async POST(req, ctx) {
@@ -36,7 +37,14 @@ SELECT
     1 AS score,
     1 AS "rank",
     CURRENT_DATE::DATE AS day`;
-      return new Response();
+      return jsonResponse(
+        await runSql({
+          file: "pending_challenges_count",
+          connection: ctx.state.connection,
+          args: { name },
+          single_row: true,
+        }),
+      );
     }
     await ctx.state.connection.queryArray`
 WITH existing AS (

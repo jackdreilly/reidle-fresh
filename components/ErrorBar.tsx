@@ -1,7 +1,8 @@
 import TimerText from "@/components/timer_text.tsx";
 import { Wordle } from "@/utils/wordle.ts";
 export default function ErrorBar(
-  { winTime, error, penalty, wordle, challenge_id, lost }: {
+  { winTime, error, penalty, pendingChallenges, wordle, challenge_id, lost }: {
+    pendingChallenges: number;
     winTime: number | null;
     error: string | null;
     penalty: number;
@@ -35,7 +36,11 @@ export default function ErrorBar(
               href={`/challenges/play`}
               class="p-1 border-2 border-black rounded mx-2"
             >
-              Next Challenge
+              {pendingChallenges
+                ? `${pendingChallenges} More Challenge${
+                  pendingChallenges > 1 ? "s" : ""
+                }`
+                : "Start New Challenge"}
             </a>
           </div>
         )
@@ -49,7 +54,11 @@ export default function ErrorBar(
                   href={`/challenges/play`}
                   class="p-1 border-2 border-black rounded mx-2"
                 >
-                  Next Challenge
+                  {pendingChallenges
+                    ? `${pendingChallenges} More Challenge${
+                      pendingChallenges > 1 ? "s" : ""
+                    }`
+                    : "Start New Challenge"}
                 </a>
               )
               : (
