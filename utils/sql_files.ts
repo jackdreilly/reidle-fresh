@@ -35,6 +35,10 @@ export type WeekOutput = {
 type WeekInput = { week: Date };
 export type Buckets = { bucket: number; count: number }[];
 export interface Schemas {
+  new_battle: {
+    input: NameInput;
+    output: { battle_id: number };
+  };
   play: {
     input: undefined;
     output: {

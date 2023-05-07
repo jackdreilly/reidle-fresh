@@ -84,3 +84,10 @@ class DailyWord(TableBase, table=True):
     day: date = Field(primary_key=True)
     word: str = Field(foreign_key="words.word")
     answer: str = Field(foreign_key="answers.answer")
+
+
+class Battle(TableBase, table=True):
+    battle_id: int = seq_field()
+    state: dict[str, Any] = Field(
+        sa_column=Column(JSON, server_default="'{}'::json", nullable=False),
+    )

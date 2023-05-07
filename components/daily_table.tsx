@@ -16,9 +16,10 @@ function isBirthday(name: string) {
     olga: [4, 12],
     ioanna: [3, 27],
     jimbo: [5, 8],
-    natnat: [6,22],
+    natnat: [6, 22],
     tracy: [1, 5],
-    ian: [7,28],
+    ian: [7, 28],
+    ahmad: [8, 23],
   }[name];
   if (!birthday) {
     return false;
@@ -78,7 +79,9 @@ export function DailyTable(
             <TableCell>
               <TimerText seconds={time} />
             </TableCell>
-            <TableCell>{penalty}</TableCell>
+            <TableCell>
+              <TimerText seconds={penalty} />
+            </TableCell>
             <TableCell
               class={"whitespace-pre-wrap text-[7px] leading-[4px]" +
                 (hide ? " invisible" : "")}

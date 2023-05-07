@@ -19,6 +19,11 @@ sources:
           - name: starting_word
           - name: answer
 
+      - name: battles
+        columns:
+          - name: battle_id
+          - name: created_at
+          - name: state
       - name: daily_words
         columns:
           - name: day
