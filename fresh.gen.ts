@@ -31,9 +31,10 @@ import * as $24 from "./routes/stats/weekly/[startDay].tsx";
 import * as $25 from "./routes/submissions/[submission_id]/playback.tsx";
 import * as $26 from "./routes/unsubscribe.tsx";
 import * as $$0 from "./islands/AllNotification.tsx";
-import * as $$1 from "./islands/confetti.tsx";
-import * as $$2 from "./islands/game.tsx";
-import * as $$3 from "./islands/playback.tsx";
+import * as $$1 from "./islands/Battle.tsx";
+import * as $$2 from "./islands/confetti.tsx";
+import * as $$3 from "./islands/game.tsx";
+import * as $$4 from "./islands/playback.tsx";
 
 const manifest = {
   routes: {
@@ -67,9 +68,10 @@ const manifest = {
   },
   islands: {
     "./islands/AllNotification.tsx": $$0,
-    "./islands/confetti.tsx": $$1,
-    "./islands/game.tsx": $$2,
-    "./islands/playback.tsx": $$3,
+    "./islands/Battle.tsx": $$1,
+    "./islands/confetti.tsx": $$2,
+    "./islands/game.tsx": $$3,
+    "./islands/playback.tsx": $$4,
   },
   baseUrl: import.meta.url,
   config,
