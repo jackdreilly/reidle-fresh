@@ -80,7 +80,7 @@ export function DailyTable(
               <TimerText seconds={time} />
             </TableCell>
             <TableCell>
-              <TimerText seconds={penalty} />
+              {penalty ? <TimerText seconds={penalty} /> : ""}
             </TableCell>
             <TableCell
               class={"whitespace-pre-wrap text-[7px] leading-[4px]" +
