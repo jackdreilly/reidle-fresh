@@ -41,7 +41,8 @@ export type BattleState = {
     starting_word: string;
   };
   history: ScoringHistory;
-  winner?: string;
+  message?: string;
+  last_player?: string;
 };
 type BattleArgs = {
   battle_id: number;
@@ -49,9 +50,9 @@ type BattleArgs = {
 
 export interface Schemas {
   reset_battle: {
-    input: BattleArgs,
-    output: {}[];
-  }
+    input: BattleArgs;
+    output: Record<string, unknown>[];
+  };
   battle: {
     input: BattleArgs;
     output: { state: BattleState };

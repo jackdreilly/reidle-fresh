@@ -20,6 +20,7 @@ interface GameProperties {
   challenge_id?: number;
   battle?: Battle;
   winner?: string;
+  name?: string;
 }
 export default function Game(
   {
@@ -30,6 +31,7 @@ export default function Game(
     challenge_id,
     winner,
     battle,
+    name,
   }: GameProperties,
 ) {
   const [pendingChallenges, setPendingChallenges] = useState(0);
@@ -38,7 +40,9 @@ export default function Game(
   const [startTime, setStartTime] = useState(new Date());
   const [error, setErrorPrivatePrivate] = useState("");
   const [wordle, setWordle] = useState<Wordle>();
-  const [currentWord, setCurrentWordPrivate] = useState(startingWord);
+  const [currentWord, setCurrentWordPrivate] = useState(
+    battle?.state?.history?.length ? "" : startingWord,
+  );
   const [previousWords, setPreviousWordsPrivate] = useState<ScoringHistory>([]);
   const [won, setWon] = useState<Date | null>(null);
   const [ticks, setTicks] = useState(0);
@@ -49,6 +53,12 @@ export default function Game(
       return;
     }
     setPreviousWords(battle.state.history);
+    if (
+      battle.state.history.length > 1 && battle.state.message &&
+      battle.state.last_player !== name
+    ) {
+      setErrorPrivatePrivate(battle.state.message);
+    }
     if (
       !won && battle.state.history.length &&
       battle.state.history[battle.state.history.length - 1].every((x) =>
@@ -69,10 +79,10 @@ export default function Game(
     }
   }, [battle, wordle, won]);
   useEffect(() => {
-    if (!previousWords.length && currentWord) {
+    if (!previousWords.length && currentWord && wordle) {
       scoreWord();
     }
-  }, [currentWord, previousWords]);
+  }, [currentWord, previousWords, wordle]);
   function addPlayback(
     { l, b, c, s, e }: {
       l?: string;
@@ -153,7 +163,6 @@ export default function Game(
     }
     helper();
   }, []);
-  useEffect(() => wordle && scoreWord(), [wordle]);
   function addError(error: string, penalty: number | undefined = undefined) {
     setErrorPrivatePrivate(error);
     if (penalty) {
@@ -275,6 +284,10 @@ export default function Game(
     if (wordScore instanceof Array) {
       if (battle) {
         battle.state.history = [...previousWords, wordScore];
+        battle.state.last_player = name;
+        battle.state.message = currentWord === word
+          ? `${name} Won`
+          : `${name} Played`;
         battle.supabase.from("battles").update({
           state: battle.state,
         }).eq("battle_id", battle.battle_id).then((_) => {

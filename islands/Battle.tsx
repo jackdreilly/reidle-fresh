@@ -102,6 +102,7 @@ export default function Page(
             startingWord={state?.game?.starting_word}
             isPractice={false}
             battle={{ battle_id, state, supabase }}
+            name={name}
           />
         )}
     </div>
