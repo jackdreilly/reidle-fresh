@@ -48,7 +48,6 @@ export default function Page(
       }
     });
   }, []);
-  console.log(state?.game?.answer);
   return (
     <div class="h-full">
       {users.length < 2 || !state?.game?.answer || !IS_BROWSER
