@@ -1,0 +1,1 @@
+select answer from {{ ref( 'answers') }} order by random() limit 1

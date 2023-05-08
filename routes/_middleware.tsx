@@ -23,10 +23,10 @@ export const handler: MiddlewareHandler<SessionData> = (req, ctx) => {
   if (ctx.state.name === "undefined") {
     ctx.state.name = "";
   }
-  if (!ctx.state.name && !req.url.endsWith("/sign-in")) {
+  if (!ctx.state.name && !req.url.includes("/sign-in")) {
     return new Response("need to sign in", {
       status: 302,
-      headers: { location: "/sign-in" },
+      headers: { location: `/sign-in?redirect=${req.url}` },
     });
   }
   return run(async (cxn) => {

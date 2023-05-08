@@ -2,7 +2,7 @@ import Input from "@/components/input.tsx";
 import { SessionHandler } from "@/utils/utils.ts";
 import { ReidleHead } from "@/components/reidle_template.tsx";
 
-export const handler: SessionHandler<null> = {
+export const handler: SessionHandler<string | undefined> = {
   async POST(req, ctx) {
     ctx.state.name =
       ((await req.formData()).get("name") as string | undefined)?.trim()
@@ -12,6 +12,15 @@ export const handler: SessionHandler<null> = {
           0,
           15,
         ) ?? "";
+    const redirectUrl = new URL(req.url).searchParams.get("redirect");
+    if (redirectUrl) {
+      return new Response("go to account", {
+        status: 303,
+        headers: {
+          location: redirectUrl,
+        },
+      });
+    }
     return new Response("go to account", {
       status: 303,
       headers: {

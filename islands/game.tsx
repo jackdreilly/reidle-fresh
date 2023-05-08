@@ -4,17 +4,33 @@ import { Playback, PlaybackEvent, scoreColor } from "@/utils/playback.ts";
 import { ScoredWord, Scoring, ScoringHistory, Wordle } from "@/utils/wordle.ts";
 import { useEffect, useMemo, useState } from "preact/hooks";
 import Confetti from "./confetti.tsx";
+import { BattleState } from "@/utils/sql_files.ts";
+import { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.21.0";
+export type Battle = {
+  battle_id: number;
+  state: BattleState;
+  supabase: SupabaseClient;
+};
+
 interface GameProperties {
   word: string;
   isPractice: boolean;
   startingWord: string;
   winnersTime?: number | null;
   challenge_id?: number;
+  battle?: Battle;
   winner?: string;
 }
 export default function Game(
-  { word, startingWord, isPractice, winnersTime, challenge_id, winner }:
-    GameProperties,
+  {
+    word,
+    startingWord,
+    isPractice,
+    winnersTime,
+    challenge_id,
+    winner,
+    battle,
+  }: GameProperties,
 ) {
   const [pendingChallenges, setPendingChallenges] = useState(0);
   const [playback, setPlayback] = useState<Playback>({ events: [] });
@@ -28,6 +44,35 @@ export default function Game(
   const [ticks, setTicks] = useState(0);
   const [candidates, setCandidates] = useState<string[]>([]);
   const [enableHelp, setEnableHelp] = useState(false);
+  useEffect(() => {
+    if (!battle) {
+      return;
+    }
+    setPreviousWords(battle.state.history);
+    if (
+      !won && battle.state.history.length &&
+      battle.state.history[battle.state.history.length - 1].every((x) =>
+        x.score === Scoring.green
+      )
+    ) {
+      setWon(new Date());
+    }
+    if (
+      won &&
+      (battle?.state?.history[battle.state.history.length - 1]?.some((x) =>
+        x.score !== Scoring.green
+      ) ?? true)
+    ) {
+      setWon(null);
+      setStartTime(new Date());
+      setCurrentWord(startingWord);
+    }
+  }, [battle, wordle, won]);
+  useEffect(() => {
+    if (!previousWords.length && currentWord) {
+      scoreWord();
+    }
+  }, [currentWord, previousWords]);
   function addPlayback(
     { l, b, c, s, e }: {
       l?: string;
@@ -187,7 +232,7 @@ export default function Game(
     return () => self.removeEventListener("keydown", onKeyDownWrapper);
   }, [wordle, onKeyDownWrapper]);
   useEffect(() => {
-    if (!won || isPractice) {
+    if (!won || isPractice || battle) {
       return;
     }
     const response = fetch("/api/submit", {
@@ -222,13 +267,20 @@ export default function Game(
   function keyColor(c: string): string {
     return scoreColor(keyboardLookup[c]) ?? "#d3d6da";
   }
-
   function scoreWord() {
     if (!wordle) {
       return;
     }
     const wordScore = wordScorer({ wordle, currentWord, previousWords, word });
     if (wordScore instanceof Array) {
+      if (battle) {
+        battle.state.history = [...previousWords, wordScore];
+        battle.supabase.from("battles").update({
+          state: battle.state,
+        }).eq("battle_id", battle.battle_id).then((_) => {
+          // console.log({ update_response });
+        });
+      }
       setPreviousWords((s) => [...s, wordScore]);
       if (currentWord === word) {
         setWon(new Date());
@@ -319,7 +371,7 @@ export default function Game(
                       : doubleCandidates;
                   setCurrentWord(
                     cand[
-                      Math.round(Math.random() * cand.length)
+                      Math.floor(Math.random() * cand.length)
                     ],
                   );
                 }}
@@ -330,6 +382,13 @@ export default function Game(
             : undefined}
         </div>
         <ErrorBar
+          battleCallback={battle
+            ? () => {
+              fetch(`/battles/${battle?.battle_id}/restart`, {
+                method: "POST",
+              });
+            }
+            : undefined}
           pendingChallenges={pendingChallenges}
           wordle={wordle}
           penalty={penalties}

@@ -1,5 +1,6 @@
 import { PoolClient } from "psql";
 import { DailyTableData } from "@/components/daily_table.tsx";
+import { ScoringHistory } from "./wordle.ts";
 
 type RowDef = Record<string, unknown>;
 type SingleRow = RowDef;
@@ -34,10 +35,30 @@ export type WeekOutput = {
 }[];
 type WeekInput = { week: Date };
 export type Buckets = { bucket: number; count: number }[];
+export type BattleState = {
+  game: {
+    answer: string;
+    starting_word: string;
+  };
+  history: ScoringHistory;
+  winner?: string;
+};
+type BattleArgs = {
+  battle_id: number;
+};
+
 export interface Schemas {
+  reset_battle: {
+    input: BattleArgs,
+    output: {}[];
+  }
+  battle: {
+    input: BattleArgs;
+    output: { state: BattleState };
+  };
   new_battle: {
     input: NameInput;
-    output: { battle_id: number };
+    output: BattleArgs;
   };
   play: {
     input: undefined;

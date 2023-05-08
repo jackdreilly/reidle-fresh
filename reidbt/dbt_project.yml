@@ -20,3 +20,4 @@ vars:
   name: "'jack'"
   week: 'NOW()'
   challenge_id: 36
+  battle_id: 1

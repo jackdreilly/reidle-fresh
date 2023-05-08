@@ -28,8 +28,10 @@ renamed as (
 select * from renamed
 ),  __dbt__cte__random_answer as (
 select answer from __dbt__cte__answers order by random() limit 1
-)INSERT INTO
-"postgres"."public"."battles" (state) VALUES (    
+)update
+"postgres"."public"."battles"
+set
+    state = 
 JSON_BUILD_OBJECT(
     'history', '[]'::JSON,
     'game', JSON_BUILD_OBJECT(
@@ -39,5 +41,5 @@ JSON_BUILD_OBJECT(
         (select answer from __dbt__cte__random_answer)
     )
 )
-)
-RETURNING battle_id
+
+where battle_id = $battle_id

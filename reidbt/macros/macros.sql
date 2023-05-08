@@ -59,3 +59,14 @@ ON
 {% endfor %}
 {% endmacro %}
 
+{% macro new_battle_state() %}
+JSON_BUILD_OBJECT(
+    'history', '[]'::JSON,
+    'game', JSON_BUILD_OBJECT(
+        'starting_word',
+        (select word from {{ref("random_word")}}),
+        'answer',
+        (select answer from {{ref("random_answer")}})
+    )
+)
+{% endmacro %}

@@ -1,7 +1,17 @@
 import TimerText from "@/components/timer_text.tsx";
 import { Wordle } from "@/utils/wordle.ts";
+import { Battle } from "../islands/game.tsx";
 export default function ErrorBar(
-  { winTime, error, penalty, pendingChallenges, wordle, challenge_id, lost }: {
+  {
+    winTime,
+    error,
+    penalty,
+    battleCallback,
+    pendingChallenges,
+    wordle,
+    challenge_id,
+    lost,
+  }: {
     pendingChallenges: number;
     winTime: number | null;
     error: string | null;
@@ -9,6 +19,7 @@ export default function ErrorBar(
     wordle: Wordle | undefined;
     challenge_id?: number;
     lost?: boolean;
+    battleCallback?(): void | undefined;
   },
 ) {
   return (
@@ -48,7 +59,16 @@ export default function ErrorBar(
         ? (
           <div class="text-green-800">
             <TimerText seconds={winTime} />!
-            {challenge_id !== undefined
+            {battleCallback
+              ? (
+                <button
+                  class="p-1 border-2 border-black rounded mx-2"
+                  onClick={battleCallback}
+                >
+                  New Battle
+                </button>
+              )
+              : challenge_id !== undefined
               ? (
                 <a
                   href={`/challenges/play`}
