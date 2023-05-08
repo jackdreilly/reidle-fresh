@@ -315,6 +315,39 @@ export default function Game(
     <>
       <div class="w-full flex flex-col h-full max-w-6xl flex-grow-1 text-center text-lg">
         <div class="m-1 h-8 flex place-content-evenly">
+          {battle && (
+            <button
+              class="p-2 font-bold hover:bg-gray-200 rounded border-2 border-black flex items-center justify-center"
+              onClick={async () => {
+                if (navigator.share) {
+                  await navigator.share({
+                    title: "Battle Me on Reidle!",
+                    url: window.location.href,
+                  });
+                  return;
+                }
+                navigator.clipboard.writeText(window.location.href).then(() => {
+                  alert(
+                    "Copied battle link to clipboard, now share link with friends!",
+                  );
+                })
+                  .catch((e) => {
+                    console.error(e);
+                    alert("something went wrong");
+                  });
+              }}
+            >
+              <svg
+                class="h-6 w-6"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+              >
+                <path d="M13 4.5a2.5 2.5 0 11.702 1.737L6.97 9.604a2.518 2.518 0 010 .792l6.733 3.367a2.5 2.5 0 11-.671 1.341l-6.733-3.367a2.5 2.5 0 110-3.475l6.733-3.366A2.52 2.52 0 0113 4.5z" />
+              </svg>
+            </button>
+          )}
           {!won && wordle
             ? (
               <div>

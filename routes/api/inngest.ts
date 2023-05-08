@@ -3,7 +3,6 @@ import { run } from "@/utils/db.ts";
 import { inngest, SendEmailData } from "@/utils/inngest.ts";
 import { spy } from "@/utils/utils.ts";
 import * as sendgrid from "https://deno.land/x/sendgrid@0.0.3/mod.ts";
-import { IAddress } from "https://deno.land/x/sendgrid@0.0.3/mod.ts";
 import { serve } from "https://esm.sh/v111/inngest@1.4.0/deno/fresh";
 import render from "preact-render-to-string";
 import { runSql } from "../../utils/sql_files.ts";
