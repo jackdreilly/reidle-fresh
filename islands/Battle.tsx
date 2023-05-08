@@ -101,7 +101,7 @@ export default function Page(
             word={state?.game?.answer}
             startingWord={state?.game?.starting_word}
             isPractice={false}
-            battle={{ battle_id, state, supabase }}
+            battle={{ battle_id, state, supabase, users }}
             name={name}
           />
         )}
