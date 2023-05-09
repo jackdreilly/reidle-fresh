@@ -64,7 +64,7 @@ export default function Page(
                 transform="matrix(0.05019839,0,0,0.05019839,-0.09522931,0.33275301)"
               />
             </svg>
-            New Battle
+            Private Room
           </a>
           {active_battles.length
             ? (
