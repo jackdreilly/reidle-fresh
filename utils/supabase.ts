@@ -36,16 +36,22 @@ export interface Database {
           battle_id: number
           created_at: string
           state: Json
+          updated_at: string
+          users: Json
         }
         Insert: {
           battle_id?: number
           created_at?: string
           state?: Json
+          updated_at?: string
+          users?: Json
         }
         Update: {
           battle_id?: number
           created_at?: string
           state?: Json
+          updated_at?: string
+          users?: Json
         }
       }
       challenges: {

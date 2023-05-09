@@ -38,7 +38,6 @@ export default function Page(
         setState(state);
       },
     );
-
     channel.on("presence", { event: "sync" }, () => {
       setUsers(Object.keys(channel.presenceState()));
     });
@@ -48,6 +47,19 @@ export default function Page(
       }
     });
   }, []);
+  useEffect(() => {
+    supabase.from("battles").update({
+      updated_at: new Date().toISOString(),
+      users,
+    }).eq("battle_id", battle_id).then((_) => null);
+    const interval = setInterval(async () => {
+      await supabase.from("battles").update({
+        updated_at: new Date().toISOString(),
+        users,
+      }).eq("battle_id", battle_id);
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [users]);
   return (
     <div class="h-full">
       {users.length < 2 || !state?.game?.answer || !IS_BROWSER

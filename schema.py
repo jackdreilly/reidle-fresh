@@ -91,3 +91,7 @@ class Battle(TableBase, table=True):
     state: dict[str, Any] = Field(
         sa_column=Column(JSON, server_default="'{}'::json", nullable=False),
     )
+    updated_at: datetime = created_at_field(True)
+    users: list[str] = Field(
+        sa_column=Column(JSON, server_default="'[]'::json", nullable=False),
+    )

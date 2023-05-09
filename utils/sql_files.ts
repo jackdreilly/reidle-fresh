@@ -48,7 +48,17 @@ type BattleArgs = {
   battle_id: number;
 };
 
+export type BattleHomePage = {
+  active_battles: { battle_id: number; users: string[] }[];
+  users: string[];
+  updated_at: Date;
+};
+
 export interface Schemas {
+  battle_home_page: {
+    input: undefined;
+    output: BattleHomePage;
+  };
   reset_battle: {
     input: BattleArgs;
     output: Record<string, unknown>[];
