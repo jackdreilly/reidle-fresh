@@ -180,6 +180,9 @@ export default function Game(
     }
     const interval = setInterval(() => {
       setTicks((s) => s + 1);
+      if (battle) {
+        setPenalties((p) => Math.max(0, p - 1));
+      }
     }, 1000);
     return () => clearInterval(interval);
   }, [wordle]);
@@ -243,6 +246,9 @@ export default function Game(
     return () => self.removeEventListener("keydown", onKeyDownWrapper);
   }, [wordle, onKeyDownWrapper]);
   useEffect(() => {
+    if (won && battle) {
+      setPenalties(0);
+    }
     if (!won || isPractice || battle) {
       return;
     }
@@ -280,6 +286,10 @@ export default function Game(
   }
   function scoreWord() {
     if (!wordle) {
+      return;
+    }
+    if (battle && penalties > 0) {
+      setErrorPrivatePrivate("You're still in the penalty box!");
       return;
     }
     const wordScore = wordScorer({ wordle, currentWord, previousWords, word });
