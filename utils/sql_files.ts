@@ -164,7 +164,7 @@ export interface Schemas {
   current_winner: {
     output: {
       name: string;
-    };
+    } | undefined;
     input: WeekInput;
   };
 }

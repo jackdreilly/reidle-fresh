@@ -79,10 +79,10 @@ export default function ReidleTemplate(
                     <ChallengeSVG fill="#ffffff" />
                   </a>
                   <a
-                    href="/practice"
+                    href="/battles"
                     class="text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2"
                   >
-                    <PracticeSVG fill="#ffffff" />
+                    <BattleSvg fill="#ffffff" />
                   </a>
                 </span>
               </div>
@@ -97,53 +97,13 @@ export default function ReidleTemplate(
         >
           <div class="h-full px-3 pb-4 overflow-y-auto bg-white ">
             <ul class="space-y-2">
-              <li style={{ display: playedToday ? "none" : null }}>
-                <a
-                  href="/play"
-                  class="flex items-center p-2 text-base font-normal text-gray-900 rounded-lg hover:bg-gray-100 "
-                >
-                  <PlaySVG />
-                  <span
-                    class={"ml-3 " + (route === "/play" ? "font-bold" : "")}
-                  >
-                    Play
-                  </span>
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/practice"
-                  class="flex items-center p-2 text-base font-normal text-gray-900 rounded-lg hover:bg-gray-100 "
-                >
-                  <PracticeSVG />
-                  <span
-                    class={"ml-3 " + (route === "/practice" ? "font-bold" : "")}
-                  >
-                    Practice
-                  </span>
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/challenges"
-                  class="flex items-center p-2 text-base font-normal text-gray-900 rounded-lg hover:bg-gray-100 "
-                >
-                  <ChallengeSVG />
-                  <span
-                    class={"ml-3 " +
-                      (route === "/challenges" ? "font-bold" : "")}
-                  >
-                    Challenges
-                  </span>
-                </a>
-              </li>
-              <li>
+              <li class="rounded-lg bg-[#b68c0021] hover:bg-[#b68c0060] ">
                 <a
                   href="/stats/today"
-                  class="flex items-center p-2 text-base font-normal text-gray-900 rounded-lg hover:bg-gray-100 "
+                  class="flex items-center p-2 text-base font-normal text-gray-900"
                 >
                   <svg
-                    fill="currentColor"
+                    fill="#D4A65D"
                     viewBox="0 0 20 20"
                     xmlns="http://www.w3.org/2000/svg"
                     aria-hidden="true"
@@ -163,29 +123,57 @@ export default function ReidleTemplate(
                   </span>
                 </a>
               </li>
-              <li>
+              <li class="rounded-lg  bg-[#ff00001c] hover:bg-[#ff000050]" style={{ display: playedToday ? "none" : null }}>
+                <a
+                  href="/play"
+                  class="flex items-center p-2 text-base font-normal text-gray-900"
+                >
+                  <PlaySVG fill="#db2777" />
+                  <span
+                    class={"ml-3 " + (route === "/play" ? "font-bold" : "")}
+                  >
+                    Play
+                  </span>
+                </a>
+              </li>
+              <li class="bg-[#00ff3c1f] hover:bg-[#00ff3c60]  rounded-lg">
+                <a
+                  href="/challenges"
+                  class="flex items-center p-2 text-base font-normal text-gray-900"
+                >
+                  <ChallengeSVG fill="#059669" />
+                  <span
+                    class={"ml-3 " +
+                      (route === "/challenges" ? "font-bold" : "")}
+                  >
+                    Challenges
+                  </span>
+                </a>
+              </li>
+              <li class="rounded-lg bg-[#5b73ff21] hover:bg-[#5b73ff60] ">
                 <a
                   href="/battles"
-                  class="flex items-center p-2 text-base font-normal text-gray-900 rounded-lg hover:bg-gray-100 "
+                  class="flex items-center p-2 text-base font-normal text-gray-900"
                 >
-                  <svg
-                    class="flex-shrink-0 w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900"
-                    fill="currentColor"
-                    x="0px"
-                    y="0px"
-                    height="24"
-                    width="24"
-                  >
-                    <path
-                      d="M 119,462 C 99,457 66,431 39,402 10,369 -2,343 3,322 6,314 10,305 15,298 c 7,-8 25,-29 27,-28 2,1 -0,7 -1,16 -2,18 -2,27 2,34 3,7 6,11 26,35 24,29 28,33 39,33 8,0 12,-2 19,-8 C 132,374 134,370 134,364 c 0,-6 -2,-10 -10,-18 C 108,330 92,308 85,296 80,284 79,280 79,254 L 79,231 80,230 84,226 l 5,-5 0,-12 c 0,-30 5,-63 15,-88 8,-23 24,-50 38,-69 9,-11 23,-25 33,-31 C 185,14 202,6 212,3 c 11,-3 25,-2 33,1 9,3 19,10 20,19 0,0 1,2 -1,8 -20,54 -7,18 21,-0 C 293,26 310,21 327,21 c 20,0 34,4 52,15 14,8 24,16 40,32 24,24 38,43 50,66 9,18 11,27 11,45 0,16 -1,21 -6,36 -10,31 -34,62 -69,92 -56,47 -107,70 -161,74 l -9,1 -11,13 c -40,46 -59,61 -79,67 -8,2 -19,2 -25,1 z"
-                      transform="matrix(0.05019839,0,0,0.05019839,-0.09522931,0.33275301)"
-                    />
-                  </svg>
+                  <BattleSvg fill="#6d28d9" />
                   <span
                     class={"flex-1 ml-3 whitespace-nowrap " +
                       (route === "/battles" ? "font-bold" : "")}
                   >
                     Battles
+                  </span>
+                </a>
+              </li>
+              <li class="rounded-lg bg-[#00ddff1a] hover:bg-[#00ddff60] ">
+                <a
+                  href="/practice"
+                  class="flex items-center p-2 text-base font-normal text-gray-900"
+                >
+                  <PracticeSVG fill="#00A6B5" />
+                  <span
+                    class={"ml-3 " + (route === "/practice" ? "font-bold" : "")}
+                  >
+                    Practice
                   </span>
                 </a>
               </li>
@@ -256,35 +244,6 @@ export default function ReidleTemplate(
                   </span>
                 </a>
               </li>
-              <li>
-                <a
-                  href="https://wordle-old.reillybrothers.net"
-                  target="_blank"
-                  class="flex items-center p-2 text-base font-normal text-gray-900 rounded-lg hover:bg-gray-100 "
-                >
-                  <svg
-                    aria-hidden="true"
-                    class="flex-shrink-0 w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 "
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      clipRule="evenodd"
-                      fillRule="evenodd"
-                      d="M3 4.25A2.25 2.25 0 015.25 2h5.5A2.25 2.25 0 0113 4.25v2a.75.75 0 01-1.5 0v-2a.75.75 0 00-.75-.75h-5.5a.75.75 0 00-.75.75v11.5c0 .414.336.75.75.75h5.5a.75.75 0 00.75-.75v-2a.75.75 0 011.5 0v2A2.25 2.25 0 0110.75 18h-5.5A2.25 2.25 0 013 15.75V4.25z"
-                    />
-                    <path
-                      clipRule="evenodd"
-                      fillRule="evenodd"
-                      d="M6 10a.75.75 0 01.75-.75h9.546l-1.048-.943a.75.75 0 111.004-1.114l2.5 2.25a.75.75 0 010 1.114l-2.5 2.25a.75.75 0 11-1.004-1.114l1.048-.943H6.75A.75.75 0 016 10z"
-                    />
-                  </svg>
-                  <span class="flex-1 ml-3 whitespace-nowrap">
-                    Reidle Classic
-                  </span>
-                </a>
-              </li>
             </ul>
           </div>
         </aside>
@@ -298,6 +257,24 @@ export default function ReidleTemplate(
         </div>
       </body>
     </html>
+  );
+}
+
+function BattleSvg({fill}: {fill?: string}) {
+  return (
+    <svg
+      class="flex-shrink-0 w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900"
+      fill={fill ?? "currentColor"}
+      x="0px"
+      y="0px"
+      height="24"
+      width="24"
+    >
+      <path
+        d="M 119,462 C 99,457 66,431 39,402 10,369 -2,343 3,322 6,314 10,305 15,298 c 7,-8 25,-29 27,-28 2,1 -0,7 -1,16 -2,18 -2,27 2,34 3,7 6,11 26,35 24,29 28,33 39,33 8,0 12,-2 19,-8 C 132,374 134,370 134,364 c 0,-6 -2,-10 -10,-18 C 108,330 92,308 85,296 80,284 79,280 79,254 L 79,231 80,230 84,226 l 5,-5 0,-12 c 0,-30 5,-63 15,-88 8,-23 24,-50 38,-69 9,-11 23,-25 33,-31 C 185,14 202,6 212,3 c 11,-3 25,-2 33,1 9,3 19,10 20,19 0,0 1,2 -1,8 -20,54 -7,18 21,-0 C 293,26 310,21 327,21 c 20,0 34,4 52,15 14,8 24,16 40,32 24,24 38,43 50,66 9,18 11,27 11,45 0,16 -1,21 -6,36 -10,31 -34,62 -69,92 -56,47 -107,70 -161,74 l -9,1 -11,13 c -40,46 -59,61 -79,67 -8,2 -19,2 -25,1 z"
+        transform="matrix(0.05019839,0,0,0.05019839,-0.09522931,0.33275301)"
+      />
+    </svg>
   );
 }
 

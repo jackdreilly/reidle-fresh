@@ -9,9 +9,11 @@ export default function ErrorBar(
     battleCallback,
     pendingChallenges,
     wordle,
+    isPractice,
     challenge_id,
     lost,
   }: {
+    isPractice: boolean;
     pendingChallenges: number;
     winTime: number | null;
     error: string | null;
@@ -70,7 +72,7 @@ export default function ErrorBar(
                   New Battle
                 </button>
               )
-              : challenge_id !== undefined
+              : challenge_id !== undefined || !isPractice
               ? (
                 <a
                   href={`/challenges/play`}

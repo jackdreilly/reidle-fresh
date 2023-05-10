@@ -9,5 +9,5 @@ export default async function getWinner(
     connection,
     single_row: true,
     args: { week: new Date(new Date().getTime() - 1000 * 60 * 60 * 24 * 7) },
-  })).name;
+  }))?.name ?? "no winner";
 }

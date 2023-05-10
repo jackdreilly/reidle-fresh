@@ -320,7 +320,7 @@ export default function Game(
   }
   const totalSeconds = penalties +
     ((won ?? new Date()).getTime() - startTime.getTime()) / 1000;
-  const numRows = Math.max(6, previousWords.length + 1);
+  const numRows = Math.max(6, previousWords.length + (won ? 0 : 1));
   useEffect(() => {
     if (
       !won && challenge_id && winnersTime && totalSeconds > winnersTime
@@ -467,6 +467,7 @@ export default function Game(
             : undefined}
         </div>
         <ErrorBar
+          isPractice={isPractice}
           battleCallback={battle
             ? () => {
               fetch(`/battles/${battle?.battle_id}/restart`, {
