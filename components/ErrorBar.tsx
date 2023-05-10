@@ -58,7 +58,9 @@ export default function ErrorBar(
         : winTime
         ? (
           <div class="text-green-800">
-            <TimerText seconds={winTime} />!
+            {battleCallback
+              ? <span>{error}</span>
+              : <TimerText seconds={winTime} />}!
             {battleCallback
               ? (
                 <button

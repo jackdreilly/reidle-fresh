@@ -25,13 +25,14 @@ export default function Page(
   return (
     <ReidleTemplate route="/battles" title="Battles" playedToday={playedToday}>
       <h1 class="text-3xl font-bold m-2 p-2">Battles</h1>
-      <div class="flex">
+      <div class="flex items-start flex-wrap">
         <div class="m-2 p-2 rounded shadow">
           <a
             href="/battles/party_room"
-            class="m-2 px-3 py-2 h-12 bg-green-500 text-white rounded hover:bg-green-700 flex gap-2"
+            class="m-2 px-3 py-2 bg-green-500 text-white rounded hover:bg-green-700 flex gap-2"
           >
             <svg
+              class="h-8 w-8"
               fill="currentColor"
               viewBox="0 0 20 20"
               xmlns="http://www.w3.org/2000/svg"
@@ -41,7 +42,7 @@ export default function Page(
             </svg>
             Party Room
           </a>
-          <div class="p-2 m-2">Active {moment(updated_at).fromNow()}</div>
+          <div class="p-2 m-2 italic">Active {moment(updated_at).fromNow()}</div>
           {(new Date().getTime() - updated_at.getTime()) < 1000 * 20
             ? <div class="p-2 m-2">{users.join(", ")}</div>
             : null}
@@ -49,7 +50,7 @@ export default function Page(
         <div class="m-2 p-2 rounded shadow">
           <a
             href="/battles/new"
-            class="m-2 px-3 py-2 h-12 bg-blue-500 text-white rounded hover:bg-blue-700 flex gap-2"
+            class="m-2 px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-700 flex gap-2"
           >
             <svg
               class="flex-shrink-0 w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900"
@@ -69,13 +70,13 @@ export default function Page(
           {active_battles.length
             ? (
               <div class="rounded shadow m-2 p-2">
-                <h2 class="m-2 p-2">Active Rooms</h2>
+                <h2 class="m-2 p-2 text-lg">Active Rooms</h2>
                 <ul>
                   {active_battles.map(({ battle_id, users }) => (
-                    <li class="m-2 p-2">
+                    <li class="m-2">
                       <a
                         href={`/battles/${battle_id}`}
-                        class="m-2 px-3 py-2 h-12 bg-blue-500 text-white rounded hover:bg-blue-700 flex gap-2"
+                        class="px-3 py-2 h-12 bg-blue-500 text-white rounded hover:bg-blue-700 flex gap-2"
                       >
                         {users.join(", ")}
                       </a>
