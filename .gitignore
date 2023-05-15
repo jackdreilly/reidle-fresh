@@ -4,3 +4,5 @@ service-account.json
 *firebase-adminsdk*.json
 .DS_Store
 __pycache__/
+migrations/versions/
+.python-version

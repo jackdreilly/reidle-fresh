@@ -1,6 +1,11 @@
 import { Pool, PoolClient } from "psql";
 
-const pool = new Pool(Deno.env.get("POSTGRES_URL")!, 4, true);
+const pool = new Pool(
+  Deno.env.get("POSTGRES_URL") ??
+    "postgres://postgres:postgres@localhost:5432/postgres",
+  4,
+  true,
+);
 export async function run<T>(
   runner: (cxn: PoolClient) => Promise<T> | T,
 ): Promise<T> {

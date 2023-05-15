@@ -13,7 +13,9 @@ from alembic import context
 config = context.config
 config.set_main_option(
     "sqlalchemy.url",
-    os.environ.get("POSTGRES_URL", "").replace("postgres://", "postgresql://"),
+    os.environ.get(
+        "POSTGRES_URL", "postgres://postgres:postgres@localhost:5432/postgres"
+    ).replace("postgres://", "postgresql://"),
 )
 
 # Interpret the config file for Python logging.

@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "reidle-fresh"
+version = "0.1.0"
+description = ""
+authors = ["Jack Reilly <jackdreilly@gmail.com>"]
+readme = "README.md"
+packages = [{include = "reidle_fresh"}]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+sqlmodel = "^0.0.8"
+psycopg2 = "^2.9.6"
+SQLAlchemy = "^2.0.13"
+alembic = "^1.10.4"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

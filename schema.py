@@ -2,11 +2,19 @@ from datetime import date, datetime
 from typing import Any
 from sqlmodel import JSON, Column, Field, SQLModel, UniqueConstraint
 from sqlalchemy.ext.declarative import declared_attr
+import sqlalchemy as sa
 import re
 
 
 def created_at_field(index: bool = False):
-    return Field(sa_column_kwargs=dict(server_default="now()"), index=index)
+    return Field(
+        sa_column=sa.Column(
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.func.now(),
+            index=index,
+        )
+    )
 
 
 def seq_field():
@@ -48,13 +56,13 @@ class Submission(TableBase, table=True):
     submission_id: int = seq_field()
     day: date = Field(
         primary_key=True,
-        sa_column_kwargs=dict(server_default="CURRENT_DATE"),
+        sa_column_kwargs=dict(server_default=sa.func.CURRENT_DATE()),
         index=True,
     )
     name: str
     paste: str
     playback: dict[str, Any] = Field(
-        sa_column=Column(JSON, server_default="'[]'::json", nullable=False),
+        sa_column=Column(JSON, server_default="[]", nullable=False),
     )
     challenge_id: int | None = Field(foreign_key="challenges.challenge_id", index=True)
     time: float
@@ -89,9 +97,9 @@ class DailyWord(TableBase, table=True):
 class Battle(TableBase, table=True):
     battle_id: int = seq_field()
     state: dict[str, Any] = Field(
-        sa_column=Column(JSON, server_default="'{}'::json", nullable=False),
+        sa_column=Column(JSON, server_default="{}", nullable=False),
     )
     updated_at: datetime = created_at_field(True)
     users: list[str] = Field(
-        sa_column=Column(JSON, server_default="'[]'::json", nullable=False),
+        sa_column=Column(JSON, server_default="[]", nullable=False),
     )
