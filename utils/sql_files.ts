@@ -200,10 +200,10 @@ export async function runSql<T extends MyKeys>(
     if (fileExists) {
       return await Deno.readTextFile(`sql/${file}.sql`);
     }
-    await Deno.run({
-      cmd: ["dbt", "compile", "--vars", "{export: true}"],
-      cwd: "reidbt",
-    }).status();
+    await new Deno.Command(
+      "dbt",
+      { cwd: "reidbt", args: ["compile", "--vars", "{export: true}"] },
+    ).output();
     await Deno.mkdir("sql", { recursive: true });
     await Deno.copyFile(
       `reidbt/target/compiled/reidbt/models/${file}.sql`,

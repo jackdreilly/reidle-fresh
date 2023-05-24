@@ -1,30 +1,12 @@
-with __dbt__cte__challenges as (
-with source as (
-    select * from "postgres"."public"."challenges"
-),
-
-renamed as (
-    select
-        "challenge_id",
-        "created_at",
-        "starting_word",
-        "answer"
-
-    from source
-)
-
-select * from renamed
-),  __dbt__cte__last_two_days_challenges as (
+with __dbt__cte__last_two_days_challenges as (
 SELECT
     challenge_id,
     answer,
     created_at >= CURRENT_DATE AS is_today
 FROM
-    __dbt__cte__challenges
+    "postgres"."public"."challenges"
 WHERE
     created_at >= CURRENT_DATE - INTERVAL '1 days'
-),  __dbt__cte__submissions as (
-select * from "postgres"."public"."submissions"
 ),  __dbt__cte__last_two_days_submissions as (
 SELECT
     last_two_days_challenges.challenge_id AS challenge_id,
@@ -34,7 +16,7 @@ SELECT
 FROM
     __dbt__cte__last_two_days_challenges AS last_two_days_challenges
 NATURAL INNER JOIN
-    __dbt__cte__submissions AS submissions
+    "postgres"."public"."submissions" AS submissions
 ),  __dbt__cte__pending_challenges as (
 WITH
 today_challenges AS (

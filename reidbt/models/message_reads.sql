@@ -1,5 +1,5 @@
 WITH _ AS ( -- noqa
-    INSERT INTO {{ ref("message_reads_source") }} (
+    INSERT INTO {{ source("reidle", "message_reads_source") }} (
         "name", "last_read"
     )
     VALUES ({{ me() }}, NOW())

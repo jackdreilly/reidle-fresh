@@ -1,7 +1,7 @@
 select EXISTS(
     select 1
     from
-        {{ ref('submissions') }}
+        {{ source("reidle", "submissions") }}
     where
         name = {{ me() }}
         and day = CURRENT_DATE

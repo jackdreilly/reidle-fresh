@@ -4,7 +4,7 @@ challenge AS (
         challenge_id,
         starting_word,
         answer
-    FROM {{ ref("challenges") }}
+    FROM {{ source("reidle", "challenges") }}
     WHERE challenge_id = {{ challenge_id() }}
 ),
 
@@ -12,7 +12,7 @@ subs AS (
     SELECT
         submissions.name,
         submissions.time
-    FROM {{ ref("submissions") }} AS submissions
+    FROM {{ source("reidle", "submissions") }} AS submissions
     INNER JOIN challenge ON submissions.challenge_id = challenge.challenge_id
 ),
 

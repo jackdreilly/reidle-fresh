@@ -2,7 +2,7 @@ with
 existing as (
     select name
     from
-        {{ ref('winners') }}
+        {{ source('reidle', 'winners') }}
     where
         {{ is_previous_week('week') }}
 ),
@@ -16,7 +16,7 @@ computed as (
 ),
 
 inserted as ( -- noqa: ST03
-    insert into {{ ref('winners') }} (name, week)
+    insert into {{ source('reidle', 'winners') }} (name, week)
     select
         name,
         "week"

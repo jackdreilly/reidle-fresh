@@ -3,6 +3,6 @@ SELECT
     answer,
     created_at >= CURRENT_DATE AS is_today
 FROM
-    {{ ref("challenges") }}
+    {{ source("reidle", "challenges") }}
 WHERE
     created_at >= CURRENT_DATE - INTERVAL '1 days'

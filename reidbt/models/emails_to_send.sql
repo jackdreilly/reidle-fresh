@@ -1,7 +1,7 @@
 SELECT DISTINCT
     name,
     email
-FROM {{ ref('players') }}
+FROM {{ source("reidle", "players") }}
 WHERE
     notifications_enabled
     AND email IS NOT NULL

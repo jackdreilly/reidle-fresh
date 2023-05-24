@@ -5,7 +5,7 @@ with subs as (
         "penalty",
         "name",
         "paste"
-    from {{ ref("submissions") }}
+    from {{ source("reidle", "submissions") }}
     where "challenge_id" = {{ challenge_id() }}
 )
 

@@ -18,7 +18,7 @@ subs as (
         submissions.time,
         submissions.submission_id
     from
-        {{ ref('submissions') }}
+        {{ source("reidle", "submissions") }}
         as submissions, start_of_week, end_of_week
     where
         submissions.challenge_id is null

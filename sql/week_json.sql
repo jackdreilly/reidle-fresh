@@ -1,6 +1,4 @@
-with __dbt__cte__submissions as (
-select * from "postgres"."public"."submissions"
-),  __dbt__cte__week_table as (
+with __dbt__cte__week_table as (
 with
 start_of_week as (
     select
@@ -21,7 +19,7 @@ subs as (
         submissions.time,
         submissions.submission_id
     from
-        __dbt__cte__submissions
+        "postgres"."public"."submissions"
         as submissions, start_of_week, end_of_week
     where
         submissions.challenge_id is null
@@ -73,7 +71,10 @@ select
             then
                 least(
                     row_number()
-                        over (partition by day order by played desc, round_time),
+                        over (
+                            partition by day
+                            order by played desc, round_time asc
+                        ),
                     9
                 )
         else 10
