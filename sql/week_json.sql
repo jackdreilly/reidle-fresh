@@ -74,9 +74,9 @@ select
                 least(
                     row_number()
                         over (partition by day order by played desc, round_time),
-                    4
+                    9
                 )
-        else 5
+        else 10
     end as score
 from
     full_subs

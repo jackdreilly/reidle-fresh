@@ -74,9 +74,9 @@ select
                             partition by day
                             order by played desc, round_time asc
                         ),
-                    4
+                    9
                 )
-        else 5
+        else 10
     end as score
 from
     full_subs

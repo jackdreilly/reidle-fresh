@@ -87,7 +87,7 @@ ranked AS (
 scored AS (
     SELECT
         *,
-        LEAST("rank", 4) AS score
+        LEAST("rank", 9) AS score
     FROM
         ranked
 ),
