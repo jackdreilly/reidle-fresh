@@ -338,7 +338,10 @@ export default function Game(
   }, [currentWord]);
   return (
     <>
-      <div class="w-full flex flex-col h-full max-w-6xl flex-grow-1 text-center text-lg">
+      <div
+        class="w-full flex flex-col h-full max-w-6xl flex-grow-1 text-center text-lg"
+        style={{ touchAction: "manipulation" }}
+      >
         <div class="m-1 h-8 flex place-content-evenly">
           {battle && (
             <>
