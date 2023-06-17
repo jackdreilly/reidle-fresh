@@ -63,6 +63,7 @@ export default function Page(
           </a>
         </h2>
       )}
+      {winner && <TimeRemaining />}
     </StatsTemplate>
   );
 }
@@ -73,4 +74,22 @@ export interface DailySubmission {
   penalty: number;
   paste: string;
   submission_id: number;
+}
+
+function TimeRemaining() {
+  const tomorrowUtc = new Date();
+  tomorrowUtc.setUTCDate(tomorrowUtc.getUTCDate() + 1);
+  tomorrowUtc.setUTCHours(0, 0, 0, 0);
+  const tomorrowTimestamp = tomorrowUtc.getTime();
+  const now = Date.now();
+  const diff = tomorrowTimestamp - now;
+  const hours = Math.floor(diff / 1000 / 60 / 60);
+  return (
+    <div class="m-2 p-2">
+      <span class="font-bold rounded m-1 p-1 bg-gray-200">
+        {hours.toString().padStart(2, "0")}
+      </span>{" "}
+      hours until next game
+    </div>
+  );
 }
