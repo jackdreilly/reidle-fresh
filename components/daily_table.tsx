@@ -86,7 +86,7 @@ export function DailyTable(
               class={"whitespace-pre-wrap text-[7px] leading-[4px]" +
                 (hide ? " invisible" : "")}
             >
-              {paste}
+              <Paste paste={paste} />
             </TableCell>
             <TableCell>
               <a
@@ -110,4 +110,27 @@ export function DailyTable(
       </TableBody>
     </Table>
   );
+}
+
+function Paste({ paste }: { paste: string }) {
+  if (paste === "") {
+    return <span class="text-gray-400">No paste</span>;
+  }
+  return (
+    <div
+      class={`grid grid-rows-${Math.min(12, paste.split("\n").length)}`}
+    >
+      {paste.split("\n").map((line) => (
+        <div class="h-1 grid grid-cols-5">
+          {Array.from(line).map((char) => (
+            <div style={{ borderRadius: "1px", backgroundColor: bg(char), margin: "0.15px" }} />
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function bg(s: string): string {
+  return { "🟩": "#049404", "⬜": "#dddddd", "🟨": "#e9e51b" }[s] ?? "white";
 }

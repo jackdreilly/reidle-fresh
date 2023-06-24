@@ -108,9 +108,8 @@ export default function Page(
                     </TableCell>
                   ))}
                   <TableCell>
-                    {score < 1000
-                      ? score
-                      : Math.floor(score).toString().slice(0, 2) + "K"}
+                    {score < 1000 ? score : score.toString().slice(0, 1) + "e" +
+                      Math.floor(Math.log10(score))}
                   </TableCell>
                   <TableCell>{timerTime(time)}</TableCell>
                 </TableRow>

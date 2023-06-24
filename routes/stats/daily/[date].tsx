@@ -89,7 +89,7 @@ function TimeRemaining() {
       <span class="font-bold rounded m-1 p-1 bg-gray-200">
         {hours.toString().padStart(2, "0")}
       </span>{" "}
-      hours until next game
+      hours remaining to play today's challenge
     </div>
   );
 }
