@@ -12,7 +12,7 @@ import IconCake from "https://deno.land/x/tabler_icons_tsx@0.0.3/tsx/cake.tsx";
 function isBirthday(name: string) {
   const birthday = {
     jack: [7, 28],
-    chris: [7, 28],
+    cbo: [7, 28],
     olga: [4, 12],
     ioanna: [3, 27],
     jimbo: [5, 8],
