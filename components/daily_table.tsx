@@ -8,6 +8,7 @@ import {
 import TimerText from "@/components/timer_text.tsx";
 import { DailySubmission } from "@/routes/stats/daily/[date].tsx";
 import IconCake from "https://deno.land/x/tabler_icons_tsx@0.0.3/tsx/cake.tsx";
+import IconRun from "https://deno.land/x/tabler_icons_tsx@0.0.3/tsx/run.tsx"
 
 function isBirthday(name: string) {
   const birthday = {
@@ -35,6 +36,9 @@ function isBirthday(name: string) {
 }
 
 export function Birthday({ name }: { name: string }) {
+  if (name === "natnat") {
+    return <IconRun class="w-6 h-6 ml-1" />;
+  }
   if (isBirthday(name)) {
     return <IconCake class="w-6 h-6 ml-1" />;
   }
