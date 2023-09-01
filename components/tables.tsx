@@ -18,8 +18,10 @@ export function TableHead(
 ) {
   return (
     <thead class="text-xs text-gray-700 uppercase bg-gray-50">
-      {columns?.map((c) => <HeadColumn>{c}</HeadColumn>)}
-      {children}
+      <tr>
+        {columns?.map((c) => <HeadColumn>{c}</HeadColumn>)}
+        {children}
+      </tr>
     </thead>
   );
 }
