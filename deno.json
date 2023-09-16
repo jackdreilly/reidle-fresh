@@ -12,7 +12,7 @@
   },
   "imports": {
     "@/": "./",
-    "$fresh/": "https://deno.land/x/fresh@1.4.2/",
+    "$fresh/": "https://deno.land/x/fresh@1.4.3/",
     "fresh_charts": "https://deno.land/x/fresh_charts",
     "fresh_charts/": "https://deno.land/x/fresh_charts/",
     "@preact/signals-core": "https://esm.sh/*@preact/signals-core@1.2.3",
