@@ -12,6 +12,7 @@ import {
 import { runSql, WeekOutput } from "@/utils/sql_files.ts";
 import { SessionData, SessionHandler, timerTime } from "@/utils/utils.ts";
 import { Name } from "@/components/daily_table.tsx";
+import { equal } from "https://deno.land/x/equal@v1.5.0/mod.ts";
 
 type Data = {
   players: WeekOutput;
@@ -89,7 +90,7 @@ export default function Page(
                   >
                     <Name name={name} />
                   </TableRowHeader>
-                  {days.map(({ score, time, submission_id }) => (
+                  {days.map(({ score, time, submission_id, day }) => (
                     <TableCell
                       style={{
                         backgroundColor: getColor(score),
@@ -100,7 +101,17 @@ export default function Page(
                       {!submission_id ? score : (
                         <a
                           class="leading-[35px] w-full block"
-                          href={`/submissions/${submission_id}/playback`}
+                          href={!playedToday &&
+                              equal(
+                                day.split("-").map((a) => parseInt(a, 10)),
+                                [
+                                  new Date().getUTCFullYear(),
+                                  new Date().getUTCMonth() + 1,
+                                  new Date().getUTCDate(),
+                                ],
+                              )
+                            ? null
+                            : `/submissions/${submission_id}/playback`}
                         >
                           {score}
                         </a>
