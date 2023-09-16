@@ -12,8 +12,9 @@ export const handler: SessionHandler<Data> = {
     return ctx.state.render(ctx, {
       playback: await ctx.state.connection.queryObject<
         { playback: Playback }
-      >`select playback from submissions where submission_id = ${ctx.params.submission_id} limit 1`
-        .then((x) => x.rows[0].playback),
+      >`select playback from submissions where submission_id = ${ctx.params.submission_id} and (${await ctx
+        .state.playedTodayPromise} or day != current_date) limit 1`
+        .then((x) => x.rows[0]?.playback ?? { events: [] }),
     });
   },
 };
@@ -25,7 +26,9 @@ export default function Page(
 ) {
   return (
     <GameTemplate title="Playback" isPractice={false} playedToday={playedToday}>
-      <PlaybackComponent events={events} />
+      {events.length
+        ? <PlaybackComponent events={events} />
+        : "You need to play today to see this"}
     </GameTemplate>
   );
 }
