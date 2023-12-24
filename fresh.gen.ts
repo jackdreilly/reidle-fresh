@@ -2,85 +2,105 @@
 // This file SHOULD be checked into source version control.
 // This file is automatically updated during development when running `dev.ts`.
 
-import * as $0 from "./routes/_app.tsx";
-import * as $1 from "./routes/_middleware.tsx";
-import * as $2 from "./routes/account.tsx";
-import * as $3 from "./routes/api/inngest.ts";
-import * as $4 from "./routes/api/submit.ts";
-import * as $5 from "./routes/api/unread_messages.ts";
-import * as $6 from "./routes/battles.tsx";
-import * as $7 from "./routes/battles/[battle_id].tsx";
-import * as $8 from "./routes/battles/[battle_id]/restart.tsx";
-import * as $9 from "./routes/battles/new.tsx";
-import * as $10 from "./routes/battles/party_room.tsx";
-import * as $11 from "./routes/challenges/challenge/[challenge_id]/index.tsx";
-import * as $12 from "./routes/challenges/challenge/[challenge_id]/play.tsx";
-import * as $13 from "./routes/challenges/index.tsx";
-import * as $14 from "./routes/challenges/play.tsx";
-import * as $15 from "./routes/index.tsx";
-import * as $16 from "./routes/messages.tsx";
-import * as $17 from "./routes/messages/[message_id]/delete.tsx";
-import * as $18 from "./routes/play.tsx";
-import * as $19 from "./routes/players/[name].tsx";
-import * as $20 from "./routes/practice.tsx";
-import * as $21 from "./routes/sign-in.tsx";
-import * as $22 from "./routes/sign-out.tsx";
-import * as $23 from "./routes/stats.tsx";
-import * as $24 from "./routes/stats/daily/[date].tsx";
-import * as $25 from "./routes/stats/past_winners.tsx";
-import * as $26 from "./routes/stats/this_week.tsx";
-import * as $27 from "./routes/stats/today.tsx";
-import * as $28 from "./routes/stats/weekly/[startDay].tsx";
-import * as $29 from "./routes/submissions/[submission_id]/playback.tsx";
-import * as $30 from "./routes/unsubscribe.tsx";
-import * as $$0 from "./islands/AllNotification.tsx";
-import * as $$1 from "./islands/Battle.tsx";
-import * as $$2 from "./islands/confetti.tsx";
-import * as $$3 from "./islands/game.tsx";
-import * as $$4 from "./islands/playback.tsx";
+import * as $_app from "./routes/_app.tsx";
+import * as $_middleware from "./routes/_middleware.tsx";
+import * as $account from "./routes/account.tsx";
+import * as $api_inngest from "./routes/api/inngest.ts";
+import * as $api_submit from "./routes/api/submit.ts";
+import * as $api_unread_messages from "./routes/api/unread_messages.ts";
+import * as $battles from "./routes/battles.tsx";
+import * as $battles_battle_id_ from "./routes/battles/[battle_id].tsx";
+import * as $battles_battle_id_restart from "./routes/battles/[battle_id]/restart.tsx";
+import * as $battles_new from "./routes/battles/new.tsx";
+import * as $battles_party_room from "./routes/battles/party_room.tsx";
+import * as $challenges_challenge_challenge_id_index from "./routes/challenges/challenge/[challenge_id]/index.tsx";
+import * as $challenges_challenge_challenge_id_play from "./routes/challenges/challenge/[challenge_id]/play.tsx";
+import * as $challenges_index from "./routes/challenges/index.tsx";
+import * as $challenges_play from "./routes/challenges/play.tsx";
+import * as $index from "./routes/index.tsx";
+import * as $messages from "./routes/messages.tsx";
+import * as $messages_message_id_delete from "./routes/messages/[message_id]/delete.tsx";
+import * as $play from "./routes/play.tsx";
+import * as $players_name_ from "./routes/players/[name].tsx";
+import * as $practice from "./routes/practice.tsx";
+import * as $sign_in from "./routes/sign-in.tsx";
+import * as $sign_out from "./routes/sign-out.tsx";
+import * as $stats from "./routes/stats.tsx";
+import * as $stats_daily_date_ from "./routes/stats/daily/[date].tsx";
+import * as $stats_past_winners from "./routes/stats/past_winners.tsx";
+import * as $stats_this_week from "./routes/stats/this_week.tsx";
+import * as $stats_today from "./routes/stats/today.tsx";
+import * as $stats_weekly_startDay_ from "./routes/stats/weekly/[startDay].tsx";
+import * as $submissions_submission_id_playback from "./routes/submissions/[submission_id]/playback.tsx";
+import * as $unsubscribe from "./routes/unsubscribe.tsx";
+import * as $wrapped_name_0 from "./routes/wrapped/[name]/0.tsx";
+import * as $wrapped_name_1 from "./routes/wrapped/[name]/1.tsx";
+import * as $wrapped_name_2 from "./routes/wrapped/[name]/2.tsx";
+import * as $wrapped_name_3 from "./routes/wrapped/[name]/3.tsx";
+import * as $wrapped_name_4 from "./routes/wrapped/[name]/4.tsx";
+import * as $wrapped_name_5 from "./routes/wrapped/[name]/5.tsx";
+import * as $wrapped_name_6 from "./routes/wrapped/[name]/6.tsx";
+import * as $wrapped_index from "./routes/wrapped/index.tsx";
+import * as $AllNotification from "./islands/AllNotification.tsx";
+import * as $Battle from "./islands/Battle.tsx";
+import * as $confetti from "./islands/confetti.tsx";
+import * as $game from "./islands/game.tsx";
+import * as $playback from "./islands/playback.tsx";
+import { type Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
-    "./routes/_app.tsx": $0,
-    "./routes/_middleware.tsx": $1,
-    "./routes/account.tsx": $2,
-    "./routes/api/inngest.ts": $3,
-    "./routes/api/submit.ts": $4,
-    "./routes/api/unread_messages.ts": $5,
-    "./routes/battles.tsx": $6,
-    "./routes/battles/[battle_id].tsx": $7,
-    "./routes/battles/[battle_id]/restart.tsx": $8,
-    "./routes/battles/new.tsx": $9,
-    "./routes/battles/party_room.tsx": $10,
-    "./routes/challenges/challenge/[challenge_id]/index.tsx": $11,
-    "./routes/challenges/challenge/[challenge_id]/play.tsx": $12,
-    "./routes/challenges/index.tsx": $13,
-    "./routes/challenges/play.tsx": $14,
-    "./routes/index.tsx": $15,
-    "./routes/messages.tsx": $16,
-    "./routes/messages/[message_id]/delete.tsx": $17,
-    "./routes/play.tsx": $18,
-    "./routes/players/[name].tsx": $19,
-    "./routes/practice.tsx": $20,
-    "./routes/sign-in.tsx": $21,
-    "./routes/sign-out.tsx": $22,
-    "./routes/stats.tsx": $23,
-    "./routes/stats/daily/[date].tsx": $24,
-    "./routes/stats/past_winners.tsx": $25,
-    "./routes/stats/this_week.tsx": $26,
-    "./routes/stats/today.tsx": $27,
-    "./routes/stats/weekly/[startDay].tsx": $28,
-    "./routes/submissions/[submission_id]/playback.tsx": $29,
-    "./routes/unsubscribe.tsx": $30,
+    "./routes/_app.tsx": $_app,
+    "./routes/_middleware.tsx": $_middleware,
+    "./routes/account.tsx": $account,
+    "./routes/api/inngest.ts": $api_inngest,
+    "./routes/api/submit.ts": $api_submit,
+    "./routes/api/unread_messages.ts": $api_unread_messages,
+    "./routes/battles.tsx": $battles,
+    "./routes/battles/[battle_id].tsx": $battles_battle_id_,
+    "./routes/battles/[battle_id]/restart.tsx": $battles_battle_id_restart,
+    "./routes/battles/new.tsx": $battles_new,
+    "./routes/battles/party_room.tsx": $battles_party_room,
+    "./routes/challenges/challenge/[challenge_id]/index.tsx":
+      $challenges_challenge_challenge_id_index,
+    "./routes/challenges/challenge/[challenge_id]/play.tsx":
+      $challenges_challenge_challenge_id_play,
+    "./routes/challenges/index.tsx": $challenges_index,
+    "./routes/challenges/play.tsx": $challenges_play,
+    "./routes/index.tsx": $index,
+    "./routes/messages.tsx": $messages,
+    "./routes/messages/[message_id]/delete.tsx": $messages_message_id_delete,
+    "./routes/play.tsx": $play,
+    "./routes/players/[name].tsx": $players_name_,
+    "./routes/practice.tsx": $practice,
+    "./routes/sign-in.tsx": $sign_in,
+    "./routes/sign-out.tsx": $sign_out,
+    "./routes/stats.tsx": $stats,
+    "./routes/stats/daily/[date].tsx": $stats_daily_date_,
+    "./routes/stats/past_winners.tsx": $stats_past_winners,
+    "./routes/stats/this_week.tsx": $stats_this_week,
+    "./routes/stats/today.tsx": $stats_today,
+    "./routes/stats/weekly/[startDay].tsx": $stats_weekly_startDay_,
+    "./routes/submissions/[submission_id]/playback.tsx":
+      $submissions_submission_id_playback,
+    "./routes/unsubscribe.tsx": $unsubscribe,
+    "./routes/wrapped/[name]/0.tsx": $wrapped_name_0,
+    "./routes/wrapped/[name]/1.tsx": $wrapped_name_1,
+    "./routes/wrapped/[name]/2.tsx": $wrapped_name_2,
+    "./routes/wrapped/[name]/3.tsx": $wrapped_name_3,
+    "./routes/wrapped/[name]/4.tsx": $wrapped_name_4,
+    "./routes/wrapped/[name]/5.tsx": $wrapped_name_5,
+    "./routes/wrapped/[name]/6.tsx": $wrapped_name_6,
+    "./routes/wrapped/index.tsx": $wrapped_index,
   },
   islands: {
-    "./islands/AllNotification.tsx": $$0,
-    "./islands/Battle.tsx": $$1,
-    "./islands/confetti.tsx": $$2,
-    "./islands/game.tsx": $$3,
-    "./islands/playback.tsx": $$4,
+    "./islands/AllNotification.tsx": $AllNotification,
+    "./islands/Battle.tsx": $Battle,
+    "./islands/confetti.tsx": $confetti,
+    "./islands/game.tsx": $game,
+    "./islands/playback.tsx": $playback,
   },
   baseUrl: import.meta.url,
-};
+} satisfies Manifest;
 
 export default manifest;

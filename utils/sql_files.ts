@@ -89,6 +89,87 @@ export interface Schemas {
       message_id: number;
     }[];
   };
+  "wrapped/games_missed": {
+    output: {
+      games_missed: number;
+      tardy_rate: number;
+      name: string;
+    }[];
+  };
+  "wrapped/wins": {
+    input: NameInput;
+    output: {
+      num_wins: number;
+      name: string;
+    }[];
+  };
+  "wrapped/overall_score": {
+    output: {
+      overall_score: number;
+      overall_rank: number;
+      name: string;
+    }[];
+  };
+  "wrapped/dow": {
+    input: NameInput;
+    output: {
+      dow_score: number;
+      name: string;
+      dow: number;
+      dow_rank: number;
+    }[];
+  };
+  "wrapped/top_words": {
+    input: NameInput;
+    output: {
+      words: string;
+      count: number;
+    }[];
+  };
+  "wrapped/top_words_overall": {
+    output: {
+      words: string;
+      count: number;
+    }[];
+  };
+  "wrapped/top_errors": {
+    input: NameInput;
+    output: {
+      errors: string;
+      count: number;
+    }[];
+  };
+  "wrapped/users": {
+    output: {
+      name: string;
+    }[];
+  };
+  "wrapped/top_errors_overall": {
+    output: {
+      errors: string;
+      count: number;
+    }[];
+  };
+  "wrapped/wordcloud_images": {
+    input: NameInput;
+    output: {
+      name: string;
+      image: Uint8Array;
+    }[];
+  };
+  "wrapped/wordcloud_images_words": {
+    input: NameInput;
+    output: {
+      name: string;
+      image: Uint8Array;
+    }[];
+  };
+  "wrapped/stories": {
+    input: NameInput;
+    output: {
+      story: string;
+    };
+  };
   my_account: {
     input: NameInput;
     output: {

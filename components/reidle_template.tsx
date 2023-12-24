@@ -123,7 +123,10 @@ export default function ReidleTemplate(
                   </span>
                 </a>
               </li>
-              <li class="rounded-lg  bg-[#ff00001c] hover:bg-[#ff000050]" style={{ display: playedToday ? "none" : null }}>
+              <li
+                class="rounded-lg  bg-[#ff00001c] hover:bg-[#ff000050]"
+                style={{ display: playedToday ? "none" : null }}
+              >
                 <a
                   href="/play"
                   class="flex items-center p-2 text-base font-normal text-gray-900"
@@ -194,6 +197,18 @@ export default function ReidleTemplate(
                   </span>
                 </a>
               </li>
+              <li class="flex items-center p-2 text-base font-normal text-gray-900 rounded-lg hover:bg-gray-100 ">
+                <a
+                  href="/wrapped"
+                  class="flex items-center p-2 text-base font-normal text-gray-900"
+                >
+                  <span
+                    class={"ml-3 " + (route === "/wrapped" ? "font-bold" : "")}
+                  >
+                    Wrapped 2023
+                  </span>
+                </a>
+              </li>
               <li>
                 <a
                   href="/account"
@@ -260,7 +275,7 @@ export default function ReidleTemplate(
   );
 }
 
-function BattleSvg({fill}: {fill?: string}) {
+function BattleSvg({ fill }: { fill?: string }) {
   return (
     <svg
       class="flex-shrink-0 w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900"
