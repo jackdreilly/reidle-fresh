@@ -52,7 +52,7 @@ export default function Page(
     <StatsTemplate playedToday={playedToday} route="today">
       {isToday && (
         <a
-          class="font-bold h-64 text-[20px] text-green-600 hover:underline"
+          class="font-bold h-64 text-[16px] text-green-600 hover:underline"
           href="/wrapped"
         >
           ✨🎁 Reidle Wrapped 2023 is here! 🎁✨
