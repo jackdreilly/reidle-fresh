@@ -1,4 +1,5 @@
 # %%
+import os
 import base64
 import tqdm
 import wordcloud
@@ -34,7 +35,7 @@ def playback_errors(playback):
 
 
 # %%
-cxn = "postgresql://postgres:q3zbKbcZzs6L5UG@db.kyxziusgsizkedxitbez.supabase.co:5432/postgres"
+cxn = (os.environ.get("POSTGRES_URL") or "").replace("postgres://", "postgresql://")
 # %%
 df = pd.read_sql(
     "select * from submissions",
