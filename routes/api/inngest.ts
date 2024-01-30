@@ -5,9 +5,12 @@ import { spy } from "@/utils/utils.ts";
 import * as sendgrid from "https://deno.land/x/sendgrid@0.0.3/mod.ts";
 import { serve } from "https://esm.sh/v111/inngest@1.4.0/deno/fresh";
 import render from "preact-render-to-string";
-import { runSql } from "../../utils/sql_files.ts";
+import { runSql } from "@/utils/sql_files.ts";
 
 export function sendEmail(data: SendEmailData) {
+  if (Deno.env.get("INNGEST_EVENT_KEY") == "asdf") {
+    return;
+  }
   return inngest.send("email/send", { data, user: { name: "fake" } });
 }
 

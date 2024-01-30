@@ -7,6 +7,11 @@ type SingleRow = RowDef;
 type MultiRow = RowDef[];
 type Output = SingleRow | MultiRow;
 type Input = Record<string, unknown>;
+export type Checkpoint = {
+  penalty: number;
+  history: ScoringHistory;
+  created_at: Date;
+};
 type MySchema = {
   output?: Output;
   input?: Input;
@@ -54,14 +59,20 @@ export type BattleHomePage = {
   updated_at: Date;
 };
 
+type Nothing = Record<string, unknown>[];
+
 export interface Schemas {
+  checkpoint: {
+    input: NameInput & { penalty: number; history: string };
+    output: Nothing;
+  };
   battle_home_page: {
     input: undefined;
     output: BattleHomePage;
   };
   reset_battle: {
     input: BattleArgs;
-    output: Record<string, unknown>[];
+    output: Nothing;
   };
   battle: {
     input: BattleArgs;
@@ -72,12 +83,13 @@ export interface Schemas {
     output: BattleArgs;
   };
   play: {
-    input: undefined;
+    input: NameInput;
     output: {
       word: string;
       startingWord: string;
       winner?: string;
       winnersTime?: number;
+      checkpoint: Checkpoint;
     };
   };
   message_reads: {

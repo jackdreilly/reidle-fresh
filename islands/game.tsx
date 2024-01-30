@@ -1,11 +1,11 @@
 import ErrorBar from "@/components/ErrorBar.tsx";
 import TimerText from "@/components/timer_text.tsx";
 import { Playback, PlaybackEvent, scoreColor } from "@/utils/playback.ts";
+import { BattleState, Checkpoint } from "@/utils/sql_files.ts";
 import { ScoredWord, Scoring, ScoringHistory, Wordle } from "@/utils/wordle.ts";
-import { useEffect, useMemo, useState } from "preact/hooks";
-import Confetti from "./confetti.tsx";
-import { BattleState } from "@/utils/sql_files.ts";
 import { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.21.0";
+import { useEffect, useMemo, useState } from "preact/hooks";
+import Confetti from "@/islands/confetti.tsx";
 export type Battle = {
   battle_id: number;
   state: BattleState;
@@ -22,6 +22,7 @@ interface GameProperties {
   battle?: Battle;
   winner?: string;
   name?: string;
+  checkpoint?: Checkpoint;
 }
 export default function Game(
   {
@@ -33,12 +34,16 @@ export default function Game(
     winner,
     battle,
     name,
+    checkpoint,
   }: GameProperties,
 ) {
+  const checkpointDate = () =>
+    checkpoint?.created_at ? new Date(checkpoint?.created_at) : new Date();
+  const isPlaying = !isPractice && !challenge_id && !battle && !!checkpoint;
   const [pendingChallenges, setPendingChallenges] = useState(0);
   const [playback, setPlayback] = useState<Playback>({ events: [] });
-  const [penalties, setPenalties] = useState(0);
-  const [startTime, setStartTime] = useState(new Date());
+  const [penalties, setPenalties] = useState(checkpoint?.penalty ?? 0);
+  const [startTime, setStartTime] = useState(checkpointDate());
   const [error, setErrorPrivatePrivate] = useState("");
   const [wordle, setWordle] = useState<Wordle>();
   const [currentWord, setCurrentWordPrivate] = useState(
@@ -50,6 +55,29 @@ export default function Game(
   const [candidates, setCandidates] = useState<string[]>([]);
   const [enableHelp, setEnableHelp] = useState(false);
   const [showUsers, setShowUsers] = useState(false);
+  useEffect(() => {
+    if (!isPlaying) {
+      return;
+    }
+    fetch("/api/checkpoint", {
+      method: "POST",
+      headers: {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        penalties,
+        history: previousWords,
+      }),
+    });
+  }, [isPlaying, penalties, previousWords]);
+  useEffect(() => {
+    if (!isPlaying || !checkpoint.history?.length) {
+      return;
+    }
+    setPreviousWords(checkpoint.history);
+    setCurrentWord('');
+  }, [checkpoint, startingWord, word]);
   useEffect(() => {
     if (!battle) {
       return;
@@ -160,7 +188,7 @@ export default function Game(
     async function helper() {
       const wordle = await Wordle.make(false);
       setWordle((_) => wordle);
-      setStartTime((_) => new Date());
+      setStartTime((_) => checkpointDate());
       setCandidates(wordle.words);
     }
     helper();
@@ -303,7 +331,6 @@ export default function Game(
         battle.supabase.from("battles").update({
           state: battle.state,
         }).eq("battle_id", battle.battle_id).then((_) => {
-          // console.log({ update_response });
         });
       }
       setPreviousWords((s) => [...s, wordScore]);

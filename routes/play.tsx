@@ -15,13 +15,18 @@ export const handler: SessionHandler<PlayData> = {
           file: "play",
           connection: ctx.state.connection,
           single_row: true,
+          args: {
+            name: ctx.state.name,
+          },
         }),
       );
   },
 };
 
 export default function Page(
-  { data: { word, startingWord, winnersTime, playedToday, winner } }: PageProps<
+  {
+    data: { word, startingWord, winnersTime, playedToday, winner, checkpoint },
+  }: PageProps<
     PlayData & SessionData
   >,
 ) {
@@ -33,6 +38,7 @@ export default function Page(
         startingWord={startingWord}
         winnersTime={winnersTime}
         winner={winner}
+        checkpoint={checkpoint}
       />
     </GameTemplate>
   );

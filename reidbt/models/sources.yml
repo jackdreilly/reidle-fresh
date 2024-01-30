@@ -29,6 +29,14 @@ sources:
           - name: day
           - name: word
           - name: answer
+      - name: checkpoints
+        columns:
+          - name: day
+          - name: name
+          - name: created_at
+          - name: time
+          - name: penalty
+          - name: playback
 
       - name: message_reads_source
         identifier: message_reads

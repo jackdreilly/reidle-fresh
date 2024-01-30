@@ -103,3 +103,13 @@ class Battle(TableBase, table=True):
     users: list[str] = Field(
         sa_column=Column(JSON, server_default="[]", nullable=False),
     )
+
+
+class Checkpoint(TableBase, table=True):
+    name: str = Field(primary_key=True)
+    day: date = Field(sa_column_kwargs=dict(server_default=sa.func.CURRENT_DATE()))
+    penalty: float
+    created_at: datetime = created_at_field()
+    history: list[str] = Field(
+        sa_column=Column(JSON, server_default="[]", nullable=False),
+    )
