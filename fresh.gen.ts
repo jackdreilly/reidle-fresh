@@ -7,6 +7,7 @@ import * as $_middleware from "./routes/_middleware.tsx";
 import * as $account from "./routes/account.tsx";
 import * as $api_checkpoint from "./routes/api/checkpoint.ts";
 import * as $api_inngest from "./routes/api/inngest.ts";
+import * as $api_rankings from "./routes/api/rankings.ts";
 import * as $api_submit from "./routes/api/submit.ts";
 import * as $api_unread_messages from "./routes/api/unread_messages.ts";
 import * as $battles from "./routes/battles.tsx";
@@ -24,6 +25,7 @@ import * as $messages_message_id_delete from "./routes/messages/[message_id]/del
 import * as $play from "./routes/play.tsx";
 import * as $players_name_ from "./routes/players/[name].tsx";
 import * as $practice from "./routes/practice.tsx";
+import * as $rankings from "./routes/rankings.tsx";
 import * as $sign_in from "./routes/sign-in.tsx";
 import * as $sign_out from "./routes/sign-out.tsx";
 import * as $stats from "./routes/stats.tsx";
@@ -44,6 +46,7 @@ import * as $wrapped_name_6 from "./routes/wrapped/[name]/6.tsx";
 import * as $wrapped_index from "./routes/wrapped/index.tsx";
 import * as $AllNotification from "./islands/AllNotification.tsx";
 import * as $Battle from "./islands/Battle.tsx";
+import * as $Rankings from "./islands/Rankings.tsx";
 import * as $confetti from "./islands/confetti.tsx";
 import * as $game from "./islands/game.tsx";
 import * as $playback from "./islands/playback.tsx";
@@ -56,6 +59,7 @@ const manifest = {
     "./routes/account.tsx": $account,
     "./routes/api/checkpoint.ts": $api_checkpoint,
     "./routes/api/inngest.ts": $api_inngest,
+    "./routes/api/rankings.ts": $api_rankings,
     "./routes/api/submit.ts": $api_submit,
     "./routes/api/unread_messages.ts": $api_unread_messages,
     "./routes/battles.tsx": $battles,
@@ -75,6 +79,7 @@ const manifest = {
     "./routes/play.tsx": $play,
     "./routes/players/[name].tsx": $players_name_,
     "./routes/practice.tsx": $practice,
+    "./routes/rankings.tsx": $rankings,
     "./routes/sign-in.tsx": $sign_in,
     "./routes/sign-out.tsx": $sign_out,
     "./routes/stats.tsx": $stats,
@@ -98,6 +103,7 @@ const manifest = {
   islands: {
     "./islands/AllNotification.tsx": $AllNotification,
     "./islands/Battle.tsx": $Battle,
+    "./islands/Rankings.tsx": $Rankings,
     "./islands/confetti.tsx": $confetti,
     "./islands/game.tsx": $game,
     "./islands/playback.tsx": $playback,

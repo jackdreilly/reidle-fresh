@@ -180,6 +180,19 @@ export default function ReidleTemplate(
                   </span>
                 </a>
               </li>
+              <li class="rounded-lg bg-[#f7f1b5] hover:bg-[#bfb865] ">
+                <a
+                  href="/rankings"
+                  class="flex items-center p-2 text-base font-normal text-gray-900"
+                >
+                  <RankingsSVG fill="#5c5300" />
+                  <span
+                    class={"ml-3 " + (route === "/rankings" ? "font-bold" : "")}
+                  >
+                    Rankings
+                  </span>
+                </a>
+              </li>
               <li>
                 <a
                   href="/messages"
@@ -417,6 +430,25 @@ function ChallengeSVG({ fill }: { fill?: string }) {
       style="stroke-width: var(--grid-item-icon-stroke-width); transform: scale(var(--grid-item-icon-scale));"
     >
       <path d="M10 9a3 3 0 100-6 3 3 0 000 6zM6 8a2 2 0 11-4 0 2 2 0 014 0zM1.49 15.326a.78.78 0 01-.358-.442 3 3 0 014.308-3.516 6.484 6.484 0 00-1.905 3.959c-.023.222-.014.442.025.654a4.97 4.97 0 01-2.07-.655zM16.44 15.98a4.97 4.97 0 002.07-.654.78.78 0 00.357-.442 3 3 0 00-4.308-3.517 6.484 6.484 0 011.907 3.96 2.32 2.32 0 01-.026.654zM18 8a2 2 0 11-4 0 2 2 0 014 0zM5.304 16.19a.844.844 0 01-.277-.71 5 5 0 019.947 0 .843.843 0 01-.277.71A6.975 6.975 0 0110 18a6.974 6.974 0 01-4.696-1.81z" />
+    </svg>
+  );
+}
+
+function RankingsSVG({ fill }: { fill?: string }) {
+  return (
+    <svg
+      fill={fill ?? "currentColor"}
+      viewBox="0 0 20 20"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+      class="w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 "
+      style="stroke-width: var(--grid-item-icon-stroke-width); transform: scale(var(--grid-item-icon-scale));"
+    >
+      <path
+        fill-rule="evenodd"
+        d="M12.577 4.878a.75.75 0 0 1 .919-.53l4.78 1.281a.75.75 0 0 1 .531.919l-1.281 4.78a.75.75 0 0 1-1.449-.387l.81-3.022a19.407 19.407 0 0 0-5.594 5.203.75.75 0 0 1-1.139.093L7 10.06l-4.72 4.72a.75.75 0 0 1-1.06-1.061l5.25-5.25a.75.75 0 0 1 1.06 0l3.074 3.073a20.923 20.923 0 0 1 5.545-4.931l-3.042-.815a.75.75 0 0 1-.53-.919Z"
+        clip-rule="evenodd"
+      />
     </svg>
   );
 }

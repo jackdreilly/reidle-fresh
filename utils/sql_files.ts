@@ -61,7 +61,16 @@ export type BattleHomePage = {
 
 type Nothing = Record<string, unknown>[];
 
+export type Rankings = {
+  name: string;
+  day: string[];
+  rank: number[];
+}[];
+
 export interface Schemas {
+  rankings: {
+    output: Rankings;
+  };
   checkpoint: {
     input: NameInput & { penalty: number; history: string };
     output: Nothing;
