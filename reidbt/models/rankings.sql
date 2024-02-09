@@ -14,7 +14,7 @@ recently_played as (
     select name from matches
     where day > CURRENT_DATE - 30
     GROUP BY 1
-    HAVING COUNT(*) > 14
+    HAVING COUNT(*) > 8
 ),
 name_days as (
   select distinct name, day + o as end_day
@@ -30,8 +30,18 @@ scores as (
   group by 1,2
 ),
 ranks as (
-select name,day, ROW_NUMBER() over (partition by day order by score desc) as rank
+select name,day, (ROW_NUMBER() over (partition by day order by score desc))::INT as rank
 from scores order by day desc, rank
   )
-  select name, array_agg(day order by day) as day, array_agg(rank::INT order by day) as rank
-  from ranks group by 1
+select
+    name,
+    array_agg(day order by day) as day,
+    array_agg(rank order by day) as rank
+from ranks
+natural full outer join (
+    select name, rank as last_rank
+    from ranks
+    where day = CURRENT_DATE
+) _
+group by 1
+ORDER BY MIN(last_rank) DESC NULLS FIRST
