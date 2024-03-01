@@ -38,7 +38,11 @@ export default function Game(
   }: GameProperties,
 ) {
   const checkpointDate = () =>
-    checkpoint?.created_at ? new Date(checkpoint?.created_at) : new Date();
+    (checkpoint?.created_at &&
+        (new Date().getTime() - new Date(checkpoint?.created_at).getTime()) >
+          10000)
+      ? new Date(checkpoint?.created_at)
+      : new Date();
   const isPlaying = !isPractice && !challenge_id && !battle && !!checkpoint;
   const [pendingChallenges, setPendingChallenges] = useState(0);
   const [playback, setPlayback] = useState<Playback>({ events: [] });
