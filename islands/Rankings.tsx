@@ -56,7 +56,7 @@ function InnerComponent() {
             type: "scatter",
             mode: "line",
             line: {
-              width: 15,
+              width: 24,
               shape: "spline",
             },
             name,
