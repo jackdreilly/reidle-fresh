@@ -55,6 +55,9 @@ function InnerComponent() {
             y: rank,
             type: "scatter",
             mode: "line",
+            line: {
+              width: 5
+            },
             name,
           }
         )),
