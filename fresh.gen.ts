@@ -46,6 +46,7 @@ import * as $wrapped_name_6 from "./routes/wrapped/[name]/6.tsx";
 import * as $wrapped_index from "./routes/wrapped/index.tsx";
 import * as $AllNotification from "./islands/AllNotification.tsx";
 import * as $Battle from "./islands/Battle.tsx";
+import * as $Message from "./islands/Message.tsx";
 import * as $Rankings from "./islands/Rankings.tsx";
 import * as $confetti from "./islands/confetti.tsx";
 import * as $game from "./islands/game.tsx";
@@ -103,6 +104,7 @@ const manifest = {
   islands: {
     "./islands/AllNotification.tsx": $AllNotification,
     "./islands/Battle.tsx": $Battle,
+    "./islands/Message.tsx": $Message,
     "./islands/Rankings.tsx": $Rankings,
     "./islands/confetti.tsx": $confetti,
     "./islands/game.tsx": $game,

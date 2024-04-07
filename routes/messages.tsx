@@ -6,6 +6,7 @@ import { sendEmail } from "@/routes/api/inngest.ts";
 import { runSql, Schemas } from "@/utils/sql_files.ts";
 import { SessionData, SessionHandler } from "@/utils/utils.ts";
 import { moment } from "https://deno.land/x/deno_moment@v1.1.2/mod.ts";
+import Message from "@/islands/Message.tsx";
 type Message = Schemas["message_reads"]["output"][number];
 interface Data {
   messages: Message[];
@@ -79,7 +80,7 @@ export default function Page(
           <li class="border-b-1 p-2 whitespace-break-spaces">
             <span class="font-bold">
               <Name name={name} />
-            </span>: {message}
+            </span>: <Message message={message} />
             {myName === name
               ? (
                 <form
