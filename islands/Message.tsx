@@ -1,11 +1,30 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
 
+type LinkType = "text" | "url" | "spotify";
+
+function SpotifyLink({ src }: { src: string }) {
+  return (
+    <iframe
+      style={{ width: "100%", maxWidth: "400px", borderRadius: "8px" }}
+      src={src.includes("com/embed")
+        ? src
+        : src.replace("spotify.com", "spotify.com/embed")}
+      height="152"
+      frameBorder="0"
+      allowFullScreen={false}
+      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+      loading="lazy"
+    >
+    </iframe>
+  );
+}
+
 function splitStringByURLs(
   text: string,
-): { type: "text" | "url"; value: string }[] {
+): { type: LinkType; value: string }[] {
   const urlRegex = /(https?:\/\/[^\s]+)/g; // Regular expression to match URLs
 
-  const result: { type: "text" | "url"; value: string }[] = [];
+  const result: { type: LinkType; value: string }[] = [];
   let lastMatchEnd = 0;
 
   let match;
@@ -19,7 +38,10 @@ function splitStringByURLs(
     }
 
     // Add the URL part
-    result.push({ type: "url", value: match[0] });
+    result.push({
+      type: match[0].includes("open.spotify.com") ? "spotify" : "url",
+      value: match[0],
+    });
 
     lastMatchEnd = match.index + match[0].length;
   }
@@ -64,7 +86,7 @@ function MaybeImage({ url }: { url: string }) {
         }}
       />
     )
-    : url;
+    : <>url</>;
 }
 
 export default function Message({ message }: { message: string }) {
@@ -74,7 +96,11 @@ export default function Message({ message }: { message: string }) {
   return (
     <>
       {parsed.map(({ type, value }) =>
-        type === "text" ? value : <MaybeImage url={value} />
+        type === "spotify"
+          ? <SpotifyLink src={value} />
+          : type === "text"
+          ? value
+          : <MaybeImage url={value} />
       )}
     </>
   );
