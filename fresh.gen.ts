@@ -22,6 +22,7 @@ import * as $challenges_play from "./routes/challenges/play.tsx";
 import * as $index from "./routes/index.tsx";
 import * as $messages from "./routes/messages.tsx";
 import * as $messages_message_id_delete from "./routes/messages/[message_id]/delete.tsx";
+import * as $messages_message_id_like from "./routes/messages/[message_id]/like.tsx";
 import * as $play from "./routes/play.tsx";
 import * as $players_name_ from "./routes/players/[name].tsx";
 import * as $practice from "./routes/practice.tsx";
@@ -77,6 +78,7 @@ const manifest = {
     "./routes/index.tsx": $index,
     "./routes/messages.tsx": $messages,
     "./routes/messages/[message_id]/delete.tsx": $messages_message_id_delete,
+    "./routes/messages/[message_id]/like.tsx": $messages_message_id_like,
     "./routes/play.tsx": $play,
     "./routes/players/[name].tsx": $players_name_,
     "./routes/practice.tsx": $practice,

@@ -10,5 +10,6 @@ SELECT
     "message",
     "name",
     "created_at",
-    "message_id"
+    "message_id",
+    "likes"
 FROM {{ ref("messages") }}

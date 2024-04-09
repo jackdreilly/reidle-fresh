@@ -51,6 +51,7 @@ sources:
           - name: created_at
           - name: name
           - name: message
+          - name: likes
 
       - name: players
         columns:

@@ -108,6 +108,7 @@ export interface Schemas {
       name: string;
       created_at: Date;
       message_id: number;
+      likes: string[];
     }[];
   };
   "wrapped/games_missed": {

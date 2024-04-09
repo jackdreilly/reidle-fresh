@@ -3,7 +3,8 @@ SELECT
     message,
     name,
     created_at,
-    message_id
+    message_id,
+    likes
 FROM
     "postgres"."public"."messages"
 WHERE
@@ -25,5 +26,6 @@ SELECT
     "message",
     "name",
     "created_at",
-    "message_id"
+    "message_id",
+    "likes"
 FROM __dbt__cte__messages

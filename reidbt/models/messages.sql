@@ -2,7 +2,8 @@ SELECT
     message,
     name,
     created_at,
-    message_id
+    message_id,
+    likes
 FROM
     {{ source('reidle', 'messages_source') }}
 WHERE
