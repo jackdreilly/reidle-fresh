@@ -126,10 +126,10 @@ export default function Page(
                   style={{ fontSize: 8, marginLeft: 5 }}
                 >
                   <img
-                    height="24px"
-                    width="24px"
+                    height="34px"
+                    width="34px"
                     src={asset("/android-chrome-96x96.webp")}
-                    class="pr-1"
+                    class="pr-2"
                     alt="Reidle Logo"
                   />
                 </button>
