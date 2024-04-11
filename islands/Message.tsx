@@ -104,7 +104,8 @@ export default function Message({ message }: { message: string }) {
     const messages = splitStringByURLs(message);
     if (
       (messages.length === 1) && messages[0].type === "text" &&
-      messages[0].value.toLowerCase().includes("a gif")
+      messages[0].value.toLowerCase().startsWith("a gif") &&
+      messages[0].value.length < 40
     ) {
       messages.push({ type: "random", value: "" });
     }
