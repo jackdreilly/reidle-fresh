@@ -1,6 +1,16 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
 
-type LinkType = "text" | "url" | "spotify";
+type LinkType = "text" | "url" | "spotify" | "random";
+
+function RandomGif() {
+  const [url, setUrl] = useState<string>();
+  useEffect(() => {
+    fetch(
+      "https://api.giphy.com/v1/gifs/random?api_key=kC0kZcGTTNZITKMQPLaxGwHeGpwYMn4S",
+    ).then((d) => d.json()).then((d) => setUrl(d.data.embed_url));
+  }, []);
+  return url ? <iframe src={url} /> : <span></span>;
+}
 
 function SpotifyLink({ src }: { src: string }) {
   return (
@@ -91,12 +101,21 @@ function MaybeImage({ url }: { url: string }) {
 
 export default function Message({ message }: { message: string }) {
   const parsed = useMemo(() => {
-    return splitStringByURLs(message);
+    const messages = splitStringByURLs(message);
+    if (
+      (messages.length === 1) && messages[0].type === "text" &&
+      messages[0].value.toLowerCase().includes("a gif")
+    ) {
+      messages.push({ type: "random", value: "" });
+    }
+    return messages;
   }, [message]);
   return (
     <>
       {parsed.map(({ type, value }) =>
-        type === "spotify"
+        type === "random"
+          ? <RandomGif />
+          : type === "spotify"
           ? <SpotifyLink src={value} />
           : type === "text"
           ? value
