@@ -352,6 +352,7 @@ export function ReidleHead(
     <Head>
       <title>{title ?? "Reidle"}</title>
       <script defer src={asset("/flowbite.min.js")} />
+      <script defer src={asset("/heap.js")} />
       <link rel="prefetch" href={asset("/words.csv")} sizes="any" />
       <link rel="prefetch" href={asset("/answers.csv")} sizes="any" />
       {fullPage
