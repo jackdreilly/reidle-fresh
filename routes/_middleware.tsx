@@ -18,7 +18,11 @@ export const handler: MiddlewareHandler<SessionData> = (req, ctx) => {
     return ctx.next();
   }
   const name = cookie.getCookies(req.headers)["name"] ?? "";
-  console.log({ name, url: req.url, req });
+  console.log({
+    name,
+    url: req.url.split(/(reillybrothers\.net|:8000)/).slice(-1)[0],
+    method: req.method,
+  });
   ctx.state.name = name;
   if (ctx.state.name === "undefined") {
     ctx.state.name = "";
