@@ -18,11 +18,15 @@ export const handler: MiddlewareHandler<SessionData> = (req, ctx) => {
     return ctx.next();
   }
   const name = cookie.getCookies(req.headers)["name"] ?? "";
-  console.log({
+  const url = req.url.split(/(reillybrothers\.net|:8000)/).slice(-1)[0] ?? "";
+  const method = req.method ?? "";
+  const page_view_args = {
     name,
-    url: req.url.split(/(reillybrothers\.net|:8000)/).slice(-1)[0],
-    method: req.method,
-  });
+    url,
+    method,
+  };
+  console.log(page_view_args);
+
   ctx.state.name = name;
   if (ctx.state.name === "undefined") {
     ctx.state.name = "";
@@ -35,6 +39,12 @@ export const handler: MiddlewareHandler<SessionData> = (req, ctx) => {
   }
   return run(async (cxn) => {
     ctx.state.connection = cxn;
+    runSql({
+      file: "log_page_view",
+      connection: cxn,
+      args: page_view_args,
+      single_row: true,
+    });
     ctx.state.playedTodayPromise = playedToday(name, req) ? true : runSql({
       file: "played_today",
       connection: cxn,

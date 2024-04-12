@@ -43,6 +43,12 @@ sources:
         columns:
           - name: name
           - name: last_read
+      - name: page_views
+        identifier: page_views
+        columns:
+          - name: name
+          - name: url
+          - name: method
 
       - name: messages_source
         identifier: messages

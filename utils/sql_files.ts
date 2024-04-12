@@ -68,6 +68,13 @@ export type Rankings = {
 }[];
 
 export interface Schemas {
+  log_page_view: {
+    input: {
+      name: string;
+      url: string;
+      method: string;
+    };
+  };
   rankings: {
     output: Rankings;
   };
