@@ -69,7 +69,37 @@ def page_views_df(hour: datetime):
 # State of Reidle
 """
 """
-## Page Views
+## Page Views Daily
+"""
+st.plotly_chart(
+    px.area(
+        page_views_df(hour)
+        .groupby(["page", pd.Grouper(key="created_at", freq="d")])
+        .id.count()
+        .reset_index()
+        .rename(columns=dict(id="count"))[lambda df: ~df.page.isin({"api", "unknown"})],
+        x="created_at",
+        y="count",
+        color="page",
+    ),
+    use_container_width=True,
+)
+"""
+## Plays By Week
+"""
+st.plotly_chart(
+    px.area(
+        plays_df(hour)
+        .groupby(pd.Grouper(key="day", freq="W"))["count"]
+        .sum()
+        .reset_index(),
+        x="day",
+        y="count",
+    ),
+    use_container_width=True,
+)
+"""
+## Page Views Hourly
 """
 st.plotly_chart(
     px.area(
@@ -91,19 +121,3 @@ st.plotly_chart(
     px.area(plays_df(hour), x="day", y="count"),
     use_container_width=True,
 )
-"""
-## Plays By Week
-"""
-st.plotly_chart(
-    px.area(
-        plays_df(hour)
-        .groupby(pd.Grouper(key="day", freq="W"))["count"]
-        .sum()
-        .reset_index(),
-        x="day",
-        y="count",
-    ),
-    use_container_width=True,
-)
-# %%
-(plays_df(hour))
