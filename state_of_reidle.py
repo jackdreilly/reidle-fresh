@@ -121,3 +121,19 @@ st.plotly_chart(
     px.area(plays_df(hour), x="day", y="count"),
     use_container_width=True,
 )
+"""
+## Reidle Addicts
+"""
+st.plotly_chart(
+    px.area(
+        page_views_df(hour)[lambda df: ~df.page.isin({"api", "unknown"})]
+        .groupby(["name", pd.Grouper(key="created_at", freq="d")])
+        .id.count()
+        .reset_index()
+        .rename(columns=dict(id="count")),
+        x="created_at",
+        y="count",
+        color="name",
+    ),
+    use_container_width=True,
+)
