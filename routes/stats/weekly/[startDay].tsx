@@ -119,8 +119,12 @@ export default function Page(
                     </TableCell>
                   ))}
                   <TableCell>
-                    {score < 1000 ? score : score.toString().slice(0, 1) + "e" +
-                      Math.floor(Math.log10(score))}
+                    <span title={`${score}`}>
+                      {score < 1000
+                        ? score
+                        : score.toString().slice(0, 1) + "e" +
+                          Math.floor(Math.log10(score))}
+                    </span>
                   </TableCell>
                   <TableCell>{timerTime(time)}</TableCell>
                 </TableRow>
