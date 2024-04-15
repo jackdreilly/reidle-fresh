@@ -7,9 +7,7 @@ import streamlit as st
 import pandas as pd
 
 st.set_page_config(page_title="State of Reidle", layout="wide")
-
-# %%
-
+PLOT_HEIGHT = 1200
 hour = datetime.now().replace(minute=0, second=0, microsecond=0)
 
 
@@ -81,6 +79,7 @@ st.plotly_chart(
         x="created_at",
         y="count",
         color="page",
+        height=PLOT_HEIGHT,
     ),
     use_container_width=True,
 )
@@ -95,6 +94,7 @@ st.plotly_chart(
         .reset_index(),
         x="day",
         y="count",
+        height=PLOT_HEIGHT,
     ),
     use_container_width=True,
 )
@@ -111,6 +111,7 @@ st.plotly_chart(
         x="created_at",
         y="count",
         color="page",
+        height=PLOT_HEIGHT,
     ),
     use_container_width=True,
 )
@@ -118,7 +119,12 @@ st.plotly_chart(
 ## Plays By Day
 """
 st.plotly_chart(
-    px.area(plays_df(hour), x="day", y="count"),
+    px.area(
+        plays_df(hour),
+        x="day",
+        y="count",
+        height=PLOT_HEIGHT,
+    ),
     use_container_width=True,
 )
 """
@@ -134,6 +140,7 @@ st.plotly_chart(
         x="created_at",
         y="count",
         color="name",
+        height=PLOT_HEIGHT,
     ),
     use_container_width=True,
 )
