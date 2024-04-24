@@ -96,7 +96,7 @@ function MaybeImage({ url }: { url: string }) {
         }}
       />
     )
-    : <a href={url}>{url}</>;
+    : (<a href={url}>{url}</a>);
 }
 
 export default function Message({ message }: { message: string }) {
