@@ -9,7 +9,7 @@
   "compilerOptions": { "jsx": "react-jsx", "jsxImportSource": "preact" },
   "imports": {
     "@/": "./",
-    "$fresh/": "https://deno.land/x/fresh@1.6.8/",
+    "$fresh/": "https://deno.land/x/fresh@1.7.1/",
     "fresh_charts": "https://deno.land/x/fresh_charts",
     "fresh_charts/": "https://deno.land/x/fresh_charts/",
     "@preact/signals-core": "https://esm.sh/*@preact/signals-core@1.5.1",

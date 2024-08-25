@@ -52,7 +52,7 @@ import * as $Rankings from "./islands/Rankings.tsx";
 import * as $confetti from "./islands/confetti.tsx";
 import * as $game from "./islands/game.tsx";
 import * as $playback from "./islands/playback.tsx";
-import { type Manifest } from "$fresh/server.ts";
+import type { Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
