@@ -23,6 +23,7 @@ function isBirthday(name: string) {
     natalief: [10, 18],
     sabrina: [3, 14],
     peterstamos: [7, 1],
+    joey: [8, 25],
   }[name];
   if (!birthday) {
     return false;
