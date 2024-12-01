@@ -80,7 +80,7 @@ export default function Game(
       return;
     }
     setPreviousWords(checkpoint.history);
-    setCurrentWord('');
+    setCurrentWord("");
   }, [checkpoint, startingWord, word]);
   useEffect(() => {
     if (!battle) {

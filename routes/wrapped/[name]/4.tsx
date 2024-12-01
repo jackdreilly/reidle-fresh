@@ -15,7 +15,7 @@ export default async function MyPage(
   req: Request,
   ctx: RouteContext<null, SessionData>,
 ) {
-  const name = ctx.params['name']
+  const name = ctx.params["name"];
   const myName = name;
   const [rows] = await Promise.all([
     runSql({

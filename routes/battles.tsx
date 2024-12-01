@@ -42,7 +42,9 @@ export default function Page(
             </svg>
             Party Room
           </a>
-          <div class="p-2 m-2 italic">Active {moment(updated_at).fromNow()}</div>
+          <div class="p-2 m-2 italic">
+            Active {moment(updated_at).fromNow()}
+          </div>
           {(new Date().getTime() - updated_at.getTime()) < 1000 * 20
             ? <div class="p-2 m-2">{users.join(", ")}</div>
             : null}

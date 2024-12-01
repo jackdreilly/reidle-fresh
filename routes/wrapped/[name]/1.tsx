@@ -8,7 +8,7 @@ export default async function MyPage(
   req: Request,
   ctx: RouteContext<null, SessionData>,
 ) {
-  const name = ctx.params['name']
+  const name = ctx.params["name"];
   const rows = await runSql({
     file: "wrapped/dow",
     connection: ctx.state.connection,
@@ -32,7 +32,7 @@ export default async function MyPage(
       title="Wrapped"
     >
       <div class="p-1 text-md m-1 inline-block">
-      <h1 class="italic inline p-2">Wrapped {name}</h1>
+        <h1 class="italic inline p-2">Wrapped {name}</h1>
         <a
           class="font-medium text-blue-600 dark:text-blue-500 hover:underline"
           href={`${ctx.url.pathname.split("/").slice(0, -1).join("/")}/${

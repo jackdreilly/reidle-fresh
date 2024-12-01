@@ -96,7 +96,14 @@ function MaybeImage({ url }: { url: string }) {
         }}
       />
     )
-    : (<a class="font-medium text-blue-600 dark:text-blue-500 hover:underline" href={url}>{url}</a>);
+    : (
+      <a
+        class="font-medium text-blue-600 dark:text-blue-500 hover:underline"
+        href={url}
+      >
+        {url}
+      </a>
+    );
 }
 
 export default function Message({ message }: { message: string }) {

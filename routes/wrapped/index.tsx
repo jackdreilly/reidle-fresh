@@ -19,7 +19,11 @@ export default async function MyPage(
       route="/wrapped"
       title="Wrapped"
     >
-      <img style={{maxWidth: "500px"}} src={asset("/wrapped.png")} class="w-50%" />
+      <img
+        style={{ maxWidth: "500px" }}
+        src={asset("/wrapped.png")}
+        class="w-50%"
+      />
       <h1 class="p-5 m-5 text-lg">Welcome to Reidle Wrapped 2023!</h1>
       <div class="p-2">
         <a
