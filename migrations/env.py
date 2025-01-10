@@ -3,7 +3,8 @@ import os
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
-from schema import *
+
+# from schema import *
 from sqlmodel import SQLModel
 
 from alembic import context

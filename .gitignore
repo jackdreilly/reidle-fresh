@@ -8,3 +8,4 @@ migrations/versions/
 .python-version
 _fresh/
 deno.lock
+.env

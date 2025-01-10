@@ -1,12 +1,12 @@
 # %%
 import os
+from openai import OpenAI
 import base64
 import tqdm
 import wordcloud
 from collections import Counter
 import datetime
 from io import BytesIO
-from pathlib import Path
 import numpy as np
 import pandas as pd
 
@@ -26,9 +26,9 @@ def playback_errors(playback):
                     errors.append(checked.title())
         if event.get("score") is not None:
             w = ""
-        if l := event.get("letter"):
+        if letter := event.get("letter"):
             w = w[:4]
-            w += l
+            w += letter
         if event.get("backspace"):
             w = w[:-1]
     return errors
@@ -72,7 +72,7 @@ base = (
             ]
         ),
     )
-    .query("year == 2023")
+    .query("year == 2024")
     .assign(
         max_score=lambda x: x.groupby("day").score.transform("max"),
         normalized_score=lambda x: 1000 * (1 - ((x.score - 1) / (x.max_score - 1))),
@@ -112,11 +112,7 @@ base[["name", "words"]].explode("words").value_counts().reset_index().rename(
     count_rank=lambda x: x.groupby("name").word_count.transform(
         "cumcount", ascending=True
     )
-).query(
-    "count_rank < 5"
-).rename(
-    columns=dict(word_count="count")
-).to_sql(
+).query("count_rank < 5").rename(columns=dict(word_count="count")).to_sql(
     "top_words", cxn, schema="wrapped", if_exists="replace"
 )
 base["words"].explode().value_counts()[:40].reset_index().to_sql(
@@ -127,9 +123,7 @@ base.query("games_played > 10").drop_duplicates("name")[
     ["name", "games_missed", "tardy_rate"]
 ].sort_values("tardy_rate").apply(
     lambda col: col.astype(np.int16) if np.issubdtype(col.dtype, np.number) else col
-).to_sql(
-    "tardy_rate", cxn, schema="wrapped", if_exists="replace"
-)
+).to_sql("tardy_rate", cxn, schema="wrapped", if_exists="replace")
 # %%
 base[["name", "errors"]].explode("errors").value_counts().reset_index().rename(
     columns=dict(count="error_count")
@@ -137,11 +131,7 @@ base[["name", "errors"]].explode("errors").value_counts().reset_index().rename(
     count_rank=lambda x: x.groupby("name").error_count.transform(
         "cumcount", ascending=True
     )
-).query(
-    "count_rank < 20"
-).rename(
-    columns=dict(error_count="count")
-).to_sql(
+).query("count_rank < 20").rename(columns=dict(error_count="count")).to_sql(
     "top_errors", cxn, schema="wrapped", if_exists="replace"
 )
 base["errors"].explode().value_counts()[:40].reset_index().to_sql(
@@ -163,42 +153,6 @@ def make_wordcloud(words, background_color="white"):
 pd.concat(
     [
         pd.DataFrame(
-            dict(
-                name="all",
-                image=make_wordcloud(
-                    base["errors"]
-                    .explode()
-                    .value_counts()[:100]
-                    .reset_index()
-                    .rename(columns=dict(errors="name"))
-                    .set_index("name", drop=True)["count"]
-                    .to_dict()
-                ),
-            )
-        ),
-        pd.DataFrame(
-            base[["name", "errors"]]
-            .explode("errors")
-            .groupby("name")
-            .errors.count()
-            .reset_index()
-            .value_counts()
-            .reset_index()
-            .rename(columns=dict(count="error_count"))
-            .assign(
-                count_rank=lambda x: x.groupby("name").error_count.transform(
-                    "cumcount", ascending=True
-                )
-            )
-            .query("count_rank < 20")
-            .rename(columns=dict(error_count="count"))
-        ),
-    ]
-)
-# %%
-pd.concat(
-    [
-        pd.DataFrame(
             base.groupby("name").apply(
                 lambda x: make_wordcloud(Counter(sum(x.errors, []) or ["Perfy"]))
             )
@@ -214,9 +168,7 @@ pd.concat(
     ]
 ).assign(
     image=lambda x: x.image.apply(lambda x: base64.encodebytes(x).decode())
-).to_sql(
-    "wordcloud_images", cxn, schema="wrapped", if_exists="replace", index=False
-)
+).to_sql("wordcloud_images", cxn, schema="wrapped", if_exists="replace", index=False)
 # %%
 pd.concat(
     [
@@ -241,13 +193,7 @@ pd.concat(
 )
 # %%
 
-import os
-from openai import OpenAI
-
-client = OpenAI(
-    # This is the default and can be omitted
-    # os.environ.get("OPENAI_API_KEY"),
-)
+client = OpenAI()
 # %%
 mistakes_df = (
     pd.DataFrame(
@@ -260,7 +206,6 @@ mistakes_df = (
 )
 
 name, mistakes = (mistakes_df.iloc[0].name, mistakes_df.iloc[0].words)
-# %%
 
 # %%
 results = {}
@@ -282,7 +227,7 @@ Try and not make the made-up words proper nouns very often, instead preferring t
 """,
                 }
             ],
-            model="gpt-4",
+            model="gpt-4o",
         )
         .choices[0]
         .message.content
