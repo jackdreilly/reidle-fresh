@@ -24,16 +24,16 @@ export default async function MyPage(
         src={asset("/wrapped.png")}
         class="w-50%"
       />
-      <h1 class="p-5 m-5 text-lg">Welcome to Reidle Wrapped 2023!</h1>
+      <h1 class="p-5 m-5 text-lg">Welcome to Reidle Wrapped 2024!</h1>
       <div class="p-2">
         <a
           class="font-medium text-blue-600 dark:text-blue-500 hover:underline"
           href={`/wrapped/${name}/0`}
         >
-          {name}, Unwrap to your Reidle Wrapped 2023 Starting Here!
+          {name}, Unwrap to your Reidle Wrapped 2024 Starting Here!
         </a>
       </div>
-      <h2 class="p-5 m-5 text-md">All users Wrapped 2023!</h2>
+      <h2 class="p-5 m-5 text-md">All users Wrapped 2024!</h2>
       <ul class="inline-grid">
         {users.map(({ name }) => (
           <a

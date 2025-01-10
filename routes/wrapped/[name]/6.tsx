@@ -27,7 +27,7 @@ export default async function MyPage(
           class="font-medium text-blue-600 dark:text-blue-500 hover:underline"
           href="/wrapped"
         >
-          Back To Wrapped 2023
+          Back To Wrapped 2024
         </a>
       </div>
 
@@ -37,7 +37,7 @@ export default async function MyPage(
         {story}
       </div>
       <div class="p-5">
-        Thanks to {name} for a great Reidle 2023!
+        Thanks to {name} for a great Reidle 2024!
       </div>
     </ReidleTemplate>
   );

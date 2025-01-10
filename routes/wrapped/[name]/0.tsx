@@ -40,7 +40,7 @@ export default async function MyPage(
           Next Page ({parseInt(ctx.route.split("/").slice(-1)[0]) + 1}) ➡️
         </a>
       </div>
-      <h1>Welcome to Reidle Wrapped 2023!</h1>
+      <h1>Welcome to Reidle Wrapped 2024!</h1>
       <h2>Getting started...</h2>
       <div>
         {name} won <span class="black font-bold">{num_wins}</span>{" "}

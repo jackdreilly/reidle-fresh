@@ -218,7 +218,7 @@ export default function ReidleTemplate(
                   <span
                     class={"ml-3 " + (route === "/wrapped" ? "font-bold" : "")}
                   >
-                    Wrapped 2023
+                    Wrapped 2024
                   </span>
                 </a>
               </li>
