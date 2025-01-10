@@ -20,9 +20,9 @@ export default async function MyPage(
       title="Wrapped"
     >
       <img
-        style={{ maxWidth: "500px" }}
-        src={asset("/wrapped.png")}
-        class="w-50%"
+        style={{ maxWidth: "500px", maxHeight: "300px" }}
+        src={asset("/wrapped.jpg")}
+        class="p-4"
       />
       <h1 class="p-5 m-5 text-lg">Welcome to Reidle Wrapped 2024!</h1>
       <div class="p-2">
