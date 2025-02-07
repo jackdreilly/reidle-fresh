@@ -50,14 +50,6 @@ export default function Page(
 ) {
   return (
     <StatsTemplate playedToday={playedToday} route="today">
-      {isToday && (
-        <a
-          class="font-bold h-64 text-[16px] text-green-600 hover:underline"
-          href="/wrapped"
-        >
-          ✨🎁 Reidle Wrapped 2024 is here! 🎁✨
-        </a>
-      )}
       <DailyTable
         name={name}
         submissions={submissions}
