@@ -12,7 +12,7 @@ import {
 import { runSql, WeekOutput } from "@/utils/sql_files.ts";
 import { SessionData, SessionHandler, timerTime } from "@/utils/utils.ts";
 import { Name } from "@/components/daily_table.tsx";
-import { equal } from "https://deno.land/x/equal@v1.5.0/mod.ts";
+import { equal } from "https://deno.land/std@0.224.0/assert/equal.ts";
 
 type Data = {
   players: WeekOutput;

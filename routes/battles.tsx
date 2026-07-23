@@ -2,7 +2,7 @@ import { PageProps } from "https://deno.land/x/fresh@1.1.5/server.ts";
 import ReidleTemplate from "@/components/reidle_template.tsx";
 import { SessionData, SessionHandler } from "@/utils/utils.ts";
 import { BattleHomePage, runSql } from "../utils/sql_files.ts";
-import { moment } from "https://deno.land/x/deno_moment@v1.1.2/moment.ts";
+import moment from "npm:moment";
 
 export const handler: SessionHandler<BattleHomePage> = {
   async GET(req, ctx) {

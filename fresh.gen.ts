@@ -6,7 +6,6 @@ import * as $_app from "./routes/_app.tsx";
 import * as $_middleware from "./routes/_middleware.tsx";
 import * as $account from "./routes/account.tsx";
 import * as $api_checkpoint from "./routes/api/checkpoint.ts";
-import * as $api_inngest from "./routes/api/inngest.ts";
 import * as $api_rankings from "./routes/api/rankings.ts";
 import * as $api_submit from "./routes/api/submit.ts";
 import * as $api_unread_messages from "./routes/api/unread_messages.ts";
@@ -60,7 +59,6 @@ const manifest = {
     "./routes/_middleware.tsx": $_middleware,
     "./routes/account.tsx": $account,
     "./routes/api/checkpoint.ts": $api_checkpoint,
-    "./routes/api/inngest.ts": $api_inngest,
     "./routes/api/rankings.ts": $api_rankings,
     "./routes/api/submit.ts": $api_submit,
     "./routes/api/unread_messages.ts": $api_unread_messages,

@@ -12,8 +12,7 @@ export const handler: MiddlewareHandler<SessionData> = (req, ctx) => {
   const splits = req.url.split("/");
   if (
     splits[splits.length - 1].includes(".") || req.url.includes("_fresh") ||
-    req.headers.get("accept") === "text/event-stream" ||
-    splits[splits.length - 1].includes(".") || req.url.includes("/api/inngest")
+    req.headers.get("accept") === "text/event-stream"
   ) {
     return ctx.next();
   }

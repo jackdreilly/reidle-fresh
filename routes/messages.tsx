@@ -2,10 +2,9 @@ import { PageProps } from "$fresh/server.ts";
 import Button from "@/components/button.tsx";
 import { Name } from "@/components/daily_table.tsx";
 import ReidleTemplate from "@/components/reidle_template.tsx";
-import { sendEmail } from "@/routes/api/inngest.ts";
 import { runSql, Schemas } from "@/utils/sql_files.ts";
 import { SessionData, SessionHandler } from "@/utils/utils.ts";
-import { moment } from "https://deno.land/x/deno_moment@v1.1.2/mod.ts";
+import moment from "npm:moment";
 import MessageView from "@/islands/Message.tsx";
 import { asset } from "$fresh/runtime.ts";
 type Message = Schemas["message_reads"]["output"][number];
@@ -27,14 +26,6 @@ export const handler: SessionHandler<Data> = {
             ${name},
             ${message}
             )`;
-    await sendEmail({
-      subject: `${name}: ${message}`,
-      text: `Message From ${name}: ${message}`,
-      html: `
-          <h1>Message From ${name}</h1>
-          <blockquote>${message}</blockquote>
-`,
-    });
     return new Response("", {
       status: 303,
       headers: { location: "/messages" },

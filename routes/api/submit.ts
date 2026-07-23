@@ -1,4 +1,3 @@
-import { sendEmail } from "@/routes/api/inngest.ts";
 import { jsonResponse, SessionHandler, timerTime } from "@/utils/utils.ts";
 import { runSql } from "../../utils/sql_files.ts";
 
@@ -128,9 +127,6 @@ FROM
 WHERE
     submission_id IS NULL
       `;
-    await sendEmail(
-      { subject, text },
-    );
     return new Response();
   },
 };
