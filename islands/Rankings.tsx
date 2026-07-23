@@ -2,13 +2,18 @@ import { IS_BROWSER } from "$fresh/runtime.ts";
 import { useContext, useEffect, useState } from "preact/hooks";
 import { ComponentChildren, createContext } from "preact";
 
-const PlotlyContext = createContext(null);
+// deno-lint-ignore no-explicit-any
+declare const Plotly: any;
+
+// deno-lint-ignore no-explicit-any
+const PlotlyContext = createContext<any>(null);
 
 function PlotlyProvider(props: { children: ComponentChildren }) {
   if (!IS_BROWSER) {
-    return "";
+    return null;
   }
-  const [plotly, setPlotly] = useState();
+  // deno-lint-ignore no-explicit-any
+  const [plotly, setPlotly] = useState<any>(null);
   return (
     <>
       <script
@@ -49,7 +54,7 @@ function InnerComponent() {
       plotDiv.textContent = "";
       value.newPlot(
         plotDiv,
-        rankings.map(({ name, day, rank }) => (
+        rankings.map(({ name, day, rank }: { name: string; day: string; rank: number }) => (
           {
             x: day,
             y: rank,

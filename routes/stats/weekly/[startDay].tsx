@@ -110,7 +110,7 @@ export default function Page(
                                   new Date().getUTCDate(),
                                 ],
                               )
-                            ? null
+                            ? undefined
                             : `/submissions/${submission_id}/playback`}
                         >
                           {score}

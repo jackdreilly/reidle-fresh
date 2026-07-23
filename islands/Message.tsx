@@ -67,7 +67,7 @@ function splitStringByURLs(
 function MaybeImage({ url }: { url: string }) {
   const [isImage, setIsImage] = useState(true);
   useEffect(() => {
-    let timer: number | undefined = undefined;
+    let timer: ReturnType<typeof setTimeout> | undefined = undefined;
     const img = new Image();
     img.onerror = img.onabort = function () {
       clearTimeout(timer);

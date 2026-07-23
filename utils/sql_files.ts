@@ -283,7 +283,7 @@ type IsArray<T extends MySchema> = T extends { output: MultiRow } ? true
   : false;
 type HasInput<T extends MySchema> = T extends { input: Input } ? true : false;
 type KeySchema<T extends MyKeys> = Schemas[T];
-type KeyInput<T extends MyKeys> = KeySchema<T>["input"];
+type KeyInput<T extends MyKeys> = KeySchema<T> extends { input: infer I } ? I : undefined;
 type ArgInput<T extends MyKeys> = HasInput<KeySchema<T>> extends true
   ? { args: KeyInput<T> }
   : { args?: undefined };
@@ -294,7 +294,7 @@ type QueryInput<T extends MyKeys> =
   & { file: T; connection: PoolClient }
   & ArgInput<T>
   & RowInput<T>;
-type QueryOutput<T extends MyKeys> = KeySchema<T>["output"];
+type QueryOutput<T extends MyKeys> = KeySchema<T> extends { output: infer O } ? O : never;
 type QueryType<T extends MyKeys> = QueryOutput<T> extends Array<infer Item>
   ? Item
   : QueryOutput<T>;
@@ -322,9 +322,10 @@ export async function runSql<T extends MyKeys>(
     return await Deno.readTextFile(`sql/${file}.sql`);
   })();
   cache.set(file, sql_string);
+  // deno-lint-ignore no-explicit-any
   const response = await connection.queryObject<QueryType<T>>(
     sql_string,
-    args,
+    args as any,
   );
   const rows = response.rows;
   return (single_row ? rows[0] : rows) as QueryOutput<T>;

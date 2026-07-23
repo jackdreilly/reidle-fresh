@@ -10,6 +10,7 @@ import { asset } from "$fresh/runtime.ts";
 type Message = Schemas["message_reads"]["output"][number];
 interface Data {
   messages: Message[];
+  name?: string;
 }
 
 export const handler: SessionHandler<Data> = {

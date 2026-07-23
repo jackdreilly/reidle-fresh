@@ -13,7 +13,7 @@ export async function run<T>(
     try {
       return pool.connect();
     } catch (e) {
-      console.error(e, e.stack);
+      console.error(e, (e as Error).stack);
       await pool.end();
       return pool.connect();
     }
