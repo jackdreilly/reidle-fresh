@@ -27,8 +27,4 @@ jobs:
         run: "deno task build"
 
       - name: Upload to Deno Deploy
-        uses: denoland/deployctl@v1
-        with:
-          project: "reidle"
-          entrypoint: "main.ts"
-          root: "."
+        run: "deno deploy"
