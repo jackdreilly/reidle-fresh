@@ -9,7 +9,7 @@ import Confetti from "@/islands/confetti.tsx";
 export type Battle = {
   battle_id: number;
   state: BattleState;
-  supabase: SupabaseClient;
+  supabase: SupabaseClient | null;
   users: string[];
 };
 
@@ -332,7 +332,7 @@ export default function Game(
         battle.state.message = currentWord === word
           ? `${name} Won`
           : `${name} Played`;
-        battle.supabase.from("battles").update({
+        battle.supabase?.from("battles").update({
           state: battle.state,
         }).eq("battle_id", battle.battle_id).then((_) => {
         });
@@ -428,8 +428,8 @@ export default function Game(
                 </svg>
                 <span class="px-2">
                   {showUsers
-                    ? battle.users.toSorted().join(", ")
-                    : battle.users.length}
+                    ? (battle.users ? [...battle.users].sort().join(", ") : "")
+                    : (battle.users?.length ?? 0)}
                 </span>
               </button>
             </>

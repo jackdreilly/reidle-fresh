@@ -1,7 +1,7 @@
 import Game from "@/islands/game.tsx";
 import { BattleState } from "@/utils/sql_files.ts";
 import { Database } from "@/utils/supabase.ts";
-import { IS_BROWSER } from "https://deno.land/x/fresh@1.1.5/runtime.ts";
+import { IS_BROWSER } from "$fresh/runtime.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.21.0";
 import { useEffect, useMemo, useState } from "preact/hooks";
 
@@ -15,11 +15,23 @@ export default function Page(
 ) {
   const [state, setState] = useState<BattleState>(initial_state);
   const [users, setUsers] = useState<string[]>([name]);
-  const supabase = useMemo(() =>
-    createClient<Database>(
-      ...supabase_params,
-    ), []);
+
+  const supabase = useMemo(() => {
+    try {
+      const [rawHost, rawKey] = supabase_params ?? [];
+      if (!rawHost || !rawKey) return null;
+      const host = rawHost.startsWith("http://") || rawHost.startsWith("https://")
+        ? rawHost
+        : `https://${rawHost}`;
+      return createClient<Database>(host, rawKey);
+    } catch (e) {
+      console.error("Failed to create Supabase client:", e);
+      return null;
+    }
+  }, [supabase_params]);
+
   useEffect(() => {
+    if (!supabase) return;
     const channel = supabase.channel(`battle:${battle_id}`, {
       config: {
         presence: {
@@ -35,7 +47,7 @@ export default function Page(
         filter: `battle_id=eq.${battle_id}`,
       },
       ({ new: { state } }) => {
-        setState(state);
+        if (state) setState(state);
       },
     );
     channel.on("presence", { event: "sync" }, () => {
@@ -46,8 +58,13 @@ export default function Page(
         await channel.track({ online_at: new Date().toISOString() });
       }
     });
-  }, []);
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [supabase, battle_id, name]);
+
   useEffect(() => {
+    if (!supabase) return;
     supabase.from("battles").update({
       updated_at: new Date().toISOString(),
       users,
@@ -59,7 +76,7 @@ export default function Page(
       }).eq("battle_id", battle_id);
     }, 10000);
     return () => clearInterval(interval);
-  }, [users]);
+  }, [supabase, users, battle_id]);
   return (
     <div class="h-full">
       {users.length < 2 || !state?.game?.answer || !IS_BROWSER

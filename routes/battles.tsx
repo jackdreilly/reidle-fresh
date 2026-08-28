@@ -1,4 +1,4 @@
-import { PageProps } from "https://deno.land/x/fresh@1.1.5/server.ts";
+import { PageProps } from "$fresh/server.ts";
 import ReidleTemplate from "@/components/reidle_template.tsx";
 import { SessionData, SessionHandler } from "@/utils/utils.ts";
 import { BattleHomePage, runSql } from "../utils/sql_files.ts";
@@ -6,22 +6,27 @@ import moment from "npm:moment";
 
 export const handler: SessionHandler<BattleHomePage> = {
   async GET(req, ctx) {
-    return ctx.state.render(
-      ctx,
-      await runSql({
-        file: "battle_home_page",
-        connection: ctx.state.connection,
-        single_row: true,
-      }),
-    );
+    const data = await runSql({
+      file: "battle_home_page",
+      connection: ctx.state.connection,
+      single_row: true,
+    });
+    return ctx.state.render(ctx, data ?? {
+      users: [],
+      updated_at: new Date(0),
+      active_battles: [],
+    });
   },
 };
 
 export default function Page(
-  { data: { playedToday, users, updated_at, active_battles } }: PageProps<
+  { data: { playedToday, users = [], updated_at, active_battles = [] } }: PageProps<
     BattleHomePage & SessionData
   >,
 ) {
+  const updatedDate = updated_at ? new Date(updated_at) : null;
+  const isRecent = updatedDate && (new Date().getTime() - updatedDate.getTime()) < 1000 * 20;
+
   return (
     <ReidleTemplate route="/battles" title="Battles" playedToday={playedToday}>
       <h1 class="text-3xl font-bold m-2 p-2">Battles</h1>
@@ -42,10 +47,12 @@ export default function Page(
             </svg>
             Party Room
           </a>
-          <div class="p-2 m-2 italic">
-            Active {moment(updated_at).fromNow()}
-          </div>
-          {(new Date().getTime() - updated_at.getTime()) < 1000 * 20
+          {updatedDate ? (
+            <div class="p-2 m-2 italic">
+              Active {moment(updatedDate).fromNow()}
+            </div>
+          ) : null}
+          {isRecent && users?.length
             ? <div class="p-2 m-2">{users.join(", ")}</div>
             : null}
         </div>

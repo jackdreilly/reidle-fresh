@@ -1,34 +1,86 @@
 import { SessionData, SessionHandler } from "@/utils/utils.ts";
 import ReidleTemplate from "../../components/reidle_template.tsx";
-import { PageProps } from "https://deno.land/x/fresh@1.1.5/server.ts";
+import { PageProps } from "$fresh/server.ts";
 import Battle from "../../islands/Battle.tsx";
 import { BattleState, runSql } from "@/utils/sql_files.ts";
+
 interface Data {
   battle_id: number;
   supabase_params: [string, string];
   initial_state: BattleState;
 }
+
 export const handler: SessionHandler<Data> = {
   async GET(req, ctx) {
     const { params: { battle_id: bidString }, state: { connection, render } } =
       ctx;
     const battle_id = parseInt(bidString);
-    const { state: initial_state } = await runSql({
+    if (isNaN(battle_id)) {
+      return new Response("Invalid battle ID", { status: 404 });
+    }
+
+    let battleRow = await runSql({
       file: "battle",
       single_row: true,
       connection,
       args: { battle_id },
     });
+
+    if (!battleRow && battle_id === 7) {
+      await runSql({
+        file: "reset_battle",
+        args: { battle_id: 7 },
+        connection,
+      });
+      battleRow = await runSql({
+        file: "battle",
+        single_row: true,
+        connection,
+        args: { battle_id: 7 },
+      });
+    }
+
+    if (!battleRow) {
+      return new Response("Battle not found", { status: 404 });
+    }
+
+    let initial_state = battleRow.state;
+    if (!initial_state?.game?.answer) {
+      await runSql({
+        file: "reset_battle",
+        args: { battle_id },
+        connection,
+      });
+      const updated = await runSql({
+        file: "battle",
+        single_row: true,
+        connection,
+        args: { battle_id },
+      });
+      initial_state = updated?.state;
+    }
+
+    const host =
+      Deno.env.get("SUPABASE_HOST") ??
+      Deno.env.get("SUPABASE_URL") ??
+      Deno.env.get("NEXT_PUBLIC_SUPABASE_URL") ??
+      Deno.env.get("VITE_SUPABASE_URL") ??
+      "";
+    const key =
+      Deno.env.get("SUPABASE_KEY") ??
+      Deno.env.get("SUPABASE_ANON_KEY") ??
+      Deno.env.get("NEXT_PUBLIC_SUPABASE_ANON_KEY") ??
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ??
+      "";
+
     return render(ctx, {
       battle_id,
-      supabase_params: [
-        Deno.env.get("SUPABASE_HOST")!,
-        Deno.env.get("SUPABASE_KEY")!,
-      ],
+      supabase_params: [host, key],
       initial_state,
     });
   },
 };
+
 export default function Page(
   {
     data: {
