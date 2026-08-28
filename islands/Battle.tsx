@@ -1,6 +1,10 @@
 import Game from "@/islands/game.tsx";
 import { BattleState } from "@/utils/sql_files.ts";
-
+import {
+  ChatMessage,
+  ChatModal,
+  ChatToast,
+} from "@/components/PartyChat.tsx";
 import { IS_BROWSER } from "$fresh/runtime.ts";
 import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { useEffect, useMemo, useState } from "preact/hooks";
@@ -16,6 +20,9 @@ export default function Page(
 ) {
   const [state, setState] = useState<BattleState>(initial_state);
   const [users, setUsers] = useState<string[]>([name]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [latestToast, setLatestToast] = useState<ChatMessage | null>(null);
+  const [showWaitingChat, setShowWaitingChat] = useState(false);
 
   const supabase = useMemo(() => {
     try {
@@ -31,9 +38,18 @@ export default function Page(
     }
   }, [supabase_params]);
 
+  const channel = useMemo(() => {
+    if (!supabase) return null;
+    return supabase.channel(`battle:${battle_id}`, {
+      config: {
+        broadcast: { self: true },
+      },
+    });
+  }, [supabase, battle_id]);
+
   useEffect(() => {
-    if (!supabase) return;
-    const channel = supabase.channel(`battle:${battle_id}`).on(
+    if (!channel) return;
+    channel.on(
       "postgres_changes",
       {
         event: "UPDATE",
@@ -44,7 +60,19 @@ export default function Page(
       ({ new: { state } }) => {
         if (state) setState(state);
       },
-    );
+    ).on("broadcast", { event: "chat" }, ({ payload }) => {
+      if (payload && payload.text) {
+        const msg: ChatMessage = {
+          id: payload.id || crypto.randomUUID(),
+          name: payload.name || "Anonymous",
+          text: payload.text,
+          time: payload.time || Date.now(),
+        };
+        setMessages((prev) => [...prev.slice(-49), msg]);
+        setLatestToast(msg);
+      }
+    });
+
     channel.on("presence", { event: "sync" }, () => {
       const presenceEntries = Object.values(channel.presenceState()).flat();
       const currentUsers = presenceEntries
@@ -52,15 +80,17 @@ export default function Page(
         .filter(Boolean);
       setUsers(currentUsers.length ? currentUsers : [name]);
     });
+
     channel.subscribe(async (status) => {
       if (status === "SUBSCRIBED") {
         await channel.track({ name, online_at: new Date().toISOString() });
       }
     });
+
     return () => {
       channel.unsubscribe();
     };
-  }, [supabase, battle_id, name]);
+  }, [channel, battle_id, name]);
 
   useEffect(() => {
     if (!supabase) return;
@@ -76,6 +106,20 @@ export default function Page(
     }, 10000);
     return () => clearInterval(interval);
   }, [supabase, users, battle_id]);
+
+  const sendChatMessage = (text: string) => {
+    if (!channel || !text.trim()) return;
+    channel.send({
+      type: "broadcast",
+      event: "chat",
+      payload: {
+        id: crypto.randomUUID(),
+        name: name || "Anonymous",
+        text: text.trim(),
+        time: Date.now(),
+      },
+    });
+  };
 
   const shareUrl = url || (typeof window !== "undefined" ? window.location.href : "");
 
@@ -128,6 +172,31 @@ export default function Page(
                 {shareUrl}
               </div>
             </div>
+            {channel && (
+              <div class="mt-4 flex flex-col items-center">
+                <button
+                  type="button"
+                  class="p-2 hover:bg-gray-200 rounded border-2 border-black flex items-center justify-center gap-2 cursor-pointer font-bold text-sm"
+                  onClick={() => setShowWaitingChat(true)}
+                >
+                  <span class="text-base">💬</span>
+                  <span>Party Chat {messages.length > 0 ? `(${messages.length})` : ""}</span>
+                </button>
+              </div>
+            )}
+            <ChatToast
+              toast={latestToast}
+              onOpenChat={() => setShowWaitingChat(true)}
+              onDismiss={() => setLatestToast(null)}
+            />
+            {showWaitingChat && (
+              <ChatModal
+                messages={messages}
+                onSendMessage={sendChatMessage}
+                onClose={() => setShowWaitingChat(false)}
+                currentName={name}
+              />
+            )}
           </div>
         )
         : (
@@ -135,7 +204,16 @@ export default function Page(
             word={state?.game?.answer}
             startingWord={state?.game?.starting_word}
             isPractice={false}
-            battle={{ battle_id, state, supabase, users }}
+            battle={{
+              battle_id,
+              state,
+              supabase,
+              users,
+              messages,
+              sendMessage: sendChatMessage,
+              latestToast,
+              clearLatestToast: () => setLatestToast(null),
+            }}
             name={name}
           />
         )}
