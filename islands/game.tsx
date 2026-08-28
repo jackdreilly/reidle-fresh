@@ -87,18 +87,17 @@ export default function Game(
       return;
     }
     setPreviousWords(battle.state.history);
-    if (
-      battle.state.history.length > 1 && battle.state.message &&
-      battle.state.last_player !== name
-    ) {
-      setErrorPrivatePrivate(battle.state.message);
-    }
-    if (
-      !won && battle.state.history.length &&
+    const isGameOver = battle.state.history.length > 0 &&
       battle.state.history[battle.state.history.length - 1].every((x) =>
         x.score === Scoring.green
-      )
-    ) {
+      );
+
+    if (battle.state.history.length > 1 && battle.state.message) {
+      if (isGameOver || battle.state.last_player !== name) {
+        setErrorPrivatePrivate(battle.state.message);
+      }
+    }
+    if (!won && isGameOver) {
       setWon(new Date());
     }
     if (
@@ -110,6 +109,7 @@ export default function Game(
       setWon(null);
       setStartTime(new Date());
       setCurrentWord(startingWord);
+      setErrorPrivatePrivate("");
     }
   }, [battle, wordle, won]);
   useEffect(() => {
@@ -329,9 +329,13 @@ export default function Game(
       if (battle) {
         battle.state.history = [...previousWords, wordScore];
         battle.state.last_player = name;
-        battle.state.message = currentWord === word
+        const msg = currentWord === word
           ? `${name} Won`
           : `${name} Played`;
+        battle.state.message = msg;
+        if (currentWord === word) {
+          setErrorPrivatePrivate(msg);
+        }
         battle.supabase?.from("battles").update({
           state: battle.state,
         }).eq("battle_id", battle.battle_id).then((_) => {
@@ -513,7 +517,7 @@ export default function Game(
           wordle={wordle}
           penalty={penalties}
           winTime={won ? totalSeconds : null}
-          error={error}
+          error={battle && won ? (battle.state.message || (battle.state.last_player ? `${battle.state.last_player} Won` : "Game Over")) : error}
           challenge_id={challenge_id}
           lost={!!challenge_id && !!winnersTime && (totalSeconds > winnersTime)}
         />

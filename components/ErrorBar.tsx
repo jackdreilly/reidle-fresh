@@ -96,7 +96,7 @@ export default function ErrorBar(
           </div>
         )
         : null}
-      {error && (
+      {error && !winTime && (
         <div
           key={`${error} ${penalty}`}
           class="text-red-800 opacity-0"
