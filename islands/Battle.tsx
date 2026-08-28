@@ -1,8 +1,8 @@
 import Game from "@/islands/game.tsx";
 import { BattleState } from "@/utils/sql_files.ts";
-import { Database } from "@/utils/supabase.ts";
+
 import { IS_BROWSER } from "$fresh/runtime.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.21.0";
+import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { useEffect, useMemo, useState } from "preact/hooks";
 
 export default function Page(
@@ -23,7 +23,7 @@ export default function Page(
       const host = rawHost.startsWith("http://") || rawHost.startsWith("https://")
         ? rawHost
         : `https://${rawHost}`;
-      return createClient<Database>(host, rawKey);
+      return createClient(host, rawKey);
     } catch (e) {
       console.error("Failed to create Supabase client:", e);
       return null;

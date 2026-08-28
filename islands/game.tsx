@@ -3,7 +3,7 @@ import TimerText from "@/components/timer_text.tsx";
 import { Playback, PlaybackEvent, scoreColor } from "@/utils/playback.ts";
 import { BattleState, Checkpoint } from "@/utils/sql_files.ts";
 import { ScoredWord, Scoring, ScoringHistory, Wordle } from "@/utils/wordle.ts";
-import { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.21.0";
+import { SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { useEffect, useMemo, useState } from "preact/hooks";
 import Confetti from "@/islands/confetti.tsx";
 export type Battle = {
