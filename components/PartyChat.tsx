@@ -1,4 +1,4 @@
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 
 export type ChatMessage = {
   id: string;
@@ -12,16 +12,19 @@ export function PartyChatToast(
     onDismiss,
   }: {
     toast: ChatMessage | null;
-    onDismiss: () => void;
+    onDismiss?: () => void;
   },
 ) {
+  const onDismissRef = useRef(onDismiss);
+  onDismissRef.current = onDismiss;
+
   useEffect(() => {
     if (!toast) return;
     const timer = setTimeout(() => {
-      onDismiss();
+      onDismissRef.current?.();
     }, 3200);
     return () => clearTimeout(timer);
-  }, [toast, onDismiss]);
+  }, [toast?.id]);
 
   if (!toast) return null;
 
@@ -74,7 +77,7 @@ export function PartyChatInput(
   {
     onSendMessage,
   }: {
-    onSendMessage: (text: string) => void;
+    onSendMessage?: (text: string) => void;
   },
 ) {
   const [text, setText] = useState("");
@@ -82,7 +85,7 @@ export function PartyChatInput(
   const handleSubmit = (e: Event) => {
     e.preventDefault();
     if (!text.trim()) return;
-    onSendMessage(text.trim());
+    onSendMessage?.(text.trim());
     setText("");
     // Blur to restore focus immediately to game board
     if (e.target instanceof HTMLFormElement) {
