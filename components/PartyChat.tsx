@@ -81,17 +81,24 @@ export function PartyChatInput(
   },
 ) {
   const [text, setText] = useState("");
+  const lastSentRef = useRef<string>("");
 
-  const submitText = () => {
-    const trimmed = text.trim();
+  const submitText = (rawText: string) => {
+    const trimmed = rawText.trim();
     if (!trimmed) return;
+    if (lastSentRef.current === trimmed) return;
+    lastSentRef.current = trimmed;
+    setTimeout(() => {
+      lastSentRef.current = "";
+    }, 400);
+
     onSendMessage?.(trimmed);
     setText("");
   };
 
   const handleSubmit = (e: Event) => {
     e.preventDefault();
-    submitText();
+    submitText(text);
     // Blur to restore focus immediately to game board
     if (e.target instanceof HTMLFormElement) {
       const input = e.target.querySelector("input");
@@ -99,9 +106,9 @@ export function PartyChatInput(
     }
   };
 
-  const handleBlur = () => {
-    // Send message on iOS "Done" / "Check" / blur
-    submitText();
+  const handleBlur = (e: FocusEvent) => {
+    const currentVal = (e.target as HTMLInputElement)?.value || text;
+    submitText(currentVal);
   };
 
   return (
@@ -109,7 +116,10 @@ export function PartyChatInput(
       <input
         type="text"
         value={text}
-        onInput={(e) => setText((e.target as HTMLInputElement).value)}
+        onInput={(e) => {
+          lastSentRef.current = "";
+          setText((e.target as HTMLInputElement).value);
+        }}
         onBlur={handleBlur}
         enterkeyhint="send"
         placeholder="💬 Chat..."
