@@ -1,15 +1,65 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
 
-type LinkType = "text" | "url" | "spotify" | "random";
+type LinkType = "text" | "url" | "spotify" | "random" | "gif_search";
+
+const GIPHY_API_KEY = "kC0kZcGTTNZITKMQPLaxGwHeGpwYMn4S";
 
 function RandomGif() {
   const [url, setUrl] = useState<string>();
   useEffect(() => {
     fetch(
-      "https://api.giphy.com/v1/gifs/random?api_key=kC0kZcGTTNZITKMQPLaxGwHeGpwYMn4S",
-    ).then((d) => d.json()).then((d) => setUrl(d.data.embed_url));
+      `https://api.giphy.com/v1/gifs/random?api_key=${GIPHY_API_KEY}`,
+    ).then((d) => d.json()).then((d) => setUrl(d.data?.embed_url));
   }, []);
-  return url ? <iframe src={url} /> : <span></span>;
+  return url
+    ? (
+      <iframe
+        src={url}
+        style={{
+          border: "none",
+          borderRadius: "8px",
+          maxWidth: "100%",
+          width: "360px",
+          height: "270px",
+        }}
+      />
+    )
+    : <span></span>;
+}
+
+function SearchGif({ query }: { query: string }) {
+  const [url, setUrl] = useState<string>();
+  useEffect(() => {
+    const trimmed = query.trim();
+    const endpoint = trimmed
+      ? `https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(trimmed)}&limit=1`
+      : `https://api.giphy.com/v1/gifs/random?api_key=${GIPHY_API_KEY}`;
+    fetch(endpoint)
+      .then((d) => d.json())
+      .then((d) => {
+        const embedUrl = trimmed
+          ? d.data?.[0]?.embed_url
+          : d.data?.embed_url;
+        setUrl(embedUrl);
+      })
+      .catch((e) => console.error("Failed to fetch gif:", e));
+  }, [query]);
+
+  return url
+    ? (
+      <iframe
+        src={url}
+        style={{
+          border: "none",
+          borderRadius: "8px",
+          maxWidth: "100%",
+          width: "360px",
+          height: "270px",
+        }}
+        allowFullScreen={false}
+      />
+    )
+    : <span></span>;
 }
 
 function SpotifyLink({ src }: { src: string }) {
@@ -108,6 +158,11 @@ function MaybeImage({ url }: { url: string }) {
 
 export default function Message({ message }: { message: string }) {
   const parsed = useMemo(() => {
+    const trimmed = message.trim();
+    if (trimmed.toLowerCase().startsWith("/gif")) {
+      const query = trimmed.slice(4).trim();
+      return [{ type: "gif_search" as LinkType, value: query }];
+    }
     const messages = splitStringByURLs(message);
     if (
       (messages.length === 1) && messages[0].type === "text" &&
@@ -118,10 +173,13 @@ export default function Message({ message }: { message: string }) {
     }
     return messages;
   }, [message]);
+
   return (
     <>
       {parsed.map(({ type, value }) =>
-        type === "random"
+        type === "gif_search"
+          ? <SearchGif query={value} />
+          : type === "random"
           ? <RandomGif />
           : type === "spotify"
           ? <SpotifyLink src={value} />
