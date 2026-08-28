@@ -2,8 +2,8 @@ import Game from "@/islands/game.tsx";
 import { BattleState } from "@/utils/sql_files.ts";
 import {
   ChatMessage,
-  ChatModal,
-  ChatToast,
+  PartyChatInput,
+  PartyChatToast,
 } from "@/components/PartyChat.tsx";
 import { IS_BROWSER } from "$fresh/runtime.ts";
 import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@2";
@@ -20,9 +20,7 @@ export default function Page(
 ) {
   const [state, setState] = useState<BattleState>(initial_state);
   const [users, setUsers] = useState<string[]>([name]);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [latestToast, setLatestToast] = useState<ChatMessage | null>(null);
-  const [showWaitingChat, setShowWaitingChat] = useState(false);
+  const [toastQueue, setToastQueue] = useState<ChatMessage[]>([]);
 
   const supabase = useMemo(() => {
     try {
@@ -66,10 +64,8 @@ export default function Page(
           id: payload.id || crypto.randomUUID(),
           name: payload.name || "Anonymous",
           text: payload.text,
-          time: payload.time || Date.now(),
         };
-        setMessages((prev) => [...prev.slice(-49), msg]);
-        setLatestToast(msg);
+        setToastQueue((prev) => [...prev, msg]);
       }
     });
 
@@ -116,9 +112,13 @@ export default function Page(
         id: crypto.randomUUID(),
         name: name || "Anonymous",
         text: text.trim(),
-        time: Date.now(),
       },
     });
+  };
+
+  const currentToast = toastQueue[0] ?? null;
+  const dismissCurrentToast = () => {
+    setToastQueue((prev) => prev.slice(1));
   };
 
   const shareUrl = url || (typeof window !== "undefined" ? window.location.href : "");
@@ -174,29 +174,13 @@ export default function Page(
             </div>
             {channel && (
               <div class="mt-4 flex flex-col items-center">
-                <button
-                  type="button"
-                  class="p-2 hover:bg-gray-200 rounded border-2 border-black flex items-center justify-center gap-2 cursor-pointer font-bold text-sm"
-                  onClick={() => setShowWaitingChat(true)}
-                >
-                  <span class="text-base">💬</span>
-                  <span>Party Chat {messages.length > 0 ? `(${messages.length})` : ""}</span>
-                </button>
+                <PartyChatInput onSendMessage={sendChatMessage} />
               </div>
             )}
-            <ChatToast
-              toast={latestToast}
-              onOpenChat={() => setShowWaitingChat(true)}
-              onDismiss={() => setLatestToast(null)}
+            <PartyChatToast
+              toast={currentToast}
+              onDismiss={dismissCurrentToast}
             />
-            {showWaitingChat && (
-              <ChatModal
-                messages={messages}
-                onSendMessage={sendChatMessage}
-                onClose={() => setShowWaitingChat(false)}
-                currentName={name}
-              />
-            )}
           </div>
         )
         : (
@@ -209,10 +193,9 @@ export default function Page(
               state,
               supabase,
               users,
-              messages,
               sendMessage: sendChatMessage,
-              latestToast,
-              clearLatestToast: () => setLatestToast(null),
+              currentToast,
+              dismissToast: dismissCurrentToast,
             }}
             name={name}
           />

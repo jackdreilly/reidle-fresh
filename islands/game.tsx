@@ -5,8 +5,8 @@ import { BattleState, Checkpoint } from "@/utils/sql_files.ts";
 import { ScoredWord, Scoring, ScoringHistory, Wordle } from "@/utils/wordle.ts";
 import {
   ChatMessage,
-  ChatModal,
-  ChatToast,
+  PartyChatInput,
+  PartyChatToast,
 } from "@/components/PartyChat.tsx";
 import { SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { useEffect, useMemo, useState } from "preact/hooks";
@@ -16,10 +16,9 @@ export type Battle = {
   state: BattleState;
   supabase: SupabaseClient | null;
   users: string[];
-  messages?: ChatMessage[];
   sendMessage?: (text: string) => void;
-  latestToast?: ChatMessage | null;
-  clearLatestToast?: () => void;
+  currentToast?: ChatMessage | null;
+  dismissToast?: () => void;
 };
 
 interface GameProperties {
@@ -68,13 +67,6 @@ export default function Game(
   const [candidates, setCandidates] = useState<string[]>([]);
   const [enableHelp, setEnableHelp] = useState(false);
   const [showUsers, setShowUsers] = useState(false);
-  const [showChat, setShowChat] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
-  useEffect(() => {
-    if (battle?.latestToast && !showChat) {
-      setUnreadCount((c) => c + 1);
-    }
-  }, [battle?.latestToast, showChat]);
   useEffect(() => {
     if (!isPlaying) {
       return;
@@ -459,40 +451,7 @@ export default function Game(
                 </span>
               </button>
               {battle.sendMessage && (
-                <button
-                  type="button"
-                  class="p-2 hover:bg-gray-200 rounded border-2 border-black flex items-center justify-center relative cursor-pointer"
-                  style={{
-                    borderColor: showChat ? "blue" : "black",
-                    backgroundColor: showChat ? "#eff6ff" : "white",
-                    fontWeight: showChat ? "bold" : "normal",
-                  }}
-                  onClick={() => {
-                    setShowChat((x) => !x);
-                    setUnreadCount(0);
-                  }}
-                  title="Party Chat"
-                  aria-label="Party Chat"
-                >
-                  <svg
-                    class="h-6 w-6"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                    xmlns="http://www.w3.org/2000/svg"
-                    aria-hidden="true"
-                  >
-                    <path
-                      clipRule="evenodd"
-                      fillRule="evenodd"
-                      d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z"
-                    />
-                  </svg>
-                  {unreadCount > 0 && !showChat && (
-                    <span class="absolute -top-1.5 -right-1.5 bg-blue-600 text-white text-[10px] font-bold rounded-full h-4 min-w-[16px] px-1 flex items-center justify-center border-2 border-white shadow">
-                      {unreadCount > 9 ? "9+" : unreadCount}
-                    </span>
-                  )}
-                </button>
+                <PartyChatInput onSendMessage={battle.sendMessage} />
               )}
             </>
           )}
@@ -708,27 +667,11 @@ export default function Game(
             ))}
           </div>
         </div>
-        {battle?.sendMessage && (
-          <>
-            <ChatToast
-              toast={battle.latestToast ?? null}
-              onOpenChat={() => {
-                setShowChat(true);
-                setUnreadCount(0);
-              }}
-              onDismiss={() => battle.clearLatestToast?.()}
-            />
-            {showChat && (
-              <ChatModal
-                messages={battle.messages ?? []}
-                onSendMessage={(text) => {
-                  battle.sendMessage?.(text);
-                }}
-                onClose={() => setShowChat(false)}
-                currentName={name}
-              />
-            )}
-          </>
+        {battle && (
+          <PartyChatToast
+            toast={battle.currentToast ?? null}
+            onDismiss={() => battle.dismissToast?.()}
+          />
         )}
       </div>
     </>
