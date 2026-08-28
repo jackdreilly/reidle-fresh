@@ -8,6 +8,7 @@ interface Data {
   battle_id: number;
   supabase_params: [string, string];
   initial_state: BattleState;
+  url: string;
 }
 
 export const handler: SessionHandler<Data> = {
@@ -92,6 +93,7 @@ export const handler: SessionHandler<Data> = {
         battle_id,
         supabase_params: [host, key],
         initial_state,
+        url: req.url,
       });
     } catch (err) {
       console.error("Error handling battle route:", err);
@@ -114,6 +116,7 @@ export default function Page(
       supabase_params,
       initial_state,
       playedToday,
+      url,
     },
   }: PageProps<
     Data & SessionData
@@ -131,6 +134,7 @@ export default function Page(
         initial_state={initial_state}
         battle_id={battle_id}
         supabase_params={supabase_params}
+        url={url}
       />
     </ReidleTemplate>
   );

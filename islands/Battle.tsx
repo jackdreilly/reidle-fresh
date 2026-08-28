@@ -6,11 +6,12 @@ import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { useEffect, useMemo, useState } from "preact/hooks";
 
 export default function Page(
-  { battle_id, supabase_params, initial_state, name }: {
+  { battle_id, supabase_params, initial_state, name, url }: {
     battle_id: number;
     supabase_params: [string, string];
     initial_state: BattleState;
     name: string;
+    url?: string;
   },
 ) {
   const [state, setState] = useState<BattleState>(initial_state);
@@ -32,13 +33,7 @@ export default function Page(
 
   useEffect(() => {
     if (!supabase) return;
-    const channel = supabase.channel(`battle:${battle_id}`, {
-      config: {
-        presence: {
-          key: name,
-        },
-      },
-    }).on(
+    const channel = supabase.channel(`battle:${battle_id}`).on(
       "postgres_changes",
       {
         event: "UPDATE",
@@ -51,11 +46,15 @@ export default function Page(
       },
     );
     channel.on("presence", { event: "sync" }, () => {
-      setUsers(Object.keys(channel.presenceState()));
+      const presenceEntries = Object.values(channel.presenceState()).flat();
+      const currentUsers = presenceEntries
+        .map((p: any) => p.name)
+        .filter(Boolean);
+      setUsers(currentUsers.length ? currentUsers : [name]);
     });
     channel.subscribe(async (status) => {
       if (status === "SUBSCRIBED") {
-        await channel.track({ online_at: new Date().toISOString() });
+        await channel.track({ name, online_at: new Date().toISOString() });
       }
     });
     return () => {
@@ -77,6 +76,9 @@ export default function Page(
     }, 10000);
     return () => clearInterval(interval);
   }, [supabase, users, battle_id]);
+
+  const shareUrl = url || (typeof window !== "undefined" ? window.location.href : "");
+
   return (
     <div class="h-full">
       {users.length < 2 || !state?.game?.answer || !IS_BROWSER
@@ -89,15 +91,16 @@ export default function Page(
             <button
               class="m-2 p-2 font-bold hover:bg-gray-200 rounded border-2 border-black flex items-center justify-center"
               onClick={async () => {
+                const targetUrl = shareUrl || (typeof window !== "undefined" ? window.location.href : "");
                 if (typeof navigator !== "undefined" && navigator.share) {
                   await navigator.share({
                     title: "Battle Me on Reidle!",
-                    url: window.location.href,
+                    url: targetUrl,
                   });
                   return;
                 }
                 if (typeof navigator !== "undefined" && navigator.clipboard) {
-                  navigator.clipboard.writeText(window.location.href).then(() => {
+                  navigator.clipboard.writeText(targetUrl).then(() => {
                     alert(
                       "Copied battle link to clipboard, now share link with friends!",
                     );
@@ -122,7 +125,7 @@ export default function Page(
             </button>
             <div>
               <div class="m-2 p-2 rounded shadow inline-block">
-                {IS_BROWSER && typeof window !== "undefined" ? window.location.href : ""}
+                {shareUrl}
               </div>
             </div>
           </div>
