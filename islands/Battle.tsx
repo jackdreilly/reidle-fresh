@@ -89,22 +89,24 @@ export default function Page(
             <button
               class="m-2 p-2 font-bold hover:bg-gray-200 rounded border-2 border-black flex items-center justify-center"
               onClick={async () => {
-                if (navigator.share) {
+                if (typeof navigator !== "undefined" && navigator.share) {
                   await navigator.share({
                     title: "Battle Me on Reidle!",
                     url: window.location.href,
                   });
                   return;
                 }
-                navigator.clipboard.writeText(window.location.href).then(() => {
-                  alert(
-                    "Copied battle link to clipboard, now share link with friends!",
-                  );
-                })
-                  .catch((e) => {
-                    console.error(e);
-                    alert("something went wrong");
-                  });
+                if (typeof navigator !== "undefined" && navigator.clipboard) {
+                  navigator.clipboard.writeText(window.location.href).then(() => {
+                    alert(
+                      "Copied battle link to clipboard, now share link with friends!",
+                    );
+                  })
+                    .catch((e) => {
+                      console.error(e);
+                      alert("something went wrong");
+                    });
+                }
               }}
             >
               <svg
@@ -120,7 +122,7 @@ export default function Page(
             </button>
             <div>
               <div class="m-2 p-2 rounded shadow inline-block">
-                {window.location?.href}
+                {IS_BROWSER && typeof window !== "undefined" ? window.location.href : ""}
               </div>
             </div>
           </div>
