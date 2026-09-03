@@ -4,6 +4,7 @@ export type ChatMessage = {
   id: string;
   name: string;
   text: string;
+  type?: "chat" | "event" | "win" | "penalty";
 };
 
 export function PartyChatToast(
@@ -20,13 +21,32 @@ export function PartyChatToast(
 
   useEffect(() => {
     if (!toast) return;
+    const duration = toast.type === "win" ? 4500 : 3000;
     const timer = setTimeout(() => {
       onDismissRef.current?.();
-    }, 3200);
+    }, duration);
     return () => clearTimeout(timer);
-  }, [toast?.id]);
+  }, [toast?.id, toast?.type]);
 
   if (!toast) return null;
+
+  const type = toast.type ?? "chat";
+  const icon = type === "win" ? "🏆" : type === "penalty" ? "🛑" : type === "event" ? "🎯" : "💬";
+  const borderColor = type === "win"
+    ? "border-amber-400 bg-black/90 shadow-[0_10px_25px_-3px_rgba(245,158,11,0.4)]"
+    : type === "penalty"
+    ? "border-red-500 bg-black/90 shadow-[0_10px_25px_-3px_rgba(239,68,68,0.4)]"
+    : type === "event"
+    ? "border-cyan-400 bg-black/90 shadow-[0_10px_25px_-3px_rgba(6,182,212,0.3)]"
+    : "border-[#3f3f46] bg-[#18181b] shadow-[0_10px_25px_-3px_rgba(0,0,0,0.6)]";
+
+  const nameColor = type === "win"
+    ? "text-amber-400"
+    : type === "penalty"
+    ? "text-red-400"
+    : type === "event"
+    ? "text-cyan-300"
+    : "text-amber-300";
 
   return (
     <>
@@ -51,20 +71,27 @@ export function PartyChatToast(
             }
           }
           .animate-chat-toast {
-            animation: chat-toast-in-out 3.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            animation: chat-toast-in-out 3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          }
+          .animate-chat-toast-win {
+            animation: chat-toast-in-out 4.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
           }
         `}
       </style>
       <div
         key={toast.id}
-        class="fixed top-2 sm:top-3 left-1/2 -translate-x-1/2 z-[100] max-w-[94vw] sm:max-w-md pointer-events-none animate-chat-toast"
+        class={`fixed top-2 sm:top-3 left-1/2 -translate-x-1/2 z-[100] max-w-[94vw] sm:max-w-md pointer-events-none ${
+          type === "win" ? "animate-chat-toast-win" : "animate-chat-toast"
+        }`}
       >
-        <div class="px-3.5 py-1.5 bg-[#18181b] text-white rounded-full flex items-center gap-2 text-xs sm:text-sm border border-[#3f3f46] shadow-[0_10px_25px_-3px_rgba(0,0,0,0.6),0_4px_6px_-4px_rgba(0,0,0,0.4)]">
-          <span class="text-sm select-none">💬</span>
-          <span class="font-bold text-amber-300 truncate max-w-[100px] sm:max-w-[130px] drop-shadow-sm">
+        <div
+          class={`px-3.5 py-1.5 text-white rounded-full flex items-center gap-2 text-xs sm:text-sm border ${borderColor}`}
+        >
+          <span class="text-sm select-none">{icon}</span>
+          <span class={`font-bold ${nameColor} truncate max-w-[100px] sm:max-w-[130px] drop-shadow-sm`}>
             {toast.name}:
           </span>
-          <span class="truncate max-w-[200px] sm:max-w-[300px] text-white font-medium drop-shadow-sm">
+          <span class="truncate max-w-[220px] sm:max-w-[320px] text-white font-medium drop-shadow-sm">
             {toast.text}
           </span>
         </div>

@@ -66,6 +66,7 @@ export const handler: SessionHandler<Data> = {
           connection,
           args: { battle_id },
         });
+        battleRow = updated ?? battleRow;
         initial_state = updated?.state;
         if (typeof initial_state === "string") {
           try {
@@ -74,6 +75,24 @@ export const handler: SessionHandler<Data> = {
             // ignore
           }
         }
+      }
+
+      const lastActive = battleRow.updated_at ? new Date(battleRow.updated_at).getTime() : 0;
+      const isStale = (Date.now() - lastActive) > 35000;
+      const usersList = Array.isArray(battleRow.users) ? battleRow.users : [];
+      const hasActivePlayers = !isStale && usersList.length > 0;
+
+      if (initial_state) {
+        if (!hasActivePlayers) {
+          initial_state.leaderboard = {};
+          initial_state.battle_history = [];
+        } else {
+          if (!initial_state.leaderboard) initial_state.leaderboard = {};
+          if (!initial_state.battle_history) initial_state.battle_history = [];
+        }
+        if (!initial_state.round) initial_state.round = 1;
+        if (!initial_state.round_id) initial_state.round_id = `${battle_id}-${initial_state.round}`;
+        if (initial_state.version === undefined) initial_state.version = initial_state.history?.length ?? 0;
       }
 
       const host =

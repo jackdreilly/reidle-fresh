@@ -40,6 +40,14 @@ export type WeekOutput = {
 }[];
 type WeekInput = { week: Date };
 export type Buckets = { bucket: number; count: number }[];
+export type BattleRoundHistory = {
+  round: number;
+  word: string;
+  winner: string;
+  guesses: number;
+  completed_at: string;
+};
+
 export type BattleState = {
   game: {
     answer: string;
@@ -48,6 +56,11 @@ export type BattleState = {
   history: ScoringHistory;
   message?: string;
   last_player?: string;
+  round?: number;
+  round_id?: string;
+  version?: number;
+  leaderboard?: Record<string, number>;
+  battle_history?: BattleRoundHistory[];
 };
 type BattleArgs = {
   battle_id: number;
@@ -92,7 +105,7 @@ export interface Schemas {
   };
   battle: {
     input: BattleArgs;
-    output: { state: BattleState };
+    output: { state: BattleState; users: string[]; updated_at: Date };
   };
   new_battle: {
     input: NameInput;

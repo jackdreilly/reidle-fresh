@@ -17,6 +17,10 @@ export type Battle = {
   supabase: SupabaseClient | null;
   users: string[];
   sendMessage?: (text: string) => void;
+  broadcastMove?: (wordScore: ScoredWord, wordStr: string, isWin: boolean) => void;
+  broadcastPenalty?: (penaltySeconds: number) => void;
+  broadcastRestart?: (newState: BattleState) => void;
+  penaltiesMap?: Record<string, number>;
   currentToast?: ChatMessage | null;
   dismissToast?: () => void;
 };
@@ -67,6 +71,8 @@ export default function Game(
   const [candidates, setCandidates] = useState<string[]>([]);
   const [enableHelp, setEnableHelp] = useState(false);
   const [showUsers, setShowUsers] = useState(false);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [showPenaltyBox, setShowPenaltyBox] = useState(false);
   useEffect(() => {
     if (!isPlaying) {
       return;
@@ -94,13 +100,16 @@ export default function Game(
     if (!battle) {
       return;
     }
-    setPreviousWords(battle.state.history);
-    const isGameOver = battle.state.history.length > 0 &&
-      battle.state.history[battle.state.history.length - 1].every((x) =>
+    const incomingHistory = battle.state.history ?? [];
+    if (incomingHistory.length >= previousWords.length || won) {
+      setPreviousWords(incomingHistory);
+    }
+    const isGameOver = incomingHistory.length > 0 &&
+      incomingHistory[incomingHistory.length - 1].every((x) =>
         x.score === Scoring.green
       );
 
-    if (battle.state.history.length > 1 && battle.state.message) {
+    if (incomingHistory.length > 0 && battle.state.message) {
       if (isGameOver || battle.state.last_player !== name) {
         setErrorPrivatePrivate(battle.state.message);
       }
@@ -110,21 +119,29 @@ export default function Game(
     }
     if (
       won &&
-      (battle?.state?.history[battle.state.history.length - 1]?.some((x) =>
-        x.score !== Scoring.green
-      ) ?? true)
+      (incomingHistory.length === 0 ||
+        incomingHistory[incomingHistory.length - 1]?.some((x) =>
+          x.score !== Scoring.green
+        ))
     ) {
       setWon(null);
       setStartTime(new Date());
       setCurrentWord(startingWord);
       setErrorPrivatePrivate("");
     }
-  }, [battle, wordle, won]);
+  }, [battle?.state, wordle, won]);
   useEffect(() => {
     if (!previousWords.length && currentWord && wordle) {
+      if (battle) {
+        if (battle.state?.history && battle.state.history.length > 0) {
+          setPreviousWords(battle.state.history);
+          setCurrentWord("");
+          return;
+        }
+      }
       scoreWord();
     }
-  }, [currentWord, previousWords, wordle]);
+  }, [currentWord, previousWords, wordle, battle?.state?.history]);
   function addPlayback(
     { l, b, c, s, e }: {
       l?: string;
@@ -209,6 +226,9 @@ export default function Game(
     setErrorPrivatePrivate(error);
     if (penalty) {
       setPenalties((p) => p + penalty);
+      if (battle) {
+        battle.broadcastPenalty?.(penalty);
+      }
     }
     if (error) {
       addPlayback({ e: { m: error, p: penalty ?? 0 } });
@@ -325,6 +345,17 @@ export default function Game(
       }
     }).catch(() => addError("An error occurred, play again", 0));
   }, [won]);
+  const activePenalties = useMemo(() => {
+    if (!battle?.penaltiesMap) return [];
+    const now = Date.now();
+    return Object.entries(battle.penaltiesMap)
+      .map(([playerName, endsAt]) => ({
+        player: playerName,
+        remaining: Math.max(0, Math.ceil((endsAt - now) / 1000)),
+      }))
+      .filter((p) => p.remaining > 0)
+      .sort((a, b) => b.remaining - a.remaining);
+  }, [battle?.penaltiesMap, ticks]);
   const activeRow = previousWords.length;
   const activeCol = currentWord.length;
   function keyColor(c: string): string {
@@ -341,19 +372,8 @@ export default function Game(
     const wordScore = wordScorer({ wordle, currentWord, previousWords, word });
     if (wordScore instanceof Array) {
       if (battle) {
-        battle.state.history = [...previousWords, wordScore];
-        battle.state.last_player = name;
-        const msg = currentWord === word
-          ? `${name} Won`
-          : `${name} Played`;
-        battle.state.message = msg;
-        if (currentWord === word) {
-          setErrorPrivatePrivate(msg);
-        }
-        battle.supabase?.from("battles").update({
-          state: battle.state,
-        }).eq("battle_id", battle.battle_id).then((_) => {
-        });
+        const isWin = currentWord === word;
+        battle.broadcastMove?.(wordScore, currentWord, isWin);
       }
       setPreviousWords((s) => [...s, wordScore]);
       if (currentWord === word) {
@@ -450,6 +470,66 @@ export default function Game(
                     : (battle.users?.length ?? 0)}
                 </span>
               </button>
+              <div class="relative inline-block">
+                <button
+                  type="button"
+                  class={`p-2 rounded border-2 flex items-center justify-center font-bold text-xs sm:text-sm transition-colors ${
+                    activePenalties.length > 0
+                      ? "border-red-600 bg-red-100 text-red-700 animate-pulse hover:bg-red-200"
+                      : "border-black hover:bg-gray-200"
+                  }`}
+                  onClick={() => setShowPenaltyBox((s) => !s)}
+                  title="Click to view penalty box"
+                >
+                  <span>🛑</span>
+                  <span class="ml-1">
+                    {activePenalties.length > 0
+                      ? `${activePenalties.length} in box`
+                      : "Box"}
+                  </span>
+                </button>
+                {showPenaltyBox && (
+                  <div class="absolute top-full left-0 mt-2 z-50 w-56 p-3 bg-white rounded-lg shadow-2xl border-2 border-red-500 text-xs sm:text-sm">
+                    <div class="font-bold text-red-700 border-b border-red-200 pb-1.5 flex justify-between items-center">
+                      <span class="flex items-center gap-1">🛑 Penalty Box</span>
+                      <button
+                        type="button"
+                        class="text-gray-400 hover:text-black font-bold text-sm px-1"
+                        onClick={() => setShowPenaltyBox(false)}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    {activePenalties.length === 0 ? (
+                      <div class="py-3 text-gray-500 italic text-center">
+                        Nobody is in the penalty box
+                      </div>
+                    ) : (
+                      <div class="divide-y divide-gray-100 py-1.5 max-h-48 overflow-y-auto">
+                        {activePenalties.map(({ player, remaining }) => (
+                          <div class="py-1.5 flex justify-between items-center" key={player}>
+                            <span class="font-semibold truncate max-w-[130px]">
+                              {player === name ? `${player} (You)` : player}
+                            </span>
+                            <span class="text-red-600 font-mono font-bold bg-red-50 border border-red-200 px-2 py-0.5 rounded">
+                              {remaining}s
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              <button
+                type="button"
+                class="p-2 hover:bg-gray-200 rounded border-2 border-black flex items-center justify-center font-bold text-xs sm:text-sm"
+                onClick={() => setShowLeaderboard((s) => !s)}
+                title="View Leaderboard & History"
+              >
+                <span>🏆</span>
+                <span class="ml-1 hidden sm:inline">Scores</span>
+              </button>
               {battle.sendMessage && (
                 <PartyChatInput onSendMessage={battle.sendMessage} />
               )}
@@ -527,6 +607,13 @@ export default function Game(
             ? () => {
               fetch(`/battles/${battle?.battle_id}/restart`, {
                 method: "POST",
+              }).then(async (res) => {
+                if (res.ok) {
+                  const newState = await res.json().catch(() => null);
+                  if (newState) {
+                    battle.broadcastRestart?.(newState);
+                  }
+                }
               });
             }
             : undefined}
@@ -672,6 +759,158 @@ export default function Game(
             toast={battle.currentToast ?? null}
             onDismiss={() => battle.dismissToast?.()}
           />
+        )}
+        {battle && (showLeaderboard || won) && (
+          <div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3">
+            <div class="bg-white rounded-xl shadow-2xl border-2 border-black max-w-md w-full p-4 max-h-[90vh] flex flex-col overflow-hidden">
+              <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="text-lg font-bold flex items-center gap-1.5">
+                  <span>🏆</span>
+                  <span>Battle Leaderboard</span>
+                  {battle.state?.round && (
+                    <span class="text-xs bg-purple-100 text-purple-800 font-semibold px-2 py-0.5 rounded-full border border-purple-300">
+                      Round {battle.state.round}
+                    </span>
+                  )}
+                </h3>
+                <button
+                  type="button"
+                  class="p-1 text-gray-500 hover:text-black font-bold text-lg leading-none"
+                  onClick={() => setShowLeaderboard(false)}
+                >
+                  ✕
+                </button>
+              </div>
+
+              {won && (
+                <div class="my-2 p-3 bg-green-50 border border-green-300 rounded-lg text-center">
+                  <div class="text-xs uppercase tracking-wide font-bold text-green-700">
+                    Round Complete!
+                  </div>
+                  <div class="text-xl font-black text-green-800 mt-0.5">
+                    🎉 {battle.state?.last_player || name} Won!
+                  </div>
+                  <div class="text-xs text-green-600 mt-1">
+                    Answer: <span class="font-bold tracking-widest uppercase">{word}</span>
+                  </div>
+                </div>
+              )}
+
+              <div class="flex-grow overflow-y-auto my-2 space-y-4 pr-1">
+                <div>
+                  <h4 class="text-xs uppercase font-bold text-gray-500 mb-1.5 tracking-wider">
+                    Wins Leaderboard
+                  </h4>
+                  {Object.keys(battle.state?.leaderboard ?? {}).length === 0 ? (
+                    <div class="text-xs text-gray-400 italic py-1">
+                      No completed rounds yet in this session.
+                    </div>
+                  ) : (
+                    <div class="border rounded-lg overflow-hidden">
+                      <table class="w-full text-xs sm:text-sm">
+                        <thead class="bg-gray-100 text-gray-600 uppercase text-[10px] font-semibold border-b">
+                          <tr>
+                            <th class="py-1.5 px-3 text-left">Rank</th>
+                            <th class="py-1.5 px-3 text-left">Player</th>
+                            <th class="py-1.5 px-3 text-right">Wins</th>
+                          </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                          {Object.entries(battle.state?.leaderboard ?? {})
+                            .sort(([, a], [, b]) => b - a)
+                            .map(([playerName, wins], idx) => {
+                              const medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `${idx + 1}.`;
+                              const isMe = playerName === name;
+                              return (
+                                <tr key={playerName} class={isMe ? "bg-amber-50/50 font-bold" : ""}>
+                                  <td class="py-1.5 px-3">{medal}</td>
+                                  <td class="py-1.5 px-3 truncate max-w-[150px]">
+                                    {playerName} {isMe ? "(You)" : ""}
+                                  </td>
+                                  <td class="py-1.5 px-3 text-right font-mono font-bold text-amber-700">
+                                    {wins}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <h4 class="text-xs uppercase font-bold text-gray-500 mb-1.5 tracking-wider">
+                    Battle History
+                  </h4>
+                  {(battle.state?.battle_history ?? []).length === 0 ? (
+                    <div class="text-xs text-gray-400 italic py-1">
+                      History resets when all players leave the room.
+                    </div>
+                  ) : (
+                    <div class="border rounded-lg overflow-hidden max-h-44 overflow-y-auto">
+                      <table class="w-full text-xs">
+                        <thead class="bg-gray-100 text-gray-600 uppercase text-[10px] font-semibold border-b sticky top-0">
+                          <tr>
+                            <th class="py-1.5 px-2.5 text-left">Round</th>
+                            <th class="py-1.5 px-2.5 text-left">Word</th>
+                            <th class="py-1.5 px-2.5 text-left">Winner</th>
+                            <th class="py-1.5 px-2.5 text-right">Guesses</th>
+                          </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                          {[...(battle.state?.battle_history ?? [])].reverse().map((h) => (
+                            <tr key={`${h.round}-${h.completed_at}`}>
+                              <td class="py-1.5 px-2.5 font-medium">#{h.round}</td>
+                              <td class="py-1.5 px-2.5 font-mono font-bold uppercase text-purple-700">
+                                {h.word}
+                              </td>
+                              <td class="py-1.5 px-2.5 truncate max-w-[100px] font-semibold">
+                                {h.winner}
+                              </td>
+                              <td class="py-1.5 px-2.5 text-right font-mono text-gray-600">
+                                {h.guesses}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div class="pt-2 border-t flex gap-2">
+                <button
+                  type="button"
+                  class="flex-1 py-2 px-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg transition-colors shadow flex items-center justify-center gap-1.5 text-sm"
+                  onClick={() => {
+                    setShowLeaderboard(false);
+                    fetch(`/battles/${battle.battle_id}/restart`, {
+                      method: "POST",
+                    }).then(async (res) => {
+                      if (res.ok) {
+                        const newState = await res.json().catch(() => null);
+                        if (newState) {
+                          battle.broadcastRestart?.(newState);
+                        }
+                      }
+                    });
+                  }}
+                >
+                  <span>⚔️</span>
+                  <span>Next Battle</span>
+                </button>
+                <button
+                  type="button"
+                  class="py-2 px-4 border-2 border-black hover:bg-gray-100 font-bold rounded-lg text-sm transition-colors"
+                  onClick={() => setShowLeaderboard(false)}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </>
