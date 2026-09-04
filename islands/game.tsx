@@ -760,7 +760,7 @@ export default function Game(
             onDismiss={() => battle.dismissToast?.()}
           />
         )}
-        {battle && (showLeaderboard || won) && (
+        {battle && showLeaderboard && (
           <div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3">
             <div class="bg-white rounded-xl shadow-2xl border-2 border-black max-w-md w-full p-4 max-h-[90vh] flex flex-col overflow-hidden">
               <div class="flex justify-between items-center border-b pb-2">
