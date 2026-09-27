@@ -1,0 +1,1 @@
+select name from submissions GROUP BY 1 HAVING COUNT(*) > 10 ORDER BY 1

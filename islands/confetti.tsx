@@ -1,6 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
 const stepMS = 25;
-const nConfetti = 240;
+const nConfetti = 200;
 const factor = 1e1;
 class State {
   step(stepFactor: number): State {
@@ -111,11 +111,10 @@ class ConfettiPiece {
       .rotateXY(
         rand() * 3,
       ).norm().mul((1 + rand() * 1e-1) * 7.5e-2 * 2.4);
-    const hsl = new Hsl(Math.random() * 360, 85, 55);
-    const position = new Vector(0.5 + rand() * 0.04, 0, 1 + rand() * 3e-1);
-    velocity.x += rand() * 0.025;
+    const hsl = new Hsl(Math.random() * 360, 50, 50);
+    const position = new Vector(0.5 + rand() * 1e-3, 0, 1 + rand() * 3e-1);
     const minVelocity = -1e-3 * (1 + rand() * 0.4) * factor;
-    const height = 0.035 + (rand() + 1) * 0.02;
+    const height = (7e-2 + rand() * 6e-2) * 4e-1;
     return new ConfettiPiece(
       position,
       velocity,
@@ -143,7 +142,7 @@ class ConfettiPiece {
           } ${height / 2})`}
         >
           <rect
-            width={Math.abs(Math.cos(ry * 1e-0)) * 1.2e-2 + 3e-3}
+            width={Math.abs(Math.cos(ry * 1e-0)) * 8e-3 + 1e-3}
             height={height}
             x="0"
             y="0"
@@ -169,7 +168,7 @@ export default function Confetti() {
     return () => clearInterval(interval);
   }, []);
   return (
-    <svg class="h-full w-full overflow-visible" viewBox="0 0 1 1" preserveAspectRatio="none">
+    <svg height="200%" width="200%" viewBox="0 0 1 1">
       <g transform={`translate(0, 1) scale(1,-1)`}>
         {confetti.map((c, i) => c.svg())}
       </g>

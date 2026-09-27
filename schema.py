@@ -29,6 +29,8 @@ class TableBase(SQLModel):
 
 class Player(TableBase, table=True):
     name: str = Field(primary_key=True)
+    email: str | None = Field(None, unique=True)
+    notifications_enabled: bool = True
     created_at: datetime = created_at_field()
 
 
@@ -36,12 +38,6 @@ class Message(TableBase, table=True):
     message_id: int = seq_field()
     name: str
     message: str
-    likes: list[str] = Field(
-        default_factory=list,
-        sa_column=sa.Column(
-            sa.ARRAY(sa.String()), nullable=False, server_default="{}"
-        ),
-    )
     created_at: datetime = created_at_field(True)
 
 

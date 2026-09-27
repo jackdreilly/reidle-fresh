@@ -25,126 +25,76 @@ export default function Page(
   >,
 ) {
   const updatedDate = updated_at ? new Date(updated_at) : null;
-  const isRecent = updatedDate && (new Date().getTime() - updatedDate.getTime()) < 1000 * 30;
+  const isRecent = updatedDate && (new Date().getTime() - updatedDate.getTime()) < 1000 * 20;
 
   return (
     <ReidleTemplate route="/battles" title="Battles" playedToday={playedToday}>
-      <div class="mb-8">
-        <div class="flex items-center gap-2">
-          <span class="text-2xl">⚔️</span>
-          <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-gray-900">
-            Wordle Battles
-          </h1>
-        </div>
-        <p class="text-sm text-gray-500 mt-1 max-w-xl">
-          Real-time head-to-head multiplayer Wordle races. First player to guess the secret word wins the round!
-        </p>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Party Room Card */}
-        <div class="bg-gradient-to-br from-emerald-50/80 via-white to-emerald-50/30 rounded-2xl border border-emerald-200/80 p-6 shadow-sm flex flex-col justify-between">
-          <div>
-            <div class="flex items-center justify-between mb-4">
-              <span class="text-xs uppercase font-extrabold tracking-wider text-emerald-800 bg-emerald-100/80 px-2.5 py-1 rounded-full">
-                Public Arena
-              </span>
-              <div class="flex items-center gap-2 text-xs font-semibold text-gray-500">
-                <span
-                  class={`w-2.5 h-2.5 rounded-full ${
-                    isRecent ? "bg-emerald-500 animate-pulse" : "bg-gray-300"
-                  }`}
-                />
-                <span>{isRecent ? "Active Now" : "Open 24/7"}</span>
-              </div>
-            </div>
-
-            <h2 class="text-xl font-black text-gray-900 mb-2">
-              The Party Room
-            </h2>
-            <p class="text-xs text-gray-600 mb-4 leading-relaxed">
-              Hop in and battle whoever is online. Automatic round restarts, live scoreboard, and in-game party chat!
-            </p>
-
-            {/* Active Players Chips */}
-            {isRecent && users.length > 0 && (
-              <div class="mb-5 bg-white/80 border border-emerald-100 rounded-xl p-3">
-                <div class="text-[11px] font-bold text-emerald-800 uppercase tracking-wider mb-1.5">
-                  Players in room ({users.length}):
-                </div>
-                <div class="flex flex-wrap gap-1.5">
-                  {users.map((u) => (
-                    <span
-                      key={u}
-                      class="px-2 py-0.5 bg-emerald-50 text-emerald-800 rounded-md text-xs font-semibold border border-emerald-200"
-                    >
-                      {u}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
+      <h1 class="text-3xl font-bold m-2 p-2">Battles</h1>
+      <div class="flex items-start flex-wrap">
+        <div class="m-2 p-2 rounded shadow">
           <a
             href="/battles/party_room"
-            class="w-full flex items-center justify-center gap-2 py-3 px-4 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white rounded-xl font-bold text-sm shadow-sm transition-all"
+            class="m-2 px-3 py-2 bg-green-500 text-white rounded hover:bg-green-700 flex gap-2"
           >
-            <span>⚔️</span>
-            <span>Join Party Room</span>
+            <svg
+              class="h-8 w-8"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+            >
+              <path d="M15.98 1.804a1 1 0 00-1.96 0l-.24 1.192a1 1 0 01-.784.785l-1.192.238a1 1 0 000 1.962l1.192.238a1 1 0 01.785.785l.238 1.192a1 1 0 001.962 0l.238-1.192a1 1 0 01.785-.785l1.192-.238a1 1 0 000-1.962l-1.192-.238a1 1 0 01-.785-.785l-.238-1.192zM6.949 5.684a1 1 0 00-1.898 0l-.683 2.051a1 1 0 01-.633.633l-2.051.683a1 1 0 000 1.898l2.051.684a1 1 0 01.633.632l.683 2.051a1 1 0 001.898 0l.683-2.051a1 1 0 01.633-.633l2.051-.683a1 1 0 000-1.898l-2.051-.683a1 1 0 01-.633-.633L6.95 5.684zM13.949 13.684a1 1 0 00-1.898 0l-.184.551a1 1 0 01-.632.633l-.551.183a1 1 0 000 1.898l.551.183a1 1 0 01.633.633l.183.551a1 1 0 001.898 0l.184-.551a1 1 0 01.632-.633l.551-.183a1 1 0 000-1.898l-.551-.184a1 1 0 01-.633-.632l-.183-.551z" />
+            </svg>
+            Party Room
           </a>
-        </div>
-
-        {/* Private Room Card */}
-        <div class="bg-gradient-to-br from-purple-50/80 via-white to-purple-50/30 rounded-2xl border border-purple-200/80 p-6 shadow-sm flex flex-col justify-between">
-          <div>
-            <div class="flex items-center justify-between mb-4">
-              <span class="text-xs uppercase font-extrabold tracking-wider text-purple-800 bg-purple-100/80 px-2.5 py-1 rounded-full">
-                Custom Match
-              </span>
-              <span class="text-xs font-medium text-gray-500">
-                Invite-only
-              </span>
+          {updatedDate ? (
+            <div class="p-2 m-2 italic">
+              Active {moment(updatedDate).fromNow()}
             </div>
-
-            <h2 class="text-xl font-black text-gray-900 mb-2">
-              Private Room
-            </h2>
-            <p class="text-xs text-gray-600 mb-4 leading-relaxed">
-              Create a dedicated battle room with a shareable URL to play exclusively with your coworkers or friends.
-            </p>
-
-            {/* Active Private Rooms */}
-            {active_battles.length > 0 && (
-              <div class="mb-5 bg-white/80 border border-purple-100 rounded-xl p-3">
-                <div class="text-[11px] font-bold text-purple-800 uppercase tracking-wider mb-2">
-                  Active Rooms ({active_battles.length}):
-                </div>
-                <div class="space-y-1.5 max-h-36 overflow-y-auto">
-                  {active_battles.map(({ battle_id, users }) => (
-                    <a
-                      key={battle_id}
-                      href={`/battles/${battle_id}`}
-                      class="flex items-center justify-between px-3 py-2 bg-purple-50/60 hover:bg-purple-100/70 border border-purple-200/80 rounded-lg text-xs font-semibold text-purple-900 transition-colors"
-                    >
-                      <span class="truncate max-w-[180px]">
-                        Room #{battle_id}: {users.join(", ")}
-                      </span>
-                      <span class="text-purple-700 font-bold shrink-0">Join →</span>
-                    </a>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
+          ) : null}
+          {isRecent && users?.length
+            ? <div class="p-2 m-2">{users.join(", ")}</div>
+            : null}
+        </div>
+        <div class="m-2 p-2 rounded shadow">
           <a
             href="/battles/new"
-            class="w-full flex items-center justify-center gap-2 py-3 px-4 bg-purple-600 hover:bg-purple-700 active:scale-98 text-white rounded-xl font-bold text-sm shadow-sm transition-all"
+            class="m-2 px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-700 flex gap-2"
           >
-            <span>🔒</span>
-            <span>Create Private Room</span>
+            <svg
+              class="flex-shrink-0 w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900"
+              fill="white"
+              x="0px"
+              y="0px"
+              height="24"
+              width="24"
+            >
+              <path
+                d="M 119,462 C 99,457 66,431 39,402 10,369 -2,343 3,322 6,314 10,305 15,298 c 7,-8 25,-29 27,-28 2,1 -0,7 -1,16 -2,18 -2,27 2,34 3,7 6,11 26,35 24,29 28,33 39,33 8,0 12,-2 19,-8 C 132,374 134,370 134,364 c 0,-6 -2,-10 -10,-18 C 108,330 92,308 85,296 80,284 79,280 79,254 L 79,231 80,230 84,226 l 5,-5 0,-12 c 0,-30 5,-63 15,-88 8,-23 24,-50 38,-69 9,-11 23,-25 33,-31 C 185,14 202,6 212,3 c 11,-3 25,-2 33,1 9,3 19,10 20,19 0,0 1,2 -1,8 -20,54 -7,18 21,-0 C 293,26 310,21 327,21 c 20,0 34,4 52,15 14,8 24,16 40,32 24,24 38,43 50,66 9,18 11,27 11,45 0,16 -1,21 -6,36 -10,31 -34,62 -69,92 -56,47 -107,70 -161,74 l -9,1 -11,13 c -40,46 -59,61 -79,67 -8,2 -19,2 -25,1 z"
+                transform="matrix(0.05019839,0,0,0.05019839,-0.09522931,0.33275301)"
+              />
+            </svg>
+            Private Room
           </a>
+          {active_battles.length
+            ? (
+              <div class="rounded shadow m-2 p-2">
+                <h2 class="m-2 p-2 text-lg">Active Rooms</h2>
+                <ul>
+                  {active_battles.map(({ battle_id, users }) => (
+                    <li class="m-2">
+                      <a
+                        href={`/battles/${battle_id}`}
+                        class="px-3 py-2 h-12 bg-blue-500 text-white rounded hover:bg-blue-700 flex gap-2"
+                      >
+                        {users.join(", ")}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )
+            : null}
         </div>
       </div>
     </ReidleTemplate>

@@ -4,8 +4,6 @@ import { PoolClient } from "psql";
 
 export type SessionData = {
   connection: PoolClient;
-  readConnection?: PoolClient;
-  writeConnection?: PoolClient;
   name: string;
   playedToday: boolean;
   playedTodayPromise: Promise<boolean> | boolean;

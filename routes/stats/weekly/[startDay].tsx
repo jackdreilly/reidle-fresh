@@ -61,11 +61,11 @@ export default function Page(
       <h1>{week.toISOString().slice(0, 10)}</h1>
       {players.length
         ? (
-          <Table tableClass="table-fixed">
+          <Table>
             <TableHead>
-              <HeadColumn class="w-20 px-1.5 sm:px-2">Name</HeadColumn>
+              <HeadColumn>Name</HeadColumn>
               {players[0].results.days.map(({ day }) => (
-                <HeadColumn class="w-[1.625rem] px-0 text-center">
+                <HeadColumn>
                   <a
                     class="text-blue-600 dark:text-blue-500 hover:underline"
                     href={`/stats/daily/${
@@ -76,8 +76,8 @@ export default function Page(
                   </a>
                 </HeadColumn>
               ))}
-              <HeadColumn class="w-8 px-0 text-center">Π</HeadColumn>
-              <HeadColumn class="w-12 px-1 text-right">⏱️</HeadColumn>
+              <HeadColumn>Π</HeadColumn>
+              <HeadColumn>⏱️</HeadColumn>
             </TableHead>
             <TableBody>
               {players.map((
@@ -88,11 +88,10 @@ export default function Page(
                   <TableRowHeader
                     class={name === myName ? "bg-yellow-100" : ""}
                   >
-                    <Name name={name} compact />
+                    <Name name={name} />
                   </TableRowHeader>
                   {days.map(({ score, time, submission_id, day }) => (
                     <TableCell
-                      class="w-[1.625rem] px-0 text-center"
                       style={{
                         backgroundColor: getColor(score),
                         padding: 0,
@@ -119,7 +118,7 @@ export default function Page(
                       )}
                     </TableCell>
                   ))}
-                  <TableCell class="w-8 px-0 text-center">
+                  <TableCell>
                     <span title={`${score}`}>
                       {score < 1000
                         ? score
@@ -127,9 +126,7 @@ export default function Page(
                           Math.floor(Math.log10(score))}
                     </span>
                   </TableCell>
-                  <TableCell class="w-12 px-1 text-right font-mono text-[11px] whitespace-nowrap">
-                    <span title={timerTime(time)}>{compactWeekTime(time)}</span>
-                  </TableCell>
+                  <TableCell>{timerTime(time)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -138,15 +135,4 @@ export default function Page(
         : "No data for this week yet. Check back later!"}
     </StatsTemplate>
   );
-}
-
-function compactWeekTime(seconds: number): string {
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 10) return timerTime(seconds);
-  if (minutes < 60) return `${minutes}m`;
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-  return remainingMinutes
-    ? `${hours}h${remainingMinutes}m`
-    : `${hours}h`;
 }

@@ -1,7 +1,5 @@
 pandas
 sqlalchemy
-alembic>=1.14.1
-sqlmodel>=0.0.22
 psycopg2-binary
 streamlit
 plotly
