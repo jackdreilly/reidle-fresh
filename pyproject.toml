@@ -8,10 +8,12 @@ dependencies = [
     "notebook>=7.3.2",
     "numpy>=2.2.1",
     "openai>=1.59.6",
+    "alembic>=1.14.1",
     "pandas>=2.2.3",
     "psycopg2-binary>=2.9.10",
     "pyarrow>=18.1.0",
     "sqlalchemy>=2.0.37",
+    "sqlmodel>=0.0.22",
     "tqdm>=4.67.1",
     "wordcloud>=1.9.4",
 ]

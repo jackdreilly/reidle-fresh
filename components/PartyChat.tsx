@@ -108,12 +108,12 @@ export function PartyChatInput(
   },
 ) {
   const [text, setText] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
   const lastSentRef = useRef<string>("");
 
-  const submitText = (rawText: string) => {
+  const submitText = (rawText: string): boolean => {
     const trimmed = rawText.trim();
-    if (!trimmed) return;
-    if (lastSentRef.current === trimmed) return;
+    if (!trimmed || lastSentRef.current === trimmed) return false;
     lastSentRef.current = trimmed;
     setTimeout(() => {
       lastSentRef.current = "";
@@ -121,38 +121,81 @@ export function PartyChatInput(
 
     onSendMessage?.(trimmed);
     setText("");
+    setIsOpen(false);
+    return true;
   };
 
   const handleSubmit = (e: Event) => {
     e.preventDefault();
-    submitText(text);
-    // Blur to restore focus immediately to game board
-    if (e.target instanceof HTMLFormElement) {
-      const input = e.target.querySelector("input");
-      input?.blur();
+    const form = e.currentTarget as HTMLFormElement;
+    const input = form.querySelector("input");
+    submitText(input?.value ?? text);
+    input?.blur();
+  };
+
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === "Enter" && !e.isComposing) {
+      // iOS keyboards do not always dispatch an implicit form submission.
+      // Handle Return directly as well as the form's submit event.
+      e.preventDefault();
+      const input = e.currentTarget as HTMLInputElement;
+      submitText(input.value);
+      input.blur();
     }
   };
 
-  const handleBlur = (e: FocusEvent) => {
-    const currentVal = (e.target as HTMLInputElement)?.value || text;
-    submitText(currentVal);
-  };
-
   return (
-    <form onSubmit={handleSubmit} action="javascript:void(0);" class="flex items-center">
-      <input
-        type="text"
-        value={text}
-        onInput={(e) => {
-          lastSentRef.current = "";
-          setText((e.target as HTMLInputElement).value);
-        }}
-        onBlur={handleBlur}
-        enterkeyhint="send"
-        placeholder="💬 Chat..."
-        maxLength={80}
-        class="w-20 sm:w-28 focus:w-36 sm:focus:w-44 px-2 py-1 text-xs border-2 border-black rounded bg-white hover:bg-gray-50 focus:bg-white focus:outline-none transition-all shadow-sm"
-      />
-    </form>
+    <div class="relative shrink-0">
+      <button
+        type="button"
+        class="rounded-lg border border-gray-200 bg-gray-100 p-1.5 text-xs font-bold text-gray-700 transition-colors hover:bg-gray-200"
+        onClick={() => setIsOpen((open) => !open)}
+        aria-expanded={isOpen}
+        aria-label="Open battle chat"
+      >
+        <span aria-hidden="true">💬</span>
+        <span class="hidden sm:inline ml-1">Chat</span>
+      </button>
+      {isOpen && (
+        <form
+          onSubmit={handleSubmit}
+          class="fixed z-[90] flex items-center gap-2 rounded-xl border border-gray-200 bg-white p-2 shadow-xl"
+          style={{
+            top: "calc(env(safe-area-inset-top) + 2.75rem)",
+            left: "0.5rem",
+            right: "0.5rem",
+          }}
+        >
+          <input
+            type="text"
+            value={text}
+            onInput={(e) => {
+              lastSentRef.current = "";
+              setText((e.target as HTMLInputElement).value);
+            }}
+            onKeyDown={handleKeyDown}
+            enterkeyhint="send"
+            placeholder="Write a message..."
+            maxLength={80}
+            autoFocus
+            class="min-w-0 flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 focus:outline-none"
+          />
+          <button
+            type="submit"
+            class="shrink-0 rounded-lg bg-emerald-700 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-emerald-800 active:bg-emerald-900"
+          >
+            Send
+          </button>
+          <button
+            type="button"
+            class="shrink-0 p-2 text-gray-500 hover:text-gray-900"
+            onClick={() => setIsOpen(false)}
+            aria-label="Close chat composer"
+          >
+            ✕
+          </button>
+        </form>
+      )}
+    </div>
   );
 }

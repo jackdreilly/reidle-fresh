@@ -11,6 +11,8 @@ import {
 import { SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { useEffect, useMemo, useState } from "preact/hooks";
 import Confetti from "@/islands/confetti.tsx";
+import IconClock from "https://deno.land/x/tabler_icons_tsx@0.0.3/tsx/clock.tsx";
+
 export type Battle = {
   battle_id: number;
   state: BattleState;
@@ -36,6 +38,7 @@ interface GameProperties {
   name?: string;
   checkpoint?: Checkpoint;
 }
+
 export default function Game(
   {
     word,
@@ -73,6 +76,8 @@ export default function Game(
   const [showUsers, setShowUsers] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [showPenaltyBox, setShowPenaltyBox] = useState(false);
+  const [shakeRow, setShakeRow] = useState(false);
+
   useEffect(() => {
     if (!isPlaying) {
       return;
@@ -89,6 +94,7 @@ export default function Game(
       }),
     });
   }, [isPlaying, penalties, previousWords]);
+
   useEffect(() => {
     if (!isPlaying || !checkpoint.history?.length) {
       return;
@@ -96,6 +102,7 @@ export default function Game(
     setPreviousWords(checkpoint.history);
     setCurrentWord("");
   }, [checkpoint, startingWord, word]);
+
   useEffect(() => {
     if (!battle) {
       return;
@@ -130,6 +137,7 @@ export default function Game(
       setErrorPrivatePrivate("");
     }
   }, [battle?.state, wordle, won]);
+
   useEffect(() => {
     if (!previousWords.length && currentWord && wordle) {
       if (battle) {
@@ -142,6 +150,7 @@ export default function Game(
       scoreWord();
     }
   }, [currentWord, previousWords, wordle, battle?.state?.history]);
+
   function addPlayback(
     { l, b, c, s, e }: {
       l?: string;
@@ -170,6 +179,7 @@ export default function Game(
       return v;
     });
   }
+
   function setCurrentWord(input: string | ((word: string) => string)) {
     const newWord = typeof input === "string" ? input : input(currentWord);
     setCurrentWordPrivate((oldWord) => {
@@ -183,6 +193,7 @@ export default function Game(
       return newWord;
     });
   }
+
   const doubleCandidates = useMemo(() => {
     if (!wordle) {
       return [];
@@ -195,6 +206,7 @@ export default function Game(
         )
       );
   }, [currentWord, wordle, candidates]);
+
   function setPreviousWords(
     input: ScoringHistory | ((word: ScoringHistory) => ScoringHistory),
   ) {
@@ -213,6 +225,7 @@ export default function Game(
       )
     );
   }
+
   useEffect(() => {
     async function helper() {
       const wordle = await Wordle.make(false);
@@ -222,8 +235,12 @@ export default function Game(
     }
     helper();
   }, []);
+
   function addError(error: string, penalty: number | undefined = undefined) {
     setErrorPrivatePrivate(error);
+    setShakeRow(true);
+    setTimeout(() => setShakeRow(false), 500);
+
     if (penalty) {
       setPenalties((p) => p + penalty);
       if (battle) {
@@ -234,6 +251,7 @@ export default function Game(
       addPlayback({ e: { m: error, p: penalty ?? 0 } });
     }
   }
+
   useEffect(() => {
     if (!wordle) {
       return;
@@ -246,6 +264,7 @@ export default function Game(
     }, 1000);
     return () => clearInterval(interval);
   }, [wordle]);
+
   const keyboardLookup = useMemo(() => {
     const keyboardLookup: Record<string, Scoring> = {};
     previousWords.forEach((w) =>
@@ -267,6 +286,7 @@ export default function Game(
     );
     return keyboardLookup;
   }, [previousWords]);
+
   function onKeyDown(
     key: string,
     superPressed?: boolean,
@@ -289,6 +309,7 @@ export default function Game(
       setCurrentWord((w) => w.slice(0, 4) + key);
     }
   }
+
   function onKeyDownWrapper(event: KeyboardEvent) {
     if (
       event.target instanceof HTMLInputElement ||
@@ -303,6 +324,7 @@ export default function Game(
     const key = event.key.toUpperCase();
     return onKeyDown(key, event.shiftKey || event.metaKey);
   }
+
   useEffect(() => {
     if (!wordle) {
       return;
@@ -311,6 +333,7 @@ export default function Game(
 
     return () => self.removeEventListener("keydown", onKeyDownWrapper);
   }, [wordle, onKeyDownWrapper]);
+
   useEffect(() => {
     if (won && battle) {
       setPenalties(0);
@@ -318,7 +341,7 @@ export default function Game(
     if (!won || isPractice || battle) {
       return;
     }
-    const response = fetch("/api/submit", {
+    fetch("/api/submit", {
       method: "POST",
       headers: {
         "Accept": "application/json",
@@ -345,6 +368,7 @@ export default function Game(
       }
     }).catch(() => addError("An error occurred, play again", 0));
   }, [won]);
+
   const activePenalties = useMemo(() => {
     if (!battle?.penaltiesMap) return [];
     const now = Date.now();
@@ -356,17 +380,18 @@ export default function Game(
       .filter((p) => p.remaining > 0)
       .sort((a, b) => b.remaining - a.remaining);
   }, [battle?.penaltiesMap, ticks]);
+
   const activeRow = previousWords.length;
   const activeCol = currentWord.length;
-  function keyColor(c: string): string {
-    return scoreColor(keyboardLookup[c]) ?? "#d3d6da";
-  }
+
   function scoreWord() {
     if (!wordle) {
       return;
     }
     if (battle && penalties > 0) {
       setErrorPrivatePrivate("You're still in the penalty box!");
+      setShakeRow(true);
+      setTimeout(() => setShakeRow(false), 500);
       return;
     }
     const wordScore = wordScorer({ wordle, currentWord, previousWords, word });
@@ -387,9 +412,11 @@ export default function Game(
     const { error, penalty } = wordScore;
     addError(error, penalty);
   }
+
   const totalSeconds = penalties +
     ((won ?? new Date()).getTime() - startTime.getTime()) / 1000;
   const numRows = Math.max(6, previousWords.length + (won ? 0 : 1));
+
   useEffect(() => {
     if (
       !won && challenge_id && winnersTime && totalSeconds > winnersTime
@@ -397,6 +424,7 @@ export default function Game(
       setCurrentWord(word);
     }
   }, [totalSeconds]);
+
   useEffect(() => {
     if (
       !won && challenge_id && winnersTime && totalSeconds > winnersTime &&
@@ -405,17 +433,95 @@ export default function Game(
       scoreWord();
     }
   }, [currentWord]);
+
+  // Key style determination
+  function getKeyStyle(c: string) {
+    const score = keyboardLookup[c];
+    if (score === Scoring.green) {
+      return {
+        bg: "bg-emerald-600 text-white font-black hover:bg-emerald-700",
+        style: { backgroundColor: "#16a34a", color: "#ffffff" },
+      };
+    }
+    if (score === Scoring.orange) {
+      return {
+        bg: "bg-amber-600 text-white font-black hover:bg-amber-700",
+        style: { backgroundColor: "#ca8a04", color: "#ffffff" },
+      };
+    }
+    if (score === Scoring.gray) {
+      return {
+        bg: "bg-slate-500 text-white font-medium hover:bg-slate-600",
+        style: { backgroundColor: "#64748b", color: "#ffffff" },
+      };
+    }
+    return {
+      bg: "bg-gray-200 text-gray-900 font-bold hover:bg-gray-300 active:bg-gray-400",
+      style: { backgroundColor: "#e2e8f0", color: "#0f172a" },
+    };
+  }
+
+  function leaveGame() {
+    const path = globalThis.location.pathname;
+    const fallback = path.startsWith("/battles/")
+      ? "/battles"
+      : path.startsWith("/challenges/")
+      ? "/challenges"
+      : "/";
+
+    // A direct visit (or an external referrer) should not send someone away
+    // from Reidle when they use the in-game back control.
+    let hasInternalReferrer = false;
+    try {
+      hasInternalReferrer = !!document.referrer &&
+        new URL(document.referrer).origin === globalThis.location.origin;
+    } catch (_) {
+      // Fall through to the mode's home page.
+    }
+
+    if (hasInternalReferrer) {
+      globalThis.history.back();
+    } else {
+      globalThis.location.assign(fallback);
+    }
+  }
+
   return (
-    <>
+    <div
+      class="w-full h-full min-h-0 flex flex-col items-center justify-between max-w-lg mx-auto py-0 sm:py-1 select-none"
+      style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}
+    >
+      {/* Top Game Bar */}
       <div
-        class="w-full flex flex-col h-full max-w-6xl flex-grow-1 text-center text-lg"
-        style={{ touchAction: "manipulation" }}
+        class="w-full px-1 sm:px-2 flex items-center justify-between gap-1 shrink-0"
+        style={{ height: "clamp(28px, 5dvh, 40px)" }}
       >
-        <div class="m-1 h-8 flex place-content-evenly">
-          {battle && (
+        {/* Left: Mode / Multi-user info */}
+        <div class="flex min-w-0 items-center gap-1.5">
+          <button
+            type="button"
+            class="shrink-0 p-1.5 text-gray-600 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 rounded-lg border border-gray-200 transition-colors"
+            onClick={leaveGame}
+            title="Back to Reidle"
+            aria-label="Back to Reidle"
+          >
+            <svg
+              class="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2.5"
+              aria-hidden="true"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
+          {battle ? (
             <>
               <button
-                class="p-2 font-bold hover:bg-gray-200 rounded border-2 border-black flex items-center justify-center"
+                type="button"
+                class="p-1.5 text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center gap-1 border border-gray-200 transition-colors"
+                title="Share battle link"
                 onClick={async () => {
                   if (navigator.share) {
                     await navigator.share({
@@ -425,93 +531,70 @@ export default function Game(
                     return;
                   }
                   navigator.clipboard.writeText(window.location.href).then(
-                    () => {
-                      alert(
-                        "Copied battle link to clipboard, now share link with friends!",
-                      );
-                    },
-                  )
-                    .catch((e) => {
-                      console.error(e);
-                      alert("something went wrong");
-                    });
+                    () => alert("Copied battle link to clipboard!"),
+                  ).catch(() => alert("Could not copy battle link"));
                 }}
               >
-                <svg
-                  class="h-6 w-6"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                  xmlns="http://www.w3.org/2000/svg"
-                  aria-hidden="true"
-                >
+                <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M13 4.5a2.5 2.5 0 11.702 1.737L6.97 9.604a2.518 2.518 0 010 .792l6.733 3.367a2.5 2.5 0 11-.671 1.341l-6.733-3.367a2.5 2.5 0 110-3.475l6.733-3.366A2.52 2.52 0 0113 4.5z" />
                 </svg>
+                <span class="hidden sm:inline">Share</span>
               </button>
+
               <button
-                class="p-2 hover:bg-gray-200 rounded border-2 border-black flex items-center justify-center"
-                style={{
-                  borderColor: showUsers ? "blue" : "black",
-                  fontWeight: showUsers ? "normal" : "bold",
-                }}
+                type="button"
+                class="p-1.5 text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center gap-1 border border-gray-200 transition-colors"
                 onClick={() => setShowUsers((x) => !x)}
+                title="View players in room"
               >
-                <svg
-                  class="h-6 w-6"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                  xmlns="http://www.w3.org/2000/svg"
-                  aria-hidden="true"
-                >
+                <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M7 8a3 3 0 100-6 3 3 0 000 6zM14.5 9a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM1.615 16.428a1.224 1.224 0 01-.569-1.175 6.002 6.002 0 0111.908 0c.058.467-.172.92-.57 1.174A9.953 9.953 0 017 18a9.953 9.953 0 01-5.385-1.572zM14.5 16h-.106c.07-.297.088-.611.048-.933a7.47 7.47 0 00-1.588-3.755 4.502 4.502 0 015.874 2.636.818.818 0 01-.36.98A7.465 7.465 0 0114.5 16z" />
                 </svg>
-                <span class="px-2">
-                  {showUsers
-                    ? (battle.users ? [...battle.users].sort().join(", ") : "")
-                    : (battle.users?.length ?? 0)}
-                </span>
+                <span>{battle.users?.length ?? 1}</span>
               </button>
+
               <div class="relative inline-block">
                 <button
                   type="button"
-                  class={`p-2 rounded border-2 flex items-center justify-center font-bold text-xs sm:text-sm transition-colors ${
+                  class={`p-1.5 rounded-lg border flex items-center gap-1 text-xs font-bold transition-colors ${
                     activePenalties.length > 0
-                      ? "border-red-600 bg-red-100 text-red-700 animate-pulse hover:bg-red-200"
-                      : "border-black hover:bg-gray-200"
+                      ? "border-red-500 bg-red-50 text-red-700 animate-pulse"
+                      : "border-gray-200 bg-gray-100 hover:bg-gray-200 text-gray-700"
                   }`}
                   onClick={() => setShowPenaltyBox((s) => !s)}
-                  title="Click to view penalty box"
+                  title="View penalty box"
                 >
                   <span>🛑</span>
-                  <span class="ml-1">
+                  <span>
                     {activePenalties.length > 0
-                      ? `${activePenalties.length} in box`
+                      ? `${activePenalties.length}`
                       : "Box"}
                   </span>
                 </button>
                 {showPenaltyBox && (
-                  <div class="absolute top-full left-0 mt-2 z-50 w-56 p-3 bg-white rounded-lg shadow-2xl border-2 border-red-500 text-xs sm:text-sm">
-                    <div class="font-bold text-red-700 border-b border-red-200 pb-1.5 flex justify-between items-center">
-                      <span class="flex items-center gap-1">🛑 Penalty Box</span>
+                  <div class="absolute top-full left-0 mt-2 z-50 w-56 p-3 bg-white rounded-xl shadow-xl border border-gray-200 text-xs">
+                    <div class="font-bold text-red-700 border-b border-gray-100 pb-1.5 flex justify-between items-center">
+                      <span>🛑 Penalty Box</span>
                       <button
                         type="button"
-                        class="text-gray-400 hover:text-black font-bold text-sm px-1"
+                        class="text-gray-400 hover:text-black font-bold px-1"
                         onClick={() => setShowPenaltyBox(false)}
                       >
                         ✕
                       </button>
                     </div>
                     {activePenalties.length === 0 ? (
-                      <div class="py-3 text-gray-500 italic text-center">
-                        Nobody is in the penalty box
+                      <div class="py-2.5 text-gray-400 italic text-center">
+                        Penalty box is clear
                       </div>
                     ) : (
-                      <div class="divide-y divide-gray-100 py-1.5 max-h-48 overflow-y-auto">
+                      <div class="divide-y divide-gray-100 py-1 max-h-44 overflow-y-auto">
                         {activePenalties.map(({ player, remaining }) => (
-                          <div class="py-1.5 flex justify-between items-center" key={player}>
-                            <span class="font-semibold truncate max-w-[130px]">
+                          <div class="py-1 flex justify-between items-center" key={player}>
+                            <span class="font-medium truncate max-w-[120px]">
                               {player === name ? `${player} (You)` : player}
                             </span>
-                            <span class="text-red-600 font-mono font-bold bg-red-50 border border-red-200 px-2 py-0.5 rounded">
+                            <span class="text-red-600 font-mono font-bold bg-red-50 border border-red-200 px-1.5 py-0.2 rounded">
                               {remaining}s
                             </span>
                           </div>
@@ -521,399 +604,408 @@ export default function Game(
                   </div>
                 )}
               </div>
+
               <button
                 type="button"
-                class="p-2 hover:bg-gray-200 rounded border-2 border-black flex items-center justify-center font-bold text-xs sm:text-sm"
+                class="p-1.5 rounded-lg border border-gray-200 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold transition-colors flex items-center gap-1"
                 onClick={() => setShowLeaderboard((s) => !s)}
-                title="View Leaderboard & History"
+                title="View Battle Scores"
               >
                 <span>🏆</span>
-                <span class="ml-1 hidden sm:inline">Scores</span>
               </button>
+
               {battle.sendMessage && (
                 <PartyChatInput onSendMessage={battle.sendMessage} />
               )}
             </>
-          )}
-          {!won && wordle
-            ? (
-              <div>
-                {winner && challenge_id !== undefined && (
-                  <span class="pr-2 font-bold">{winner}</span>
-                )}
-                <TimerText
-                  seconds={challenge_id && winnersTime
-                    ? Math.max(0, winnersTime - totalSeconds)
-                    : totalSeconds}
-                  class={"mx-2 text-gray " +
-                    (challenge_id && winnersTime &&
-                        (winnersTime - totalSeconds) < 10
-                      ? "text-red-800 animate-pulse font-bold"
-                      : "")}
-                />
-              </div>
-            )
-            : <div />}
-          {penalties
-            ? (
-              <TimerText
-                seconds={penalties}
-                class="mx-2 text-red-400"
-              />
-            )
-            : <div />}
-          {(!challenge_id && winnersTime && winnersTime > 0)
-            ? (
-              <div>
-                {winner && (
-                  <span class="pr-2 text-green-400 font-bold">{winner}</span>
-                )}
-                <TimerText
-                  seconds={winnersTime}
-                  class="mx-2 text-green-400"
-                />
-              </div>
-            )
-            : <div />}
-          {isPractice && !won
-            ? (
-              <button
-                type="button"
-                class="text-blue-700 border border-blue-700 hover:bg-blue-700 hover:text-white focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center dark:border-blue-500 dark:text-blue-500 dark:hover:text-white dark:focus:ring-blue-800 dark:hover:bg-blue-500"
-                onClick={() => {
-                  if (!enableHelp) {
-                    setEnableHelp(true);
-                    return;
-                  }
-                  const cand =
-                    currentWord.length === 5 && doubleCandidates.length === 1
-                      ? candidates
-                      : doubleCandidates;
-                  setCurrentWord(
-                    cand[
-                      Math.floor(Math.random() * cand.length)
-                    ],
-                  );
-                }}
-              >
-                {enableHelp ? doubleCandidates.length : "?"}
-              </button>
-            )
-            : undefined}
-        </div>
-        <ErrorBar
-          isPractice={isPractice}
-          battleCallback={battle
-            ? () => {
-              fetch(`/battles/${battle?.battle_id}/restart`, {
-                method: "POST",
-              }).then(async (res) => {
-                if (res.ok) {
-                  const newState = await res.json().catch(() => null);
-                  if (newState) {
-                    battle.broadcastRestart?.(newState);
-                  }
-                }
-              });
-            }
-            : undefined}
-          pendingChallenges={pendingChallenges}
-          wordle={wordle}
-          penalty={penalties}
-          winTime={won ? totalSeconds : null}
-          error={battle && won ? (battle.state.message || (battle.state.last_player ? `${battle.state.last_player} Won` : "Game Over")) : error}
-          challenge_id={challenge_id}
-          lost={!!challenge_id && !!winnersTime && (totalSeconds > winnersTime)}
-        />
-        <div class="flex justify-center items-center flex-grow overflow-hidden m-2 p-2 font-bold text-center">
-          <div
-            class="relative h-full max-h-[25rem] w-full"
-            style={{
-              maxWidth: "min(20.8rem, 40vh)",
-              fontSize: "min(50px, 5vh)",
-            }}
-          >
-            <div class="absolute bottom-[50%] right-[50%] h-full w-full">
-              {won &&
-                  (!challenge_id || !winnersTime || totalSeconds < winnersTime)
-                ? <Confetti />
-                : null}
-            </div>
-            <div
-              class={`grid gap-[3px] p-[5px] box-border h-full w-full`}
-              style={`grid-template-rows: repeat(${numRows}, minmax(0, 1fr))`}
-            >
-              {[...Array(numRows).keys()].filter(
-                (_) => wordle,
-              )
-                .filter((
-                  i,
-                ) => i < previousWords.length || !won)
-                .map((row) => (
-                  <div
-                    class="grid grid-cols-5 gap-[3px]"
-                    key={row}
-                  >
-                    {[0, 1, 2, 3, 4].map((column) => (
-                      <div
-                        class="border-solid border-2 grid items-center"
-                        style={{
-                          borderColor: row < previousWords.length
-                            ? "transparent"
-                            : row === activeRow && column < activeCol
-                            ? "#878a8c"
-                            : "#d3d6da",
-                          backgroundColor: row < previousWords.length
-                            ? scoreColor(previousWords[row][column].score)
-                            : null,
-                          color: row < previousWords.length ? "white" : null,
-                        }}
-                        key={column}
-                      >
-                        {row === activeRow && column < activeCol
-                          ? currentWord[column]
-                          : row < previousWords.length
-                          ? previousWords[row][column].letter
-                          : null}
-                      </div>
-                    ))}
-                  </div>
-                ))}
-            </div>
-          </div>
-        </div>
-        <div class="m-1">
-          <div
-            class="mx-auto max-w-xl h-[calc(min(25vh,12rem))] grid grid-rows-3 gap-1 text-2xl select-none"
-            style={{ width: "inherit" }}
-          >
-            {"QWERTYUIOP,ASDFGHJKL,↵ZXCVBNM␡".split(",").map((row) => (
-              <div
-                class={[
-                  "touch-manipulation grid gap-1",
-                  "grid-cols-" + row.length,
-                ]
-                  .join(" ")}
-              >
-                {row.split("").map((c) => (
-                  <button
-                    class={[
-                      "rounded-lg cursor-pointer font-bold",
-                      `text-[${keyColor(c) === "#d3d6da" ? "black" : "white"}]`,
-                      `bg-[${keyColor(c)}]`,
-                    ].join(" ")}
-                    style={{
-                      webkitTapHighlightColor: "rgba(0,0,0,.3)",
-                      outline: "none",
-                    }}
-                    key={c}
-                    onPointerDown={() =>
-                      onKeyDown(
-                        c === "↵"
-                          ? "ENTER"
-                          : c === "␡"
-                          ? "BACKSPACE"
-                          : c.toUpperCase(),
-                      )}
-                  >
-                    {c === "␡"
-                      ? (
-                        <svg
-                          class="p-1 m-auto"
-                          style={{ maxWidth: "35px" }}
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                          xmlns="http://www.w3.org/2000/svg"
-                          aria-hidden="true"
-                        >
-                          <path
-                            clipRule="evenodd"
-                            fillRule="evenodd"
-                            d="M7.22 3.22A.75.75 0 017.75 3h9A2.25 2.25 0 0119 5.25v9.5A2.25 2.25 0 0116.75 17h-9a.75.75 0 01-.53-.22L.97 10.53a.75.75 0 010-1.06l6.25-6.25zm3.06 4a.75.75 0 10-1.06 1.06L10.94 10l-1.72 1.72a.75.75 0 101.06 1.06L12 11.06l1.72 1.72a.75.75 0 101.06-1.06L13.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L12 8.94l-1.72-1.72z"
-                          />
-                        </svg>
-                      )
-                      : c === "↵"
-                      ? (
-                        <svg
-                          class="p-1 m-auto"
-                          style={{ maxWidth: "35px" }}
-                          fill="currentColor"
-                          viewBox="0 0 1200 1200"
-                          xmlns="http://www.w3.org/2000/svg"
-                          aria-hidden="true"
-                        >
-                          <path d="M808.969,133.929v257.06H942.94v267.899H417.981V508.763L0,787.417
-                     l417.982,278.654V915.946h524.959H1200V658.888V390.988v-257.06H942.941H808.969L808.969,133.929z" />
-                        </svg>
-                      )
-                      : c}
-                  </button>
-                ))}
-              </div>
-            ))}
-          </div>
-        </div>
-        {battle && (
-          <PartyChatToast
-            toast={battle.currentToast ?? null}
-            onDismiss={() => battle.dismissToast?.()}
-          />
-        )}
-        {battle && showLeaderboard && (
-          <div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3">
-            <div class="bg-white rounded-xl shadow-2xl border-2 border-black max-w-md w-full p-4 max-h-[90vh] flex flex-col overflow-hidden">
-              <div class="flex justify-between items-center border-b pb-2">
-                <h3 class="text-lg font-bold flex items-center gap-1.5">
-                  <span>🏆</span>
-                  <span>Battle Leaderboard</span>
-                  {battle.state?.round && (
-                    <span class="text-xs bg-purple-100 text-purple-800 font-semibold px-2 py-0.5 rounded-full border border-purple-300">
-                      Round {battle.state.round}
-                    </span>
-                  )}
-                </h3>
+          ) : isPractice ? (
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-full text-xs font-bold uppercase tracking-wider">
+                Practice
+              </span>
+              {!won && (
                 <button
                   type="button"
-                  class="p-1 text-gray-500 hover:text-black font-bold text-lg leading-none"
-                  onClick={() => setShowLeaderboard(false)}
-                >
-                  ✕
-                </button>
-              </div>
-
-              {won && (
-                <div class="my-2 p-3 bg-green-50 border border-green-300 rounded-lg text-center">
-                  <div class="text-xs uppercase tracking-wide font-bold text-green-700">
-                    Round Complete!
-                  </div>
-                  <div class="text-xl font-black text-green-800 mt-0.5">
-                    🎉 {battle.state?.last_player || name} Won!
-                  </div>
-                  <div class="text-xs text-green-600 mt-1">
-                    Answer: <span class="font-bold tracking-widest uppercase">{word}</span>
-                  </div>
-                </div>
-              )}
-
-              <div class="flex-grow overflow-y-auto my-2 space-y-4 pr-1">
-                <div>
-                  <h4 class="text-xs uppercase font-bold text-gray-500 mb-1.5 tracking-wider">
-                    Wins Leaderboard
-                  </h4>
-                  {Object.keys(battle.state?.leaderboard ?? {}).length === 0 ? (
-                    <div class="text-xs text-gray-400 italic py-1">
-                      No completed rounds yet in this session.
-                    </div>
-                  ) : (
-                    <div class="border rounded-lg overflow-hidden">
-                      <table class="w-full text-xs sm:text-sm">
-                        <thead class="bg-gray-100 text-gray-600 uppercase text-[10px] font-semibold border-b">
-                          <tr>
-                            <th class="py-1.5 px-3 text-left">Rank</th>
-                            <th class="py-1.5 px-3 text-left">Player</th>
-                            <th class="py-1.5 px-3 text-right">Wins</th>
-                          </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100">
-                          {Object.entries(battle.state?.leaderboard ?? {})
-                            .sort(([, a], [, b]) => b - a)
-                            .map(([playerName, wins], idx) => {
-                              const medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `${idx + 1}.`;
-                              const isMe = playerName === name;
-                              return (
-                                <tr key={playerName} class={isMe ? "bg-amber-50/50 font-bold" : ""}>
-                                  <td class="py-1.5 px-3">{medal}</td>
-                                  <td class="py-1.5 px-3 truncate max-w-[150px]">
-                                    {playerName} {isMe ? "(You)" : ""}
-                                  </td>
-                                  <td class="py-1.5 px-3 text-right font-mono font-bold text-amber-700">
-                                    {wins}
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <h4 class="text-xs uppercase font-bold text-gray-500 mb-1.5 tracking-wider">
-                    Battle History
-                  </h4>
-                  {(battle.state?.battle_history ?? []).length === 0 ? (
-                    <div class="text-xs text-gray-400 italic py-1">
-                      History resets when all players leave the room.
-                    </div>
-                  ) : (
-                    <div class="border rounded-lg overflow-hidden max-h-44 overflow-y-auto">
-                      <table class="w-full text-xs">
-                        <thead class="bg-gray-100 text-gray-600 uppercase text-[10px] font-semibold border-b sticky top-0">
-                          <tr>
-                            <th class="py-1.5 px-2.5 text-left">Round</th>
-                            <th class="py-1.5 px-2.5 text-left">Word</th>
-                            <th class="py-1.5 px-2.5 text-left">Winner</th>
-                            <th class="py-1.5 px-2.5 text-right">Guesses</th>
-                          </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100">
-                          {[...(battle.state?.battle_history ?? [])].reverse().map((h) => (
-                            <tr key={`${h.round}-${h.completed_at}`}>
-                              <td class="py-1.5 px-2.5 font-medium">#{h.round}</td>
-                              <td class="py-1.5 px-2.5 font-mono font-bold uppercase text-purple-700">
-                                {h.word}
-                              </td>
-                              <td class="py-1.5 px-2.5 truncate max-w-[100px] font-semibold">
-                                {h.winner}
-                              </td>
-                              <td class="py-1.5 px-2.5 text-right font-mono text-gray-600">
-                                {h.guesses}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div class="pt-2 border-t flex gap-2">
-                <button
-                  type="button"
-                  class="flex-1 py-2 px-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg transition-colors shadow flex items-center justify-center gap-1.5 text-sm"
+                  class="px-2.5 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-200 rounded-full text-xs font-bold transition-colors"
                   onClick={() => {
-                    setShowLeaderboard(false);
-                    fetch(`/battles/${battle.battle_id}/restart`, {
-                      method: "POST",
-                    }).then(async (res) => {
-                      if (res.ok) {
-                        const newState = await res.json().catch(() => null);
-                        if (newState) {
-                          battle.broadcastRestart?.(newState);
-                        }
-                      }
-                    });
+                    if (!enableHelp) {
+                      setEnableHelp(true);
+                      return;
+                    }
+                    const cand =
+                      currentWord.length === 5 && doubleCandidates.length === 1
+                        ? candidates
+                        : doubleCandidates;
+                    setCurrentWord(
+                      cand[Math.floor(Math.random() * cand.length)],
+                    );
                   }}
                 >
-                  <span>⚔️</span>
-                  <span>Next Battle</span>
+                  {enableHelp ? `${doubleCandidates.length} words` : "💡 Hint"}
                 </button>
+              )}
+            </div>
+          ) : (
+            <div class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span class="text-xs uppercase font-bold tracking-wider text-gray-500">
+                {challenge_id ? "Challenge" : "Daily Reidle"}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Center / Right: Live Timer & Penalty */}
+        <div class="flex items-center gap-2">
+          {penalties > 0 && (
+            <div class="flex items-center gap-1 px-2 py-0.5 bg-red-50 text-red-700 border border-red-200 rounded-full text-xs font-mono font-bold">
+              <span>🛑</span>
+              <TimerText seconds={penalties} />
+            </div>
+          )}
+
+          {!won && wordle ? (
+            <div class="inline-flex min-w-[6.25rem] shrink-0 items-center justify-center gap-1.5 px-3 py-1 bg-gray-100 border border-gray-200 rounded-full text-xs font-mono font-bold text-gray-800 shadow-2xs whitespace-nowrap">
+              <IconClock size={16} class="h-4 w-4 shrink-0 text-gray-400" />
+              {winner && challenge_id !== undefined && (
+                <span class="text-emerald-700 font-semibold">{winner}:</span>
+              )}
+              <TimerText
+                seconds={challenge_id && winnersTime
+                  ? Math.max(0, winnersTime - totalSeconds)
+                  : totalSeconds}
+                class={challenge_id && winnersTime && (winnersTime - totalSeconds) < 10
+                  ? "text-red-700 animate-pulse font-black"
+                  : ""}
+              />
+            </div>
+          ) : winnersTime && winnersTime > 0 && !challenge_id ? (
+            <div class="flex items-center gap-1 px-2.5 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-full text-xs font-mono font-bold">
+              <span>🏆 {winner}:</span>
+              <TimerText seconds={winnersTime} />
+            </div>
+          ) : null}
+        </div>
+      </div>
+
+      {/* Error / Win / Lose Banner */}
+      <ErrorBar
+        isPractice={isPractice}
+        battleCallback={battle
+          ? () => {
+            fetch(`/battles/${battle?.battle_id}/restart`, {
+              method: "POST",
+            }).then(async (res) => {
+              if (res.ok) {
+                const newState = await res.json().catch(() => null);
+                if (newState) {
+                  battle.broadcastRestart?.(newState);
+                }
+              }
+            });
+          }
+          : undefined}
+        pendingChallenges={pendingChallenges}
+        wordle={wordle}
+        penalty={penalties}
+        winTime={won ? totalSeconds : null}
+        error={battle && won ? (battle.state.message || (battle.state.last_player ? `${battle.state.last_player} Won` : "Game Over")) : error}
+        challenge_id={challenge_id}
+        lost={!!challenge_id && !!winnersTime && (totalSeconds > winnersTime)}
+      />
+
+      {/* Game Board Container */}
+      <div class="relative flex-1 w-full flex items-center justify-center min-h-0 px-1 sm:px-2 py-0.5">
+        <div
+          class="relative w-full max-w-[340px] max-h-full h-full min-h-0 flex flex-col justify-center"
+          style={{ maxHeight: "min(48dvh, 360px)" }}
+        >
+          {won && (!challenge_id || !winnersTime || totalSeconds < winnersTime) ? (
+            <div
+              class="fixed inset-0 z-30 pointer-events-none"
+            >
+              <Confetti />
+            </div>
+          ) : null}
+
+          <div
+            class="grid gap-1 sm:gap-2 w-full h-full min-h-0"
+            style={`grid-template-rows: repeat(${numRows}, minmax(0, 1fr))`}
+          >
+            {[...Array(numRows).keys()]
+              .filter((_) => wordle)
+              .filter((i) => i < previousWords.length || !won)
+              .map((row) => {
+                const isCurrentRow = row === activeRow;
+                const isPreviousRow = row < previousWords.length;
+                const rowShaking = isCurrentRow && shakeRow;
+
+                return (
+                  <div
+                    class={`grid grid-cols-5 gap-1.5 sm:gap-2 ${rowShaking ? "animate-row-shake" : ""}`}
+                    key={row}
+                  >
+                    {[0, 1, 2, 3, 4].map((column) => {
+                      const letter = isPreviousRow
+                        ? previousWords[row][column].letter
+                        : isCurrentRow && column < activeCol
+                        ? currentWord[column]
+                        : "";
+
+                      const score = isPreviousRow ? previousWords[row][column].score : null;
+                      const hasLetter = letter.length > 0;
+                      const isRevealed = score !== null;
+
+                      let cellBg = "bg-white";
+                      let cellBorder = "border-gray-200";
+                      let cellText = "text-gray-900";
+                      let inlineStyle: Record<string, string> = {};
+
+                      if (isRevealed) {
+                        const color = scoreColor(score!);
+                        inlineStyle.backgroundColor = color ?? "#64748b";
+                        inlineStyle.borderColor = "transparent";
+                        cellText = "text-white";
+                        cellBorder = "border-transparent";
+                      } else if (isCurrentRow && hasLetter) {
+                        cellBorder = "border-gray-700";
+                        cellText = "text-gray-900";
+                      }
+
+                      return (
+                        <div
+                          key={column}
+                          class={[
+                            "h-full min-h-0 w-full flex items-center justify-center rounded-md sm:rounded-lg border-2 font-black transition-all duration-150 uppercase select-none shadow-2xs",
+                            cellBg,
+                            cellBorder,
+                            cellText,
+                            numRows > 8 ? "text-xs sm:text-base" : numRows > 6 ? "text-sm sm:text-lg" : "text-xl sm:text-2xl",
+                            isCurrentRow && hasLetter ? "animate-tile-pop" : "",
+                            isRevealed ? "animate-tile-flip" : "",
+                          ].join(" ")}
+                          style={{
+                            ...inlineStyle,
+                            animationDelay: isRevealed ? `${column * 100}ms` : undefined,
+                          }}
+                        >
+                          {letter}
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+      </div>
+
+      {/* Virtual Keyboard */}
+      <div class="w-full max-w-lg px-0.5 sm:px-2 pt-0.5 pb-0 shrink-0 select-none">
+        <div class="flex flex-col gap-1 sm:gap-2">
+          {/* Row 1 */}
+          <div class="flex gap-1 sm:gap-1.5 justify-center w-full">
+            {"QWERTYUIOP".split("").map((c) => {
+              const { bg, style } = getKeyStyle(c);
+              return (
                 <button
                   type="button"
-                  class="py-2 px-4 border-2 border-black hover:bg-gray-100 font-bold rounded-lg text-sm transition-colors"
-                  onClick={() => setShowLeaderboard(false)}
+                  key={c}
+                  style={{ ...style, height: "clamp(40px, 7dvh, 56px)" }}
+                  class={`flex-1 rounded-md sm:rounded-lg flex items-center justify-center text-sm sm:text-base font-bold transition-all active:scale-95 shadow-2xs ${bg}`}
+                  onPointerDown={() => onKeyDown(c)}
                 >
-                  Close
+                  {c}
                 </button>
+              );
+            })}
+          </div>
+
+          {/* Row 2 */}
+          <div class="flex gap-1 sm:gap-1.5 justify-center w-full px-2 sm:px-3">
+            {"ASDFGHJKL".split("").map((c) => {
+              const { bg, style } = getKeyStyle(c);
+              return (
+                <button
+                  type="button"
+                  key={c}
+                  style={{ ...style, height: "clamp(40px, 7dvh, 56px)" }}
+                  class={`flex-1 rounded-md sm:rounded-lg flex items-center justify-center text-sm sm:text-base font-bold transition-all active:scale-95 shadow-2xs ${bg}`}
+                  onPointerDown={() => onKeyDown(c)}
+                >
+                  {c}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Row 3: Enter + ZXCVBNM + Backspace */}
+          <div class="flex gap-1 sm:gap-1.5 justify-center w-full">
+            <button
+              type="button"
+              class="flex-[1.5] bg-gray-300 hover:bg-gray-400 active:bg-gray-500 text-gray-900 rounded-md sm:rounded-lg flex items-center justify-center text-xs sm:text-sm font-black transition-all active:scale-95 shadow-2xs tracking-wider"
+              style={{ height: "clamp(40px, 7dvh, 56px)" }}
+              onPointerDown={() => onKeyDown("ENTER")}
+            >
+              ENTER
+            </button>
+
+            {"ZXCVBNM".split("").map((c) => {
+              const { bg, style } = getKeyStyle(c);
+              return (
+                <button
+                  type="button"
+                  key={c}
+                  style={{ ...style, height: "clamp(40px, 7dvh, 56px)" }}
+                  class={`flex-1 rounded-md sm:rounded-lg flex items-center justify-center text-sm sm:text-base font-bold transition-all active:scale-95 shadow-2xs ${bg}`}
+                  onPointerDown={() => onKeyDown(c)}
+                >
+                  {c}
+                </button>
+              );
+            })}
+
+            <button
+              type="button"
+              class="flex-[1.5] bg-gray-300 hover:bg-gray-400 active:bg-gray-500 text-gray-900 rounded-md sm:rounded-lg flex items-center justify-center transition-all active:scale-95 shadow-2xs"
+              style={{ height: "clamp(40px, 7dvh, 56px)" }}
+              onPointerDown={() => onKeyDown("BACKSPACE")}
+              title="Delete"
+            >
+              <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  clipRule="evenodd"
+                  fillRule="evenodd"
+                  d="M7.22 3.22A.75.75 0 017.75 3h9A2.25 2.25 0 0119 5.25v9.5A2.25 2.25 0 0116.75 17h-9a.75.75 0 01-.53-.22L.97 10.53a.75.75 0 010-1.06l6.25-6.25zm3.06 4a.75.75 0 10-1.06 1.06L10.94 10l-1.72 1.72a.75.75 0 101.06 1.06L12 11.06l1.72 1.72a.75.75 0 101.06-1.06L13.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L12 8.94l-1.72-1.72z"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Battle Party Chat Toast */}
+      {battle && (
+        <PartyChatToast
+          toast={battle.currentToast ?? null}
+          onDismiss={() => battle.dismissToast?.()}
+        />
+      )}
+
+      {/* Battle Leaderboard Modal */}
+      {battle && showLeaderboard && (
+        <div class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-3 animate-toast">
+          <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 max-w-md w-full p-5 max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+              <h3 class="text-base font-black flex items-center gap-2 text-gray-900">
+                <span>🏆</span>
+                <span>Battle Leaderboard</span>
+                {battle.state?.round && (
+                  <span class="text-xs bg-purple-50 text-purple-700 font-bold px-2 py-0.5 rounded-full border border-purple-200">
+                    Round {battle.state.round}
+                  </span>
+                )}
+              </h3>
+              <button
+                type="button"
+                class="p-1 text-gray-400 hover:text-gray-700 font-bold text-lg"
+                onClick={() => setShowLeaderboard(false)}
+              >
+                ✕
+              </button>
+            </div>
+
+            {won && (
+              <div class="my-3 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-center">
+                <div class="text-[11px] uppercase tracking-wider font-bold text-emerald-700">
+                  Round Winner!
+                </div>
+                <div class="text-xl font-black text-emerald-900 mt-0.5">
+                  🎉 {battle.state?.last_player || name}
+                </div>
+                <div class="text-xs text-emerald-700 mt-1">
+                  Answer: <span class="font-bold tracking-widest uppercase">{word}</span>
+                </div>
+              </div>
+            )}
+
+            <div class="flex-grow overflow-y-auto my-2 space-y-4 pr-1">
+              <div>
+                <h4 class="text-[11px] uppercase font-bold text-gray-400 mb-2 tracking-wider">
+                  Wins Leaderboard
+                </h4>
+                {Object.keys(battle.state?.leaderboard ?? {}).length === 0 ? (
+                  <div class="text-xs text-gray-400 italic py-2 text-center">
+                    No completed rounds yet in this room.
+                  </div>
+                ) : (
+                  <div class="border border-gray-100 rounded-xl overflow-hidden shadow-2xs">
+                    <table class="w-full text-xs">
+                      <thead class="bg-gray-50 text-gray-500 uppercase text-[10px] font-bold border-b border-gray-100">
+                        <tr>
+                          <th class="py-2 px-3 text-left">Rank</th>
+                          <th class="py-2 px-3 text-left">Player</th>
+                          <th class="py-2 px-3 text-right">Wins</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-gray-100">
+                        {Object.entries(battle.state?.leaderboard ?? {})
+                          .sort(([, a], [, b]) => b - a)
+                          .map(([playerName, wins], idx) => {
+                            const medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `${idx + 1}.`;
+                            const isMe = playerName === name;
+                            return (
+                              <tr key={playerName} class={isMe ? "bg-amber-50 font-bold" : ""}>
+                                <td class="py-2 px-3">{medal}</td>
+                                <td class="py-2 px-3 truncate max-w-[150px]">
+                                  {playerName} {isMe ? "(You)" : ""}
+                                </td>
+                                <td class="py-2 px-3 text-right font-mono font-bold text-amber-700">
+                                  {wins}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             </div>
+
+            <div class="pt-3 border-t border-gray-100 flex gap-2">
+              <button
+                type="button"
+                class="flex-1 py-2.5 px-4 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5 text-xs active:scale-98"
+                onClick={() => {
+                  setShowLeaderboard(false);
+                  fetch(`/battles/${battle.battle_id}/restart`, {
+                    method: "POST",
+                  }).then(async (res) => {
+                    if (res.ok) {
+                      const newState = await res.json().catch(() => null);
+                      if (newState) {
+                        battle.broadcastRestart?.(newState);
+                      }
+                    }
+                  });
+                }}
+              >
+                <span>⚔️</span>
+                <span>Next Round</span>
+              </button>
+              <button
+                type="button"
+                class="py-2.5 px-4 border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold rounded-xl text-xs transition-colors"
+                onClick={() => setShowLeaderboard(false)}
+              >
+                Close
+              </button>
+            </div>
           </div>
-        )}
-      </div>
-    </>
+        </div>
+      )}
+    </div>
   );
 }
 

@@ -7,38 +7,56 @@ export function HeadColumn(
     children?: ComponentChildren;
   },
 ) {
-  return <th scope="col" class={`px-4 py-2 ${classValue ?? ""}`}>{children}
-  </th>;
+  return (
+    <th
+      scope="col"
+      class={`px-3 sm:px-4 py-3 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider ${
+        classValue ?? ""
+      }`}
+    >
+      {children}
+    </th>
+  );
 }
+
 export function TableHead(
-  { columns, children }: {
+  { columns, columnClasses, children }: {
     columns?: ComponentChildren[];
+    columnClasses?: string[];
     children?: ComponentChildren;
   },
 ) {
   return (
-    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+    <thead class="bg-gray-50/80 border-b border-gray-200/80">
       <tr>
-        {columns?.map((c) => <HeadColumn>{c}</HeadColumn>)}
+        {columns?.map((c, index) => (
+          <HeadColumn class={columnClasses?.[index]}>{c}</HeadColumn>
+        ))}
         {children}
       </tr>
     </thead>
   );
 }
+
 export function TableRow(
-  { header, children, "class": myClass }: {
+  { header, children, "class": myClass, style }: {
     header?: ComponentChildren;
     children?: ComponentChildren;
     "class"?: string;
+    style?: JSX.CSSProperties;
   },
 ) {
   return (
-    <tr class={`bg-white border-b ${myClass ?? ""}`}>
+    <tr
+      style={style}
+      class={`border-b border-gray-100 last:border-b-0 hover:bg-gray-50/60 transition-colors ${myClass ?? ""}`}
+    >
       {header && <TableRowHeader>{header}</TableRowHeader>}
       {children}
     </tr>
   );
 }
+
 export function TableRowHeader(
   { children, "class": myClass }: {
     children?: ComponentChildren;
@@ -48,13 +66,15 @@ export function TableRowHeader(
   return (
     <th
       scope="row"
-      class={"px-4 py-2 font-medium text-gray-900 whitespace-nowrap " +
-        (myClass ?? "")}
+      class={`px-3 sm:px-4 py-2.5 font-semibold text-gray-900 whitespace-nowrap text-left text-xs sm:text-sm ${
+        myClass ?? ""
+      }`}
     >
       {children}
     </th>
   );
 }
+
 export function TableCell(
   { "class": myClass, children, style }: {
     children?: ComponentChildren;
@@ -63,9 +83,17 @@ export function TableCell(
   },
 ) {
   return (
-    <td style={style} class={"px-4 py-2 " + (myClass ?? "")}>{children}</td>
+    <td
+      style={style}
+      class={`px-3 sm:px-4 py-2.5 text-xs sm:text-sm text-gray-600 align-middle ${
+        myClass ?? ""
+      }`}
+    >
+      {children}
+    </td>
   );
 }
+
 export function TableBody(
   { rows, children }: {
     rows?: ComponentChildren[][];
@@ -73,10 +101,10 @@ export function TableBody(
   },
 ) {
   return (
-    <tbody>
+    <tbody class="divide-y divide-gray-100 bg-white">
       {(rows ?? []).map((row) => (
         <TableRow header={row[0]}>
-          {row.slice(1).map((cell, i) => (
+          {row.slice(1).map((cell) => (
             <TableCell>
               {cell}
             </TableCell>
@@ -90,25 +118,23 @@ export function TableBody(
 }
 
 export function Table(
-  { columns, rows, children }: {
+  { columns, columnClasses, tableClass, rows, children }: {
     columns?: ComponentChildren[];
+    columnClasses?: string[];
+    tableClass?: string;
     rows?: ComponentChildren[][];
     children?: ComponentChildren;
   },
 ) {
   return (
-    <div class="relative overflow-x-auto">
-      <table class="text-sm text-left text-gray-500">
-        {columns ? <TableHead columns={columns} /> : null}
-        {rows
-          ? (
-            <TableBody
-              rows={rows}
-            />
-          )
-          : null}
-        {children}
-      </table>
+    <div class="w-full bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class={`w-full text-left border-collapse ${tableClass ?? ""}`}>
+          {columns ? <TableHead columns={columns} columnClasses={columnClasses} /> : null}
+          {rows ? <TableBody rows={rows} /> : null}
+          {children}
+        </table>
+      </div>
     </div>
   );
 }

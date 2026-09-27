@@ -15,11 +15,11 @@ export interface Playback {
 export function scoreColor(score: Scoring): string | null {
   switch (score) {
     case Scoring.gray:
-      return "#787c7e";
+      return "#64748b"; // slate-500
     case Scoring.orange:
-      return "#c9b458";
+      return "#ca8a04"; // yellow-600 (accessible contrast)
     case Scoring.green:
-      return "#6aaa64";
+      return "#16a34a"; // green-600
     default:
       return null;
   }

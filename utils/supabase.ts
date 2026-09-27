@@ -128,21 +128,15 @@ export interface Database {
       players: {
         Row: {
           created_at: string;
-          email: string | null;
           name: string;
-          notifications_enabled: boolean;
         };
         Insert: {
           created_at?: string;
-          email?: string | null;
           name: string;
-          notifications_enabled?: boolean;
         };
         Update: {
           created_at?: string;
-          email?: string | null;
           name?: string;
-          notifications_enabled?: boolean;
         };
       };
       submissions: {
@@ -216,12 +210,6 @@ export interface Database {
       };
     };
     Views: {
-      emails_to_send: {
-        Row: {
-          email: string | null;
-          name: string | null;
-        };
-      };
       weekly_scores: {
         Row: {
           name: string | null;

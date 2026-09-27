@@ -62,8 +62,6 @@ sources:
       - name: players
         columns:
           - name: name
-          - name: email
-          - name: notifications_enabled
           - name: created_at
 
       - name: submissions

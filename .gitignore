@@ -4,9 +4,13 @@ service-account.json
 *firebase-adminsdk*.json
 .DS_Store
 __pycache__/
-migrations/versions/
+!migrations/versions/
+migrations/versions/*
+!migrations/versions/20260926_add_message_likes.py
 .python-version
 _fresh/
 deno.lock
 .env
+.proddbsecret
+.proddbca
 secrets/
