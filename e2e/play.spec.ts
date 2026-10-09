@@ -20,6 +20,27 @@ test("daily game: play, win, appear on the leaderboard, cannot replay", async ({
   await expect(page).toHaveURL(/\/stats\/daily\//); // already played -> home
 });
 
+test("after winning, the in-app home link shows today's pastes and playbacks without a reload", async ({ page }) => {
+  await signIn(page, "ivan");
+  // Stay inside the SPA the whole time, like a player: stats -> Play -> win -> dog.
+  await page.goto("/stats/today");
+  await expect(page.locator("td.invisible, a.invisible").first()).toBeAttached();
+  await page.locator('aside a[href="/play"]').click();
+  await expect(page).toHaveURL(/\/play$/);
+  const answer = sql("select upper(answer) from daily_words where day = current_date");
+  await page.getByRole("button", { name: "Start" }).click();
+  await expect(page.locator("div.font-bold").first()).toBeVisible();
+  await page.waitForTimeout(500);
+  await typeWord(page, answer);
+  await expect.poll(() => sql("select count(*) from submissions where name='ivan' and day=current_date and challenge_id is null")).toBe("1");
+
+  await page.getByRole("link", { name: "Reidle Logo" }).click(); // the dog: client-side nav, no reload
+  await expect(page).toHaveURL(/\/stats\/daily\//);
+  await expect(page.getByRole("row").filter({ hasText: "ivan" })).toBeVisible();
+  await expect(page.locator("td.invisible, a.invisible")).toHaveCount(0);
+  await expect(page.locator('a[href="/play"]:visible')).toHaveCount(0);
+});
+
 test("today's pastes and playbacks stay hidden until you have played", async ({ page }) => {
   await signIn(page, "frank");
   const id = sql("select submission_id from submissions where name='bob' and day = current_date and challenge_id is null");
