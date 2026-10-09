@@ -15,7 +15,11 @@ from generate_series(-21, 7) o;
 with names as (
   select n, i from unnest(array['alice','bob','carol','dave','erin','frank','grace','heidi'])
     with ordinality as t(n, i)),
-days as (select current_date - o as day, o from generate_series(0, 89) o),
+days as (
+  select current_date - o as day, o from generate_series(0, 89) o
+  union
+  -- fixed legacy-scoring weeks (before the 2026-10-05 cutover) so tests never depend on today's date
+  select d::date, (current_date - d::date) from generate_series(date '2026-09-14', date '2026-09-27', interval '1 day') d),
 plays as (
   select d.day, n.n, n.i, d.o,
     (30 + n.i * 10 + (d.o % 4) * 3 + (n.i * d.o % 5))::double precision as t,

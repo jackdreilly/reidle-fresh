@@ -22,7 +22,9 @@
     "import-prod": "tools/import-prod.sh",
     "build:staging": "tsc --noEmit && vite build --mode staging && node tools/check-bundle.mjs",
     "deploy:staging": "npm run build:staging && npm run build:worker && npx --yes wrangler@4.149.0 deploy",
-    "build:worker": "node tools/build-worker.mjs"
+    "build:worker": "node tools/build-worker.mjs",
+    "qa:staging": "playwright test -c playwright.staging.config.ts",
+    "sandbox:up": "tools/sandbox-up.sh"
   },
   "dependencies": {
     "@supabase/realtime-js": "^2.117.3",

@@ -30,7 +30,7 @@ echo "3/4 restoring into target"
 psql "$TARGET_DB_URL" -v ON_ERROR_STOP=1 -q <<SQL
 begin;
 truncate players, words, answers, daily_words, challenges, submissions, checkpoints,
-         messages, message_reads, winners, battles restart identity cascade;
+         messages, message_reads, winners, battles, week_snapshots restart identity cascade;
 \i $DUMP
 -- re-link players to auth users that already exist in the target (re-clones)
 update players p set user_id = u.id from auth.users u

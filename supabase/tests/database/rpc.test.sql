@@ -1,5 +1,5 @@
 begin;
-select plan(35);
+select plan(40);
 
 -- Fixture: isolated players, no seed dependence.
 truncate submissions, checkpoints, messages, message_reads, winners, challenges, players restart identity cascade;
@@ -65,16 +65,30 @@ select is((select (r #>> '{results,totals,score}')::numeric from wk where r->>'n
 select is((select (r #>> '{results,totals,score}')::numeric from wk where r->>'name'='eve'), 0.6, '5th = 0.6');
 select is((select r->>'name' from wk limit 1), 'ann', 'highest total ranks first');
 
--- Legacy weeks keep the geometric product score
+-- Scoring cutover: weeks from 2026-10-05 are additive, earlier weeks are legacy and FROZEN.
 select reset_role();
 insert into submissions (day, name, "time", word, paste) values
+  ('2026-09-28', 'ann', 30, 'x', 'p'),
+  ('2026-09-28', 'ben', 40, 'x', 'p'),
   ((date_trunc('week', current_date) - interval '7 days')::date, 'ann', 30, 'x', 'p'),
-  ((date_trunc('week', current_date) - interval '7 days')::date, 'ben', 40, 'x', 'p');
+  ((date_trunc('week', current_date) - interval '7 days')::date, 'ben', 40, 'x', 'p')
+on conflict do nothing;  -- "last week" may coincide with the fixed legacy week above
 select act_as('ann');
-select is((select (jsonb_array_elements(weekly_page(current_date - 7) -> 'players') #>> '{results,totals,score}')::numeric limit 1), 1::numeric, 'legacy: winner product score = 1');
+select is((weekly_page('2026-09-28') ->> 'additive')::boolean, false, 'weeks before 2026-10-05 use legacy scoring');
+select is((weekly_page('2026-10-05') ->> 'additive')::boolean, true, 'the cutover week (2026-10-05) is additive');
+select is((weekly_page(current_date) ->> 'additive')::boolean, true, 'the current week is additive');
+select is((weekly_page('2026-09-28') -> 'players' -> 0 #>> '{results,totals,score}')::numeric, 1::numeric, 'legacy: winner product score = 1');
+create temp table frozen on commit drop as select weekly_page('2026-09-28') as page;
+grant select on frozen to authenticated;
+-- history is immutable: even if the underlying rows changed, a legacy week never re-scores
+select reset_role();
+update submissions set "time" = 999 where name = 'ann' and day = '2026-09-28';
+select is((select count(*)::int from week_snapshots where week = '2026-09-28'), 1, 'legacy week was frozen into week_snapshots');
+select act_as('ann');
+select is(weekly_page('2026-09-28'), (select page from frozen), 'legacy weeks are read-only: results survive source changes');
 select is((past_winners() -> 0 ->> 'name'), 'ann', 'last week winner is computed and memoised');
 select reset_role();
-select is((select name from winners), 'ann', 'winner persisted');
+select is((select name from winners order by week desc limit 1), 'ann', 'winner persisted');
 
 -- Daily submit: once per day, ranks recomputed, validation
 select reset_role();

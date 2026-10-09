@@ -9,7 +9,7 @@ begin;
 
 truncate public.players, public.words, public.answers, public.daily_words, public.challenges,
          public.submissions, public.checkpoints, public.messages, public.message_reads,
-         public.winners, public.battles restart identity cascade;
+         public.winners, public.battles, public.week_snapshots restart identity cascade;
 
 insert into public.words select upper(word) from legacy.words on conflict do nothing;
 insert into public.answers select upper(answer) from legacy.answers on conflict do nothing;
@@ -67,5 +67,10 @@ select setval(pg_get_serial_sequence('public.challenges', 'challenge_id'), great
 select setval(pg_get_serial_sequence('public.submissions', 'submission_id'), greatest(1, (select max(submission_id) from public.submissions)));
 select setval(pg_get_serial_sequence('public.messages', 'message_id'), greatest(1, (select max(message_id) from public.messages)));
 select setval(pg_get_serial_sequence('public.battles', 'battle_id'), greatest(100, (select max(battle_id) from public.battles)));
+
+-- Freeze every pre-cutover week now (legacy product scoring, computed once, served read-only forever).
+select public.week_scores(w) from (
+  select distinct date_trunc('week', day)::date as w from public.submissions
+  where challenge_id is null and day < public.scoring_cutover()) weeks;
 
 commit;

@@ -6,12 +6,6 @@ import { useSession } from "@/lib/session";
 import { timerTime, utcToday } from "@/lib/time";
 import type { WeekOutput } from "@/lib/types";
 
-function startOfWeek(d: Date): Date {
-  const x = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
-  x.setUTCDate(x.getUTCDate() - ((x.getUTCDay() + 6) % 7));
-  return x;
-}
-
 function getLegacyColor(v: number): string {
   return {
     1: "rgb(217 249 157)",
@@ -43,11 +37,10 @@ function getPointsColor(v: number): string {
   }[v.toFixed(1)] ?? "#dddddd";
 }
 
-export default function Weekly({ params, data: { players } }: PageProps<{ players: WeekOutput }>) {
+export default function Weekly({ params, data: { players, additive } }: PageProps<{ players: WeekOutput; additive: boolean }>) {
   const { name: myName, played_today } = useSession();
   const week = new Date(params.date);
-  const isNewWeek = startOfWeek(week).getTime() >=
-    startOfWeek(new Date()).getTime();
+  const isNewWeek = additive; // fixed cutover (server-side): weeks from 2026-10-05 use additive points
   const getColor = isNewWeek ? getPointsColor : getLegacyColor;
   return (
     <StatsTabs route="this_week">
