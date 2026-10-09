@@ -1,0 +1,7 @@
+// The SPA is packed into a Worker by tools/build-worker.mjs (see npm run deploy:staging).
+// Production: build with .env.production, then `npx wrangler deploy --name reidle`.
+{
+  "name": "reidle-staging",
+  "main": ".worker/index.js",
+  "compatibility_date": "2026-10-01"
+}

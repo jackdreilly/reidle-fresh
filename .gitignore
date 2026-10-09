@@ -10,3 +10,5 @@ supabase/.branches/
 .DS_Store
 *.log
 dist-e2e/
+.wrangler/
+.worker/

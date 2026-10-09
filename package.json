@@ -20,7 +20,9 @@
     "check": "npm run typecheck && npm run test:unit && npm run test:db && npm run test:e2e && npm run build",
     "test:import": "tools/test-import.sh",
     "import-prod": "tools/import-prod.sh",
-    "build:staging": "tsc --noEmit && vite build --mode staging && node tools/check-bundle.mjs"
+    "build:staging": "tsc --noEmit && vite build --mode staging && node tools/check-bundle.mjs",
+    "deploy:staging": "npm run build:staging && npm run build:worker && npx --yes wrangler@4.149.0 deploy",
+    "build:worker": "node tools/build-worker.mjs"
   },
   "dependencies": {
     "@supabase/realtime-js": "^2.117.3",

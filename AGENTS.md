@@ -119,9 +119,16 @@ enable RLS or retire it independently of this port.
 - Battles are ported but least tested (E2E coverage pending).
 - `rankings()` recomputes full history per request; materialise if it gets slow.
 - Giphy API key is hardcoded in `src/components/MessageText.tsx` (inherited).
-- Hosting: not chosen yet. Supabase cannot host the SPA (serves HTML as text/plain). Any static host works;
-  recommended Cloudflare Pages (build `npm run build:staging` / `npm run build`, output `dist`; SPA
-  fallback + cache headers already in `public/_redirects`, `public/_headers`, `vercel.json`).
-- Staging: project `reidle-staging` (`noxissvouravthzvoapw`, free plan, us-east-1) has schema + RPCs +
-  fixture data (applied via the Supabase MCP connector). Still needed: "Confirm email" OFF, DB URL
-  secret (`STAGING_DB_URL`) for bulk loads/`db push`, and a static host for the SPA.
+- Hosting: Cloudflare Workers. `npm run deploy:staging` builds with `.env.staging`, packs `dist/` into one
+  Worker module (`tools/build-worker.mjs`: SPA fallback, immutable asset caching) and `wrangler deploy`s it
+  -> https://reidle-staging.reidle.workers.dev. Why not wrangler's asset upload / Pages direct upload: in the
+  Claude sandbox the API token is injected by a proxy that overwrites every `Authorization` header to
+  api.cloudflare.com (use `CLOUDFLARE_API_TOKEN=placeholder CLOUDFLARE_ACCOUNT_ID=<id>`), which breaks the
+  short-lived asset-upload JWT. Plain Worker script uploads work. NEVER run `wrangler pages ...` or `wrangler
+  deploy` autoconfig in this repo: it rewrites vite.config.ts/package.json (adds @cloudflare/vite-plugin).
+  Prod: build with `.env.production`, `wrangler deploy --name reidle`. Supabase cannot host the SPA.
+  Staging site is public with fake data + open name-only signup: put it behind Cloudflare Access before
+  loading cloned prod data.
+- Staging is live: Supabase project `reidle-staging` (`noxissvouravthzvoapw`) with schema, RPCs and fixture
+  data (applied via the Supabase MCP connector; Confirm email is OFF) + the Worker above. Verified end to end
+  with a headless browser. Optional: `STAGING_DB_URL` secret for bulk loads/`db push`.
