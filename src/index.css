@@ -1,0 +1,13 @@
+@import "tailwindcss";
+@theme {
+  --breakpoint-sm: 420px;
+  --breakpoint-md: 700px;
+}
+/* Tailwind v4 defaults borders to currentColor; keep the v3 look. */
+@layer base {
+  *, ::after, ::before { border-color: var(--color-gray-200); }
+  button:not(:disabled), [role="button"] { cursor: pointer; }
+}
+html, body { height: 100%; }
+#app { min-height: 100%; }
+@keyframes fade-out { 0%, 25% { opacity: 1; } 100% { opacity: 0; } }

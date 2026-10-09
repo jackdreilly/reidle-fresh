@@ -1,0 +1,117 @@
+import TimerText from "@/components/TimerText";
+import { Wordle } from "@/lib/wordle";
+import { Battle } from "@/components/Game";
+export default function ErrorBar(
+  {
+    winTime,
+    error,
+    penalty,
+    battleCallback,
+    pendingChallenges,
+    wordle,
+    isPractice,
+    challenge_id,
+    lost,
+  }: {
+    isPractice: boolean;
+    pendingChallenges: number;
+    winTime: number | null;
+    error: string | null;
+    penalty: number;
+    wordle: Wordle | undefined;
+    challenge_id?: number;
+    lost?: boolean;
+    battleCallback?(): void | undefined;
+  },
+) {
+  return (
+    <div class="h-8 p-1">
+      <style>
+        {`
+      @keyframes fade-out {
+
+        0%,
+        25% {
+            opacity: 1;
+        }
+    
+        100% {
+            opacity: 0;
+        }
+    
+      }
+      `}
+      </style>
+      {lost
+        ? (
+          <div class="text-red-600">
+            <a
+              href={`/challenges/play`}
+              class="p-1 border-2 border-black rounded mx-2"
+            >
+              {pendingChallenges
+                ? `${pendingChallenges} More Challenge${
+                  pendingChallenges > 1 ? "s" : ""
+                }`
+                : "Start New Challenge"}
+            </a>
+          </div>
+        )
+        : winTime
+        ? (
+          <div class="text-green-800">
+            {battleCallback
+              ? <span>{error}</span>
+              : <TimerText seconds={winTime} />}!
+            {battleCallback
+              ? (
+                <button
+                  class="p-1 border-2 border-black rounded mx-2"
+                  onClick={battleCallback}
+                >
+                  New Battle
+                </button>
+              )
+              : challenge_id !== undefined || !isPractice
+              ? (
+                <a
+                  href={`/challenges/play`}
+                  class="p-1 border-2 border-black rounded mx-2"
+                >
+                  {pendingChallenges
+                    ? `${pendingChallenges} More Challenge${
+                      pendingChallenges > 1 ? "s" : ""
+                    }`
+                    : "Start New Challenge"}
+                </a>
+              )
+              : (
+                <a
+                  href="/practice"
+                  class="p-1 border-2 border-black rounded mx-2"
+                >
+                  Practice?
+                </a>
+              )}
+          </div>
+        )
+        : null}
+      {error && !winTime && (
+        <div
+          key={`${error} ${penalty}`}
+          class="text-red-800 opacity-0"
+          style={{ animation: "fade-out 4s" }}
+        >
+          {error}
+        </div>
+      )}
+      {wordle
+        ? null
+        : (
+          <div class="animate-bounce animate-pulse text-blue-400 font-bold">
+            Loading...
+          </div>
+        )}
+    </div>
+  );
+}

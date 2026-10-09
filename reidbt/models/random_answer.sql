@@ -1,1 +1,0 @@
-select answer from {{ source("reidle", "answers") }} order by random() limit 1

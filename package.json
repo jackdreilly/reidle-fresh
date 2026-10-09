@@ -1,0 +1,37 @@
+{
+  "name": "reidle",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --port 4173",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run test:unit && npm run test:db",
+    "test:unit": "vitest run",
+    "test:db": "supabase test db",
+    "test:e2e": "playwright test",
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "db:reset": "supabase db reset",
+    "words": "node tools/gen-words-migration.mjs",
+    "clone": "tools/clone-db.sh",
+    "sync-auth": "node tools/sync-auth-users.ts",
+    "check": "npm run typecheck && npm run test:unit && npm run test:db && npm run test:e2e && npm run build"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.50.0",
+    "preact": "^10.26.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.50.0",
+    "@preact/preset-vite": "^2.10.0",
+    "@tailwindcss/vite": "^4.1.0",
+    "@types/node": "^26.6.4",
+    "supabase": "^2.120.0",
+    "tailwindcss": "^4.1.0",
+    "typescript": "^5.8.0",
+    "vite": "^6.3.0",
+    "vitest": "^3.1.0"
+  }
+}
