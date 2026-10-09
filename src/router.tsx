@@ -68,6 +68,15 @@ export async function navigate(href: string, opts: { replace?: boolean; pop?: bo
     finish(id, opts, url, { route, Page: mod.default, params, query: url.searchParams, data, key: url.href });
   } catch (e) {
     if (e instanceof Redirect) return void navigate(e.to, { replace: true });
+    // A deploy replaced the hashed chunks this (old) page wants: reload once to pick up the new build.
+    if (/dynamically imported module|importing a module script failed/i.test((e as Error)?.message ?? "")) {
+      let last = 0;
+      try { last = Number(sessionStorage.getItem("reidle:chunk-reload") ?? 0); } catch { /* ignore */ }
+      if (Date.now() - last > 60_000) {
+        try { sessionStorage.setItem("reidle:chunk-reload", String(Date.now())); } catch { /* ignore */ }
+        return void location.assign(url.pathname + url.search);
+      }
+    }
     if ((e as { message?: string }).message === "not signed in") {
       return void navigate(`/sign-in?redirect=${encodeURIComponent(url.pathname + url.search)}`, { replace: true });
     }

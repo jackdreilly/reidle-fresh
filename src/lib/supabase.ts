@@ -16,15 +16,29 @@ function save(t: Tokens | null) {
   try { t ? localStorage.setItem(STORE, JSON.stringify(t)) : localStorage.removeItem(STORE); } catch { /* ignore */ }
 }
 
+const TIMEOUT_MS = 20_000;
+/** fetch with a deadline: a stalled connection becomes a visible error instead of an endless spinner. */
+async function request(url: string, init: RequestInit): Promise<Response> {
+  try {
+    return await fetch(url, { ...init, signal: AbortSignal.timeout(TIMEOUT_MS) });
+  } catch (e) {
+    const name = (e as Error)?.name;
+    if (name === "TimeoutError" || name === "AbortError") {
+      throw Object.assign(new Error("Can't reach the server (timed out). Check your connection and try again."), { code: "timeout" }) as ApiError;
+    }
+    throw Object.assign(new Error("Can't reach the server. Check your connection and try again."), { code: "network" }) as ApiError;
+  }
+}
+
 const fail = async (res: Response): Promise<never> => {
   const body = await res.json().catch(() => ({}));
   throw Object.assign(new Error(body.message ?? body.msg ?? body.error_description ?? res.statusText), {
-    code: body.code ?? body.error_code,
+    code: body.error_code ?? body.code,
   }) as ApiError;
 };
 
 const post = (path: string, body: unknown, bearer = KEY) =>
-  fetch(`${URL}${path}`, {
+  request(`${URL}${path}`, {
     method: "POST",
     headers: { apikey: KEY, authorization: `Bearer ${bearer}`, "content-type": "application/json" },
     body: JSON.stringify(body),
@@ -77,7 +91,7 @@ export const auth = {
 /** Call a Postgres function; throws on error. One round trip per page. */
 export async function rpc<T = unknown>(fn: string, args?: Record<string, unknown>): Promise<T> {
   const token = await accessToken();
-  const res = await fetch(`${URL}/rest/v1/rpc/${fn}`, {
+  const res = await request(`${URL}/rest/v1/rpc/${fn}`, {
     method: "POST",
     headers: { apikey: KEY, authorization: `Bearer ${token ?? KEY}`, "content-type": "application/json" },
     body: JSON.stringify(args ?? {}),
@@ -91,7 +105,7 @@ export async function rpc<T = unknown>(fn: string, args?: Record<string, unknown
 export async function patchRow(table: string, match: Record<string, string | number>, patch: unknown): Promise<void> {
   const token = await accessToken();
   const qs = Object.entries(match).map(([k, v]) => `${k}=eq.${encodeURIComponent(v)}`).join("&");
-  const res = await fetch(`${URL}/rest/v1/${table}?${qs}`, {
+  const res = await request(`${URL}/rest/v1/${table}?${qs}`, {
     method: "PATCH",
     headers: { apikey: KEY, authorization: `Bearer ${token ?? KEY}`, "content-type": "application/json", prefer: "return=minimal" },
     body: JSON.stringify(patch),
