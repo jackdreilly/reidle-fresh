@@ -41,7 +41,7 @@ jobs:
         run: npm run qa:staging
       - name: Upload QA screenshots
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: qa-staging
           path: |
