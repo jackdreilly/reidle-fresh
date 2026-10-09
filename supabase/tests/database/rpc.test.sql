@@ -1,5 +1,5 @@
 begin;
-select plan(32);
+select plan(35);
 
 -- Fixture: isolated players, no seed dependence.
 truncate submissions, checkpoints, messages, message_reads, winners, challenges, players restart identity cascade;
@@ -119,6 +119,16 @@ select act_as('eve');
 select ok((play_state() ->> 'server_now')::timestamptz is not null, 'server_now is returned for skew correction');
 select reset_role();
 delete from checkpoints;
+
+-- A game's starting word never equals its answer (instant-win guard)
+select reset_role();
+select ensure_daily_word(date '2040-01-01' + i) from generate_series(0, 59) i;
+select is((select count(*)::int from daily_words where day >= '2040-01-01' and word = answer), 0, 'generated daily words never start on the answer');
+select is((select count(*)::int from daily_words where day >= '2040-01-01'), 60, '60 daily words were generated');
+select act_as('cat');
+select challenge_next() from generate_series(1, 60);
+select reset_role();
+select is((select count(*)::int from challenges where starting_word = answer), 0, 'generated challenges never start on the answer');
 
 -- Messages: only the author can delete
 select act_as('ann');
