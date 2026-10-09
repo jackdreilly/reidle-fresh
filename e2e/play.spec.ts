@@ -15,7 +15,7 @@ test("daily game: play, win, appear on the leaderboard, cannot replay", async ({
 
   await page.goto("/stats/today");
   await expect(page.getByRole("row").filter({ hasText: "erin" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Play" })).toHaveCount(0); // nav hides Play once played
+  await expect(page.getByRole("link", { name: "Play", exact: true })).toHaveCount(0); // nav hides Play once played
   await page.goto("/play");
   await expect(page).toHaveURL(/\/stats\/daily\//); // already played -> home
 });

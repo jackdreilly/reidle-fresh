@@ -73,7 +73,7 @@ export function DailyTable(
 ) {
   return (
     <Table
-      columns={["Name", "Time", "Pen", "Paste", "Watch"]}
+      columns={["Name", "Time", "Pen", "Paste"]}
     >
       <TableBody>
         {submissions.map((
@@ -89,20 +89,17 @@ export function DailyTable(
             <TableCell>
               {penalty >= 60 ? <TimerText seconds={penalty} /> : penalty}
             </TableCell>
-            <TableCell
-              class={"whitespace-pre-wrap text-[7px] leading-[4px]" +
-                (hide ? " invisible" : "")}
-            >
-              <Paste paste={paste} />
-            </TableCell>
-            <TableCell>
+            <TableCell class={hide ? "invisible" : ""}>
               <a
-                class={hide ? " invisible" : ""}
+                class="group inline-flex items-center gap-1 rounded p-0.5 hover:bg-gray-200"
                 href={`/submissions/${submission_id}/playback` +
                   (challenge ? "?challenge" : "")}
+                title="Watch replay"
+                aria-label={`Watch ${name}'s replay`}
               >
+                <Paste paste={paste} />
                 <svg
-                  class="w-6 h-6 hover:bg-gray-200"
+                  class="w-3 h-3 shrink-0 text-gray-400 group-hover:text-gray-700"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                   xmlns="http://www.w3.org/2000/svg"
@@ -121,11 +118,11 @@ export function DailyTable(
 
 function Paste({ paste }: { paste: string }) {
   if (paste === "") {
-    return <span class="text-gray-400">No paste</span>;
+    return <span class="text-xs text-gray-400">No paste</span>;
   }
   return (
     <div
-      class="grid"
+      class="grid w-7"
       style={{ gridTemplateRows: `repeat(${Math.min(12, paste.split("\n").length)}, minmax(0, 1fr))` }}
     >
       {paste.split("\n").map((line) => (
