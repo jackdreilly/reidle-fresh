@@ -17,7 +17,13 @@ const geometry = (page: Page) =>
     const board = rect("board"), keys = rect("keyboard");
     const rows = document.querySelectorAll("[data-testid=board] .grid-cols-5");
     const cell = rows[0].children[0].getBoundingClientRect();
-    return { boardTop: board.top, boardBottom: board.bottom, keyTop: keys.top, rows: rows.length, cellW: cell.width, cellH: cell.height };
+    const rects = Array.from(rows).map((r) => Array.from(r.children).map((c) => c.getBoundingClientRect()));
+    let minRowGap = Infinity, minColGap = Infinity;
+    for (let r = 0; r < rects.length; r++) for (let c = 0; c < 5; c++) {
+      if (r + 1 < rects.length) minRowGap = Math.min(minRowGap, rects[r + 1][c].top - rects[r][c].bottom);
+      if (c + 1 < 5) minColGap = Math.min(minColGap, rects[r][c + 1].left - rects[r][c].right);
+    }
+    return { boardTop: board.top, boardBottom: board.bottom, keyTop: keys.top, rows: rows.length, cellW: cell.width, cellH: cell.height, minRowGap, minColGap };
   });
 
 async function expectFits(page: Page, rows: number) {
@@ -31,6 +37,9 @@ async function expectFits(page: Page, rows: number) {
     expect(g.boardTop, `board above viewport: ${where}`).toBeGreaterThanOrEqual(0);
     expect(g.cellH, `cells too small: ${where}`).toBeGreaterThanOrEqual(14);
     expect(Math.abs(g.cellW - g.cellH), `cells not square: ${where}`).toBeLessThan(8);
+    // clean white separation between boxes in BOTH directions (colour must never bleed across cells)
+    expect(g.minRowGap, `no white gap between rows: ${where}`).toBeGreaterThanOrEqual(2);
+    expect(g.minColGap, `no white gap between columns: ${where}`).toBeGreaterThanOrEqual(2);
   }
 }
 

@@ -7,14 +7,26 @@ const niceMax = (m: number) => {
   return Math.ceil(m / p) * p;
 };
 
+/** Axis for whole-number data (game counts): integer steps only, never 22.5 games. */
+function integerAxis(max: number): { top: number; ticks: number[] } {
+  if (max <= 4) return { top: Math.max(1, max), ticks: Array.from({ length: Math.max(1, max) + 1 }, (_, i) => i) };
+  const raw = max / 4;
+  const mag = 10 ** Math.floor(Math.log10(raw));
+  const step = [1, 2, 5, 10].map((m) => m * mag).find((st) => st >= raw)!;
+  return { top: step * Math.ceil(max / step), ticks: Array.from({ length: Math.ceil(max / step) + 1 }, (_, i) => i * step) };
+}
+
 export default function Chart({ type, label, labels, values, width = 400, height = 200 }: Props) {
   const L = 36, R = 8, T = 26, B = 22;
   const w = width - L - R, h = height - T - B;
-  const max = niceMax(Math.max(0, ...values));
+  const peak = Math.max(0, ...values);
+  const whole = type === "bar"; // bar charts here are always counts
+  const axis = whole ? integerAxis(peak) : { top: niceMax(peak), ticks: [0, 0.25, 0.5, 0.75, 1].map((f) => f * niceMax(peak)) };
+  const max = axis.top;
   const n = values.length;
   const x = (i: number) => L + (type === "bar" ? (i + 0.5) * (w / n) : n === 1 ? w / 2 : (i * w) / (n - 1));
   const y = (v: number) => T + h - (v / max) * h;
-  const ticks = [0, 0.25, 0.5, 0.75, 1].map((f) => f * max);
+  const ticks = axis.ticks;
   const step = Math.ceil(n / 8);
   return (
     <svg viewBox={`0 0 ${width} ${height}`} class="w-full" role="img" aria-label={label}>

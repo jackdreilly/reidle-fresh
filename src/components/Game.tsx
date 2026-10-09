@@ -633,7 +633,7 @@ export default function Game(
                 : null}
             </div>
             <div
-              class="grid gap-[3px] box-border h-full w-full"
+              class="grid gap-1 box-border h-full w-full"
               style={`grid-template-rows: repeat(${numRows}, minmax(0, 1fr))`}
             >
               {[...Array(numRows).keys()].filter(
@@ -644,12 +644,12 @@ export default function Game(
                 ) => i < previousWords.length || !won)
                 .map((row) => (
                   <div
-                    class="grid grid-cols-5 gap-[3px]"
+                    class="grid grid-cols-5 gap-1 min-h-0"
                     key={row}
                   >
                     {[0, 1, 2, 3, 4].map((column) => (
                       <div
-                        class="border-solid border-2 grid items-center"
+                        class="border-solid border-2 box-border flex items-center justify-center min-h-0 min-w-0 overflow-hidden leading-none"
                         style={{
                           borderColor: row < previousWords.length
                             ? "transparent"

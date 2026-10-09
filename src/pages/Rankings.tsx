@@ -37,17 +37,17 @@ export default function Rankings({ data }: PageProps<Series[]>) {
   }, []);
   const { w: W, h: H } = size;
   const T = 48, B = 28, PAD = 16, SPAN = 30 * DAY;
-  const L = W < 520 ? 0 : 150; // legend gutter on wide screens
+  const L = 0; // the legend is laid out beside/above the plot, never over it
   const maxRank = useMemo(() => Math.max(1, ...data.flatMap((s) => s.rank)), [data]);
   const X = (t: number) => L + PAD + ((t - from) / SPAN) * (W - L - 2 * PAD);
   const Y = (r: number) => T + ((r - 1) / Math.max(1, maxRank - 1)) * (H - T - B - 2 * PAD) + PAD;
   const ticks = Array.from({ length: 6 }, (_, i) => from + (i * SPAN) / 5);
   return (
-    <div ref={box} style={{ height: "80vh", width: "100%" }} class="relative select-none overflow-hidden">
-      <div class="absolute left-0 top-0 z-10 rounded bg-white/70 p-1 text-xl">
+    <div class="flex flex-col sm:flex-row sm:items-start gap-2">
+      <div class="flex flex-wrap gap-x-4 gap-y-1 text-lg sm:flex-col sm:flex-nowrap sm:gap-y-0 sm:text-xl sm:w-40 sm:shrink-0">
         {data.map((s, i) => (
           <div
-            class="cursor-pointer"
+            class="cursor-pointer whitespace-nowrap"
             style={{ color: COLORS[i % COLORS.length], opacity: solo && solo !== s.name ? 0.3 : 1 }}
             onClick={() => setSolo(solo === s.name ? null : s.name)}
           >
@@ -55,6 +55,7 @@ export default function Rankings({ data }: PageProps<Series[]>) {
           </div>
         ))}
       </div>
+      <div ref={box} class="relative min-w-0 flex-1 select-none overflow-hidden h-[55vh] sm:h-[75vh]">
       <svg
         width={W}
         height={H}
@@ -80,6 +81,7 @@ export default function Rankings({ data }: PageProps<Series[]>) {
           );
         })}
       </svg>
+      </div>
     </div>
   );
 }

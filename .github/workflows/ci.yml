@@ -3,11 +3,17 @@ on:
   push:
     branches: [main, new-score]
   pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  test:
+  static:
+    name: Typecheck · unit tests · build + bundle budget
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -15,12 +21,34 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm run test:unit
-      - name: Start local Supabase
+      # build with the committed staging env (public URL + publishable key); enforces the first-load budget
+      - run: npm run build:staging
+
+  integration:
+    name: Database tests · legacy import · headless E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - name: Start local Supabase (Postgres, Auth, REST, Realtime)
         run: npx supabase start
-      - run: npm run test:db
-      - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e
-      - run: npm run build
-      - if: failure()
+      - name: pgTAP (schema, RPCs, permissions, scoring cutover)
+        run: npm run test:db
+      - name: Legacy -> new import (synthetic data) + verification report
+        run: npm run test:import
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: E2E against the production bundle
+        run: npm run test:e2e
+      - name: Upload Playwright traces/screenshots
+        if: failure()
         uses: actions/upload-artifact@v4
-        with: { name: playwright-traces, path: test-results }
+        with:
+          name: playwright-traces
+          path: test-results
+          retention-days: 7
+      - if: always()
+        run: npx supabase stop --no-backup

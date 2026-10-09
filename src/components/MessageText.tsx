@@ -5,61 +5,46 @@ type LinkType = "text" | "url" | "spotify" | "random" | "gif_search";
 const GIPHY_API_KEY = "kC0kZcGTTNZITKMQPLaxGwHeGpwYMn4S";
 
 function RandomGif() {
-  const [url, setUrl] = useState<string>();
-  useEffect(() => {
-    fetch(
-      `https://api.giphy.com/v1/gifs/random?api_key=${GIPHY_API_KEY}`,
-    ).then((d) => d.json()).then((d) => setUrl(d.data?.embed_url));
-  }, []);
-  return url
-    ? (
-      <iframe
-        src={url}
-        style={{
-          border: "none",
-          borderRadius: "8px",
-          maxWidth: "100%",
-          width: "360px",
-          height: "270px",
-        }}
-      />
-    )
-    : <span></span>;
+  return <SearchGif query="" />;
+}
+
+const gifCacheKey = (q: string) => `reidle:gif:${q.toLowerCase()}`;
+const cachedGif = (q: string): string | undefined => {
+  try { return localStorage.getItem(gifCacheKey(q)) ?? undefined; } catch { return undefined; }
+};
+
+function GifFrame({ src }: { src: string }) {
+  return (
+    <iframe
+      src={src}
+      style={{ border: "none", borderRadius: "8px", maxWidth: "100%", width: "360px", height: "270px" }}
+      allowFullScreen={false}
+    />
+  );
 }
 
 function SearchGif({ query }: { query: string }) {
-  const [url, setUrl] = useState<string>();
+  const trimmed = query.trim();
+  const [url, setUrl] = useState<string | undefined>(() => (trimmed ? cachedGif(trimmed) : undefined));
+  const [failed, setFailed] = useState(false);
   useEffect(() => {
-    const trimmed = query.trim();
+    if (url) return; // cached: no API call (the shared Giphy key is rate-limited)
     const endpoint = trimmed
       ? `https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(trimmed)}&limit=1`
       : `https://api.giphy.com/v1/gifs/random?api_key=${GIPHY_API_KEY}`;
     fetch(endpoint)
       .then((d) => d.json())
       .then((d) => {
-        const embedUrl = trimmed
-          ? d.data?.[0]?.embed_url
-          : d.data?.embed_url;
+        const embedUrl: string | undefined = trimmed ? d.data?.[0]?.embed_url : d.data?.embed_url;
+        if (!embedUrl) return setFailed(true);
+        if (trimmed) try { localStorage.setItem(gifCacheKey(trimmed), embedUrl); } catch { /* ignore */ }
         setUrl(embedUrl);
       })
-      .catch((e) => console.error("Failed to fetch gif:", e));
+      .catch(() => setFailed(true));
   }, [query]);
-
-  return url
-    ? (
-      <iframe
-        src={url}
-        style={{
-          border: "none",
-          borderRadius: "8px",
-          maxWidth: "100%",
-          width: "360px",
-          height: "270px",
-        }}
-        allowFullScreen={false}
-      />
-    )
-    : <span></span>;
+  if (url) return <GifFrame src={url} />;
+  // never render an empty message: say what was meant when Giphy is unavailable
+  return failed ? <span class="italic text-gray-400">🖼 /gif {trimmed}</span> : <span></span>;
 }
 
 function SpotifyLink({ src }: { src: string }) {
@@ -114,9 +99,16 @@ function splitStringByURLs(
   return result;
 }
 
+const IMAGE_URL = /\.(png|jpe?g|gif|webp|avif|svg)([?#].*)?$/i;
+const IMAGE_HOSTS = /^https?:\/\/(media\d*\.giphy\.com|i\.giphy\.com|i\.imgur\.com|media\.tenor\.com)\//i;
+const looksLikeImage = (url: string) => IMAGE_URL.test(url) || IMAGE_HOSTS.test(url);
+
 function MaybeImage({ url }: { url: string }) {
-  const [isImage, setIsImage] = useState(true);
+  // Only URLs that look like images are fetched as images: otherwise every viewer's browser would
+  // contact whatever host a message links to (leaks IPs, loads arbitrary content).
+  const [isImage, setIsImage] = useState(looksLikeImage(url));
   useEffect(() => {
+    if (!looksLikeImage(url)) return;
     let timer: ReturnType<typeof setTimeout> | undefined = undefined;
     const img = new Image();
     img.onerror = img.onabort = function () {
