@@ -157,7 +157,8 @@ landed on legacy (append-only, idempotent).
   api.cloudflare.com (use `CLOUDFLARE_API_TOKEN=placeholder CLOUDFLARE_ACCOUNT_ID=<id>`), which breaks the
   short-lived asset-upload JWT. Plain Worker script uploads work. NEVER run `wrangler pages ...` or `wrangler
   deploy` autoconfig in this repo: it rewrites vite.config.ts/package.json (adds @cloudflare/vite-plugin).
-  Prod: build with `.env.production`, `wrangler deploy --name reidle`. Supabase cannot host the SPA.
+  Prod: one click on GitHub (Actions -> Deploy prod -> Run workflow, `.github/workflows/deploy-prod.yml`),
+  or locally: build with `.env.production`, `wrangler deploy --name reidle`. Supabase cannot host the SPA.
   Staging site is public with fake data + open name-only signup: put it behind Cloudflare Access before
   loading cloned prod data.
 - Staging is live: Supabase project `reidle-staging` (`noxissvouravthzvoapw`) with schema, RPCs and fixture
