@@ -67,6 +67,8 @@ export async function navigate(href: string, opts: { replace?: boolean; pop?: bo
     const [mod, data] = await Promise.all([route.page!(), fresh]);
     finish(id, opts, url, { route, Page: mod.default, params, query: url.searchParams, data, key: url.href });
   } catch (e) {
+    // superseded by a newer navigation, or the page is going away: nothing to report
+    if (id !== navId || (e as { code?: string }).code === "unloading") return;
     if (e instanceof Redirect) return void navigate(e.to, { replace: true });
     // A deploy replaced the hashed chunks this (old) page wants: reload once to pick up the new build.
     if (/dynamically imported module|importing a module script failed/i.test((e as Error)?.message ?? "")) {

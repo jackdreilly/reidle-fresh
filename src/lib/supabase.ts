@@ -17,11 +17,16 @@ function save(t: Tokens | null) {
 }
 
 const TIMEOUT_MS = 20_000;
+// A request killed because the page is being left/reloaded is not an error worth reporting.
+let leaving = false;
+addEventListener("pagehide", () => (leaving = true));
+addEventListener("pageshow", () => (leaving = false));
 /** fetch with a deadline: a stalled connection becomes a visible error instead of an endless spinner. */
 async function request(url: string, init: RequestInit): Promise<Response> {
   try {
     return await fetch(url, { ...init, signal: AbortSignal.timeout(TIMEOUT_MS) });
   } catch (e) {
+    if (leaving) throw Object.assign(new Error("page unloading"), { code: "unloading" }) as ApiError;
     const name = (e as Error)?.name;
     if (name === "TimeoutError" || name === "AbortError") {
       throw Object.assign(new Error("Can't reach the server (timed out). Check your connection and try again."), { code: "timeout" }) as ApiError;

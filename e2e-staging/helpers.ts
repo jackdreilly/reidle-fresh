@@ -18,7 +18,7 @@ export function watch(page: Page, issues: Issue[], where: () => string) {
   page.on("console", (m) => {
     if (m.type() === "error" && !/Failed to load resource.*(400|401)/.test(m.text())) issues.push({ where: where(), kind: "console.error", detail: m.text().slice(0, 300) });
   });
-  page.on("requestfailed", (r) => !/\/auth\/v1\/logout/.test(r.url()) && issues.push({ where: where(), kind: "requestfailed", detail: `${r.method()} ${r.url().slice(0, 120)} ${r.failure()?.errorText}` }));
+  page.on("requestfailed", (r) => !/\/auth\/v1\/logout/.test(r.url()) && r.failure()?.errorText !== "net::ERR_ABORTED" && issues.push({ where: where(), kind: "requestfailed", detail: `${r.method()} ${r.url().slice(0, 120)} ${r.failure()?.errorText}` }));
   page.on("response", (r) => {
     if (r.status() >= 500 || (r.status() >= 400 && !/\/auth\/v1\/token/.test(r.url()))) issues.push({ where: where(), kind: `http ${r.status()}`, detail: `${r.request().method()} ${r.url().slice(0, 140)}` });
   });
