@@ -33,7 +33,7 @@ export default defineConfig({
   webServer: {
     command: "npx vite build --mode development --outDir dist-e2e --emptyOutDir && npx vite preview --outDir dist-e2e --port 3000",
     url: "http://127.0.0.1:3000",
-    reuseExistingServer: true,
+    reuseExistingServer: false, // always build + serve a fresh production bundle
     timeout: 120_000,
   },
 });

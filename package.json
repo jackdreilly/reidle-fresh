@@ -19,7 +19,8 @@
     "sync-auth": "node tools/sync-auth-users.ts",
     "check": "npm run typecheck && npm run test:unit && npm run test:db && npm run test:e2e && npm run build",
     "test:import": "tools/test-import.sh",
-    "import-prod": "tools/import-prod.sh"
+    "import-prod": "tools/import-prod.sh",
+    "build:staging": "tsc --noEmit && vite build --mode staging && node tools/check-bundle.mjs"
   },
   "dependencies": {
     "@supabase/realtime-js": "^2.117.3",

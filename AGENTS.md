@@ -119,7 +119,9 @@ enable RLS or retire it independently of this port.
 - Battles are ported but least tested (E2E coverage pending).
 - `rankings()` recomputes full history per request; materialise if it gets slow.
 - Giphy API key is hardcoded in `src/components/MessageText.tsx` (inherited).
-- Hosting target not chosen (any static host + SPA fallback to `/index.html`).
+- Hosting: not chosen yet. Supabase cannot host the SPA (serves HTML as text/plain). Any static host works;
+  recommended Cloudflare Pages (build `npm run build:staging` / `npm run build`, output `dist`; SPA
+  fallback + cache headers already in `public/_redirects`, `public/_headers`, `vercel.json`).
 - Staging: project `reidle-staging` (`noxissvouravthzvoapw`, free plan, us-east-1) has schema + RPCs +
   fixture data (applied via the Supabase MCP connector). Still needed: "Confirm email" OFF, DB URL
   secret (`STAGING_DB_URL`) for bulk loads/`db push`, and a static host for the SPA.
