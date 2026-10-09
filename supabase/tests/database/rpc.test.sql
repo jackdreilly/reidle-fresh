@@ -1,5 +1,5 @@
 begin;
-select plan(29);
+select plan(32);
 
 -- Fixture: isolated players, no seed dependence.
 truncate submissions, checkpoints, messages, message_reads, winners, challenges, players restart identity cascade;
@@ -21,6 +21,23 @@ create function reset_role() returns void language sql as $$ reset role $$;
 
 select is((select count(*)::int from players), 5, 'auth trigger links a player per auth user');
 
+-- The callable surface is an explicit allowlist (internal helpers must stay private)
+select is(
+  (select array_agg(p.proname::text order by p.proname) from pg_proc p
+    where p.pronamespace = 'public'::regnamespace and p.proname not in ('act_as', 'reset_role', 'uid_of')
+      and has_function_privilege('authenticated', p.oid, 'execute')),
+  array['battle_get','battle_home','battle_restart','bootstrap','challenge_next','challenge_page',
+        'challenge_play','challenges_page','daily_page','delete_message','get_playback','like_message',
+        'messages_page','new_battle','past_winners','play_state','player_stats','post_message',
+        'rankings','save_checkpoint','start_play','submit_challenge','submit_daily','weekly_page']::text[],
+  'authenticated can execute exactly the RPC allowlist');
+select is((select count(*)::int from pg_proc p where p.pronamespace = 'public'::regnamespace
+            and p.proname not in ('act_as', 'reset_role', 'uid_of')
+            and has_function_privilege('anon', p.oid, 'execute')), 0, 'anon can execute nothing');
+select throws_ok($$set local role authenticated; select public.play_payload('x')$$, '42501', null,
+  'helpers are not callable (play_payload would leak the answer)');
+reset role;
+
 -- Tables are closed to clients except battles
 set local role authenticated;
 select throws_ok($$select * from public.submissions$$, '42501', null, 'authenticated cannot read tables directly');
@@ -39,7 +56,7 @@ insert into submissions (day, name, "time", word, paste) values
   (date_trunc('week', current_date)::date, 'dan', 60, 'x', 'p'),
   (date_trunc('week', current_date)::date, 'eve', 70, 'x', 'p');
 select act_as('ann');
-create temp table wk on commit drop as select jsonb_array_elements(week_scores(current_date)) r;
+create temp table wk on commit drop as select jsonb_array_elements(weekly_page(current_date) -> 'players') r;
 grant all on wk to authenticated;
 select is((select (r #>> '{results,totals,score}')::numeric from wk where r->>'name'='ann'), 4.0, '1st = 4 points');
 select is((select (r #>> '{results,totals,score}')::numeric from wk where r->>'name'='ben'), 2.0, '2nd = 2 points');
@@ -54,8 +71,8 @@ insert into submissions (day, name, "time", word, paste) values
   ((date_trunc('week', current_date) - interval '7 days')::date, 'ann', 30, 'x', 'p'),
   ((date_trunc('week', current_date) - interval '7 days')::date, 'ben', 40, 'x', 'p');
 select act_as('ann');
-select is((select (jsonb_array_elements(week_scores(current_date - 7)) #>> '{results,totals,score}')::numeric limit 1), 1::numeric, 'legacy: winner product score = 1');
-select is(last_week_winner(), 'ann', 'last week winner is computed and memoised');
+select is((select (jsonb_array_elements(weekly_page(current_date - 7) -> 'players') #>> '{results,totals,score}')::numeric limit 1), 1::numeric, 'legacy: winner product score = 1');
+select is((past_winners() -> 0 ->> 'name'), 'ann', 'last week winner is computed and memoised');
 select reset_role();
 select is((select name from winners), 'ann', 'winner persisted');
 

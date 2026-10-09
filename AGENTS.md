@@ -36,6 +36,14 @@ tools/                 clone-db.sh, sync-auth-users.ts, gen-words-seed.mjs, chec
 - Identity: `me()` resolves the player from `auth.uid()`. Auth is **name-only by design**
   (same trust model as the legacy app): `src/lib/credentials.ts` derives a deterministic
   email/password per name; sign-in tries login then signs up; a trigger links `players`.
+- **Function privileges are an allowlist** (`20260101000300_harden.sql`): everything is revoked from
+  PUBLIC/anon/authenticated and only the page/action RPCs are granted. A new function is private
+  by default; if it is part of the API, `grant execute ... to authenticated` in its migration. Helpers
+  (`play_payload`, `week_scores`, ...) must stay ungranted. pgTAP pins the exact allowlist.
+  Supabase advisor lint 0029 (24 warnings, one per public RPC) and 0008 (closed tables) are expected.
+- Anti-cheat is not a goal (honors system). Server-side hiding of today's pastes/playbacks exists
+  but don't add more machinery for it. What matters: **starting a game is an explicit POST**
+  (`start_play`), never a side effect of loading a page.
 - Today's pastes/playbacks are hidden server-side until you've played (`daily_page`,
   `get_playback`, `challenge_page`). Keep that invariant (pgTAP covers it).
 - Changing schema/functions: add a **new migration** (`supabase migration new x`); don't edit
@@ -62,6 +70,13 @@ npm run test:e2e        # resets DB, starts vite, runs Playwright headless
 ```
 Playwright in the Claude web sandbox: `PW_CHROMIUM=/opt/pw-browsers/chromium-1194/chrome-linux/chrome npm run test:e2e`.
 Docker daemon may need `dockerd &` first in the sandbox.
+
+## Auth note ("email")
+
+No email is ever sent or collected. Supabase Auth keys accounts by email, so each player name maps
+to a synthetic login id `<hash>@players.reidle.app` (see `src/lib/credentials.ts`). Hosted projects
+default to "Confirm email" ON, which blocks these accounts: turn it OFF per project
+(Auth -> Providers -> Email) or via `supabase config push` (config.toml already has it off for local).
 
 ## Environments
 
@@ -105,4 +120,6 @@ enable RLS or retire it independently of this port.
 - `rankings()` recomputes full history per request; materialise if it gets slow.
 - Giphy API key is hardcoded in `src/components/MessageText.tsx` (inherited).
 - Hosting target not chosen (any static host + SPA fallback to `/index.html`).
-- Staging Supabase project does not exist yet (only legacy prod does).
+- Staging: project `reidle-staging` (`noxissvouravthzvoapw`, free plan, us-east-1) has schema + RPCs +
+  fixture data (applied via the Supabase MCP connector). Still needed: "Confirm email" OFF, DB URL
+  secret (`STAGING_DB_URL`) for bulk loads/`db push`, and a static host for the SPA.
