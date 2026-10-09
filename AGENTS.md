@@ -138,6 +138,13 @@ pre-computed by the importer). `winners` history is imported verbatim.
 Real data on staging: names + messages become readable by anyone with the staging URL/key (same exposure
 as prod today: name-only honors system). Gate the Worker or scrub messages if that is a concern.
 
+## Admin fixes (prod)
+
+Owner-only SQL functions (not granted to clients; call from the SQL editor or the Supabase connector):
+`select admin_remove_play('name' [, day] [, challenge_id]);` and `select admin_update_time('name', 12.3 [, day] [, challenge_id]);`
+Both re-rank the day and clear memoised weekly results. After cutover, `tools/legacy/catchup.sql` copies games that still
+landed on legacy (append-only, idempotent).
+
 ## Known gaps / TODO
 
 - Battles are ported but least tested (E2E coverage pending).

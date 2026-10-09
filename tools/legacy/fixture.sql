@@ -10,7 +10,7 @@ insert into legacy.submissions (submission_id, name, "time", penalty, playback, 
   (3, 'carol', 40.0, 0, '{"events":[]}',                       current_date - 1, null, 'p'),   -- orphan name
   (4, 'carol', 99.0, 0, '{"events":[]}',                       current_date - 1, null, 'dupe'), -- duplicate daily
   (5, 'bob',   30.0, 0, '{"events":[]}',                       current_date,     10,   'p'),
-  (6, 'bob',   31.0, 0, '{"events":[]}',                       current_date,     10,   'dupe'), -- duplicate challenge
+  (6, 'bob',   31.0, 0, '{"events":[]}',                       current_date - 1, 10,   'dupe'), -- same challenge, another day
   (7, 'dave',  20.0, 0, '{"events":[]}',                       current_date,     10,   'p'),
   (8, '',      20.0, 0, '{"events":[]}',                       current_date,     null, 'p');    -- empty name
 insert into legacy.winners values ('alice', '2026-09-28'), ('bob', '2026-09-28'), ('bob', '2026-10-05');

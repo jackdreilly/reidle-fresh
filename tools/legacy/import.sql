@@ -40,8 +40,10 @@ insert into public.submissions
 select submission_id, day, name, paste, playback::jsonb, challenge_id,
        "time"::numeric::double precision, penalty::numeric::double precision, word, 1, created_at
 from (
-  select distinct on (day, name, coalesce(challenge_id, -1)) *
-  from legacy.submissions where name <> '' order by day, name, coalesce(challenge_id, -1), submission_id
+  -- once per (day, name) for dailies, once per (challenge, name) for challenges (even across days)
+  select distinct on (case when challenge_id is null then day end, name, coalesce(challenge_id, -1)) *
+  from legacy.submissions where name <> ''
+  order by case when challenge_id is null then day end, name, coalesce(challenge_id, -1), submission_id
 ) s;
 -- daily ranks (and nothing else) are derived data: recompute from times
 update public.submissions s set "rank" = r.rn
@@ -62,10 +64,15 @@ insert into public.battles (battle_id, state, users, updated_at)
   select battle_id, state::jsonb, users::jsonb, updated_at from legacy.battles;
 insert into public.battles (battle_id) values (7) on conflict do nothing;
 
--- identity sequences continue after the imported ids
-select setval(pg_get_serial_sequence('public.challenges', 'challenge_id'), greatest(1, (select max(challenge_id) from public.challenges)));
-select setval(pg_get_serial_sequence('public.submissions', 'submission_id'), greatest(1, (select max(submission_id) from public.submissions)));
-select setval(pg_get_serial_sequence('public.messages', 'message_id'), greatest(1, (select max(message_id) from public.messages)));
+-- re-runs: re-link players to auth accounts that already exist here (signed in before a re-import)
+update public.players p set user_id = u.id from auth.users u
+  where p.user_id is null and u.raw_user_meta_data ->> 'name' = p.name;
+
+-- identity sequences continue 1000 above the imported ids, so legacy stragglers (tools/legacy/catchup.sql)
+-- keep their own ids after cutover
+select setval(pg_get_serial_sequence('public.challenges', 'challenge_id'), greatest(1, (select max(challenge_id) from public.challenges)) + 1000);
+select setval(pg_get_serial_sequence('public.submissions', 'submission_id'), greatest(1, (select max(submission_id) from public.submissions)) + 1000);
+select setval(pg_get_serial_sequence('public.messages', 'message_id'), greatest(1, (select max(message_id) from public.messages)) + 1000);
 select setval(pg_get_serial_sequence('public.battles', 'battle_id'), greatest(100, (select max(battle_id) from public.battles)));
 
 -- Freeze every pre-cutover week now (legacy product scoring, computed once, served read-only forever).
