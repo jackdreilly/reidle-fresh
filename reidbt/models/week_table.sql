@@ -11,6 +11,12 @@ end_of_week as (
     from start_of_week
 ),
 
+is_new as (
+    select
+        start_of_week >= date_trunc('week', current_date)::date as value
+    from start_of_week
+),
+
 subs as (
     select
         submissions.day,
@@ -57,6 +63,27 @@ full_subs as (
         penalties
     natural full outer join
         subs
+),
+
+ranked as (
+    select
+        name,
+        day,
+        round_time,
+        submission_id,
+        played,
+        is_new.value as is_new,
+        case
+            when played
+                then
+                    row_number()
+                        over (
+                            partition by day
+                            order by played desc, round_time asc
+                        )
+        end as day_rank
+    from full_subs
+    inner join is_new on true
 )
 
 select
@@ -64,19 +91,18 @@ select
     day,
     round_time,
     submission_id,
+    played,
+    is_new,
     case
-        when
-            played
-            then
-                least(
-                    row_number()
-                        over (
-                            partition by day
-                            order by played desc, round_time asc
-                        ),
-                    9
-                )
+        when played then least(day_rank, 9)
         else 10
-    end as score
+    end as score,
+    case
+        when not played then 0
+        when day_rank = 1 then 4
+        when day_rank = 2 then 2
+        when day_rank = 3 then 1
+        else greatest(0, 1.1 - 0.1 * day_rank)
+    end as points
 from
-    full_subs
+    ranked

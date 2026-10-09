@@ -12,6 +12,12 @@ end_of_week as (
     from start_of_week
 ),
 
+is_new as (
+    select
+        start_of_week >= date_trunc('week', current_date)::date as value
+    from start_of_week
+),
+
 subs as (
     select
         submissions.day,
@@ -58,6 +64,27 @@ full_subs as (
         penalties
     natural full outer join
         subs
+),
+
+ranked as (
+    select
+        name,
+        day,
+        round_time,
+        submission_id,
+        played,
+        is_new.value as is_new,
+        case
+            when played
+                then
+                    row_number()
+                        over (
+                            partition by day
+                            order by played desc, round_time asc
+                        )
+        end as day_rank
+    from full_subs
+    inner join is_new on true
 )
 
 select
@@ -65,22 +92,21 @@ select
     day,
     round_time,
     submission_id,
+    played,
+    is_new,
     case
-        when
-            played
-            then
-                least(
-                    row_number()
-                        over (
-                            partition by day
-                            order by played desc, round_time asc
-                        ),
-                    9
-                )
+        when played then least(day_rank, 9)
         else 10
-    end as score
+    end as score,
+    case
+        when not played then 0
+        when day_rank = 1 then 4
+        when day_rank = 2 then 2
+        when day_rank = 3 then 1
+        else greatest(0, 1.1 - 0.1 * day_rank)
+    end as points
 from
-    full_subs
+    ranked
 )select
     name,
     json_build_object(
@@ -88,16 +114,24 @@ from
             json_build_object(
                 'day', day,
                 'time', round_time,
-                'score', score,
+                'score', case when is_new then points else score end,
                 'submission_id', submission_id
             )
+            order by day
         ),
         'totals', json_build_object(
             'time', round(sum(round_time)),
-            'score', round(exp(sum(ln(score))))
+            'score',
+            case
+                when bool_or(is_new) then round(sum(points), 1)
+                else round(exp(sum(ln(score))))
+            end
         )
     ) as results
 from
     __dbt__cte__week_table
 group by name
-order by round(exp(sum(ln(score)))) asc, sum(round_time) asc
+order by
+    case when bool_or(is_new) then sum(points) end desc nulls last,
+    case when not bool_or(is_new) then exp(sum(ln(score))) end asc nulls last,
+    sum(round_time) asc

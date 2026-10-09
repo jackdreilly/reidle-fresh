@@ -210,30 +210,6 @@ export default function ReidleTemplate(
                   </span>
                 </a>
               </li>
-              <li class="flex items-center p-2 text-base font-normal text-gray-900 rounded-lg hover:bg-gray-100 ">
-                <a
-                  href="/wrapped"
-                  class="flex items-center p-2 text-base font-normal text-gray-900"
-                >
-                  <span
-                    class={"ml-3 " + (route === "/wrapped" ? "font-bold" : "")}
-                  >
-                    Wrapped 2024
-                  </span>
-                </a>
-              </li>
-              <li class="flex items-center p-2 text-base font-normal text-gray-900 rounded-lg hover:bg-gray-100 ">
-                <a
-                  href="https://reidle.streamlit.app"
-                  class="flex items-center p-2 text-base font-normal text-gray-900"
-                >
-                  <span
-                    class={"ml-3 " + (route === "/wrapped" ? "font-bold" : "")}
-                  >
-                    State of Reidle
-                  </span>
-                </a>
-              </li>
               <li>
                 <a
                   href="/account"

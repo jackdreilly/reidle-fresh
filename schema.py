@@ -29,8 +29,6 @@ class TableBase(SQLModel):
 
 class Player(TableBase, table=True):
     name: str = Field(primary_key=True)
-    email: str | None = Field(None, unique=True)
-    notifications_enabled: bool = True
     created_at: datetime = created_at_field()
 
 

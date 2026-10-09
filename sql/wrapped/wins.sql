@@ -1,1 +1,0 @@
-select * from wrapped.wins order by num_wins desc

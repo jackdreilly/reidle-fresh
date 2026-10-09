@@ -36,7 +36,17 @@ export const handler: SessionHandler<Data> = {
   },
 };
 
-function getColor(v: number): string {
+function startOfWeek(d: Date): Date {
+  const x = new Date(Date.UTC(
+    d.getUTCFullYear(),
+    d.getUTCMonth(),
+    d.getUTCDate(),
+  ));
+  x.setUTCDate(x.getUTCDate() - ((x.getUTCDay() + 6) % 7));
+  return x;
+}
+
+function getLegacyColor(v: number): string {
   return {
     1: "rgb(217 249 157)",
     2: "rgb(254 240 138)",
@@ -51,11 +61,30 @@ function getColor(v: number): string {
     "#dddddd";
 }
 
+function getPointsColor(v: number): string {
+  if (v >= 4) return "rgb(217 249 157)";
+  if (v >= 2) return "rgb(254 240 138)";
+  if (v >= 1) return "rgb(254 215 170)";
+  if (v <= 0) return "#dddddd";
+  return {
+    "0.7": "hsl(20deg 96.3% 88%)",
+    "0.6": "hsl(15deg 96.3% 86%)",
+    "0.5": "hsl(10deg 96.3% 85%)",
+    "0.4": "hsl(5deg 96.3% 85%)",
+    "0.3": "hsl(0deg 96.3% 85%)",
+    "0.2": "hsl(0deg 96.3% 80%)",
+    "0.1": "hsl(0deg 96.3% 75%)",
+  }[v.toFixed(1)] ?? "#dddddd";
+}
+
 export default function Page(
   { data: { playedToday, players, week, name: myName } }: PageProps<
     Data & SessionData
   >,
 ) {
+  const isNewWeek = startOfWeek(week).getTime() >=
+    startOfWeek(new Date()).getTime();
+  const getColor = isNewWeek ? getPointsColor : getLegacyColor;
   return (
     <StatsTemplate playedToday={playedToday} route="this_week">
       <h1>{week.toISOString().slice(0, 10)}</h1>
@@ -76,7 +105,7 @@ export default function Page(
                   </a>
                 </HeadColumn>
               ))}
-              <HeadColumn>Π</HeadColumn>
+              <HeadColumn>{isNewWeek ? "Σ" : "Π"}</HeadColumn>
               <HeadColumn>⏱️</HeadColumn>
             </TableHead>
             <TableBody>
@@ -119,12 +148,14 @@ export default function Page(
                     </TableCell>
                   ))}
                   <TableCell>
-                    <span title={`${score}`}>
-                      {score < 1000
-                        ? score
-                        : score.toString().slice(0, 1) + "e" +
-                          Math.floor(Math.log10(score))}
-                    </span>
+                    {isNewWeek ? score : (
+                      <span title={`${score}`}>
+                        {score < 1000
+                          ? score
+                          : score.toString().slice(0, 1) + "e" +
+                            Math.floor(Math.log10(score))}
+                      </span>
+                    )}
                   </TableCell>
                   <TableCell>{timerTime(time)}</TableCell>
                 </TableRow>

@@ -10,3 +10,5 @@ _fresh/
 deno.lock
 .env
 secrets/
+
+.proddbsecret

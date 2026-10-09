@@ -35,15 +35,6 @@ import * as $stats_this_week from "./routes/stats/this_week.tsx";
 import * as $stats_today from "./routes/stats/today.tsx";
 import * as $stats_weekly_startDay_ from "./routes/stats/weekly/[startDay].tsx";
 import * as $submissions_submission_id_playback from "./routes/submissions/[submission_id]/playback.tsx";
-import * as $unsubscribe from "./routes/unsubscribe.tsx";
-import * as $wrapped_name_0 from "./routes/wrapped/[name]/0.tsx";
-import * as $wrapped_name_1 from "./routes/wrapped/[name]/1.tsx";
-import * as $wrapped_name_2 from "./routes/wrapped/[name]/2.tsx";
-import * as $wrapped_name_3 from "./routes/wrapped/[name]/3.tsx";
-import * as $wrapped_name_4 from "./routes/wrapped/[name]/4.tsx";
-import * as $wrapped_name_5 from "./routes/wrapped/[name]/5.tsx";
-import * as $wrapped_name_6 from "./routes/wrapped/[name]/6.tsx";
-import * as $wrapped_index from "./routes/wrapped/index.tsx";
 import * as $AllNotification from "./islands/AllNotification.tsx";
 import * as $Battle from "./islands/Battle.tsx";
 import * as $Message from "./islands/Message.tsx";
@@ -91,15 +82,6 @@ const manifest = {
     "./routes/stats/weekly/[startDay].tsx": $stats_weekly_startDay_,
     "./routes/submissions/[submission_id]/playback.tsx":
       $submissions_submission_id_playback,
-    "./routes/unsubscribe.tsx": $unsubscribe,
-    "./routes/wrapped/[name]/0.tsx": $wrapped_name_0,
-    "./routes/wrapped/[name]/1.tsx": $wrapped_name_1,
-    "./routes/wrapped/[name]/2.tsx": $wrapped_name_2,
-    "./routes/wrapped/[name]/3.tsx": $wrapped_name_3,
-    "./routes/wrapped/[name]/4.tsx": $wrapped_name_4,
-    "./routes/wrapped/[name]/5.tsx": $wrapped_name_5,
-    "./routes/wrapped/[name]/6.tsx": $wrapped_name_6,
-    "./routes/wrapped/index.tsx": $wrapped_index,
   },
   islands: {
     "./islands/AllNotification.tsx": $AllNotification,

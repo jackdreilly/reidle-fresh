@@ -21,15 +21,9 @@ export const handler: SessionHandler<string | undefined> = {
         },
       });
     }
-    return new Response("go to account", {
+    return new Response("go to home", {
       status: 303,
-      headers: {
-        location: (await ctx.state.connection
-            .queryArray`select * from players where name = ${ctx.state.name} and LENGTH(email) > 0`
-            .then((r) => r.rowCount))
-          ? "/"
-          : "/account",
-      },
+      headers: { location: "/" },
     });
   },
 };
