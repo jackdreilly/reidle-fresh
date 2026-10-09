@@ -22,19 +22,19 @@ function getLegacyColor(v: number): string {
 }
 
 function getPointsColor(v: number): string {
-  if (v >= 4) return "rgb(217 249 157)";
-  if (v >= 2) return "rgb(254 240 138)";
-  if (v >= 1) return "rgb(254 215 170)";
+  if (v >= 40) return "rgb(217 249 157)";
+  if (v >= 20) return "rgb(254 240 138)";
+  if (v >= 10) return "rgb(254 215 170)";
   if (v <= 0) return "#dddddd";
   return {
-    "0.7": "hsl(20deg 96.3% 88%)",
-    "0.6": "hsl(15deg 96.3% 86%)",
-    "0.5": "hsl(10deg 96.3% 85%)",
-    "0.4": "hsl(5deg 96.3% 85%)",
-    "0.3": "hsl(0deg 96.3% 85%)",
-    "0.2": "hsl(0deg 96.3% 80%)",
-    "0.1": "hsl(0deg 96.3% 75%)",
-  }[v.toFixed(1)] ?? "#dddddd";
+    7: "hsl(20deg 96.3% 88%)",
+    6: "hsl(15deg 96.3% 86%)",
+    5: "hsl(10deg 96.3% 85%)",
+    4: "hsl(5deg 96.3% 85%)",
+    3: "hsl(0deg 96.3% 85%)",
+    2: "hsl(0deg 96.3% 80%)",
+    1: "hsl(0deg 96.3% 75%)",
+  }[v] ?? "#dddddd";
 }
 
 export default function Weekly({ params, data: { players, additive } }: PageProps<{ players: WeekOutput; additive: boolean }>) {

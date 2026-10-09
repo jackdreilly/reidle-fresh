@@ -53,7 +53,7 @@ tools/                 clone-db.sh, sync-auth-users.ts, gen-words-seed.mjs, chec
 ## Scoring (weekly)
 
 `week_scores(date)` in `*_rpc.sql`. Current week = additive points per day by rank among
-players who played: 1st 4, 2nd 2, 3rd 1, rank r>=4 `max(0, 1.1-0.1r)`, no-show 0; total = sum,
+players who played: 1st 40, 2nd 20, 3rd 10, rank r>=4 `max(0, 11-r)`, no-show 0 (whole numbers); total = sum,
 winner = highest, tie → lowest total time. Past weeks keep the **legacy** score
 (geometric product of capped daily ranks; no-show 10). `last_week_winner()` memoises into
 `winners`. Challenges leaderboard (`challenges_page`) is a separate additive system:

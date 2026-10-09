@@ -11,8 +11,8 @@ test("current week uses additive points (Σ), prior week legacy product (Π)", a
   const days = Number(sql("select (current_date - date_trunc('week', current_date)::date) + 1"));
   const cells = await page.getByRole("row").filter({ hasText: "alice" }).getByRole("cell").allInnerTexts();
   const points = cells.slice(0, days).map(Number);
-  expect(points.every((p) => p >= 0 && p <= 4)).toBe(true);
-  expect(Number(cells[days])).toBeCloseTo(points.reduce((a, b) => a + b, 0), 1);
+  expect(points.every((p) => Number.isInteger(p) && p >= 0 && p <= 40)).toBe(true);
+  expect(Number(cells[days])).toBe(points.reduce((a, b) => a + b, 0));
 
   // a fixed pre-cutover week (2026-10-05): always legacy scoring, whatever today's date is
   await page.goto("/stats/weekly/2026-09-14");

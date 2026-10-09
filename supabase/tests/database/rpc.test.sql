@@ -47,7 +47,7 @@ set local role anon;
 select throws_ok($$select public.bootstrap()$$, '42501', null, 'anon cannot call RPCs');
 reset role;
 
--- Additive weekly scoring (current week): 4/2/1 then 0.7, 0.6, no-show 0
+-- Additive weekly scoring (current week): 40/20/10 then 7, 6, no-show 0
 select reset_role();
 insert into submissions (day, name, "time", word, paste) values
   (date_trunc('week', current_date)::date, 'ann', 30, 'x', 'p'),
@@ -58,11 +58,11 @@ insert into submissions (day, name, "time", word, paste) values
 select act_as('ann');
 create temp table wk on commit drop as select jsonb_array_elements(weekly_page(current_date) -> 'players') r;
 grant all on wk to authenticated;
-select is((select (r #>> '{results,totals,score}')::numeric from wk where r->>'name'='ann'), 4.0, '1st = 4 points');
-select is((select (r #>> '{results,totals,score}')::numeric from wk where r->>'name'='ben'), 2.0, '2nd = 2 points');
-select is((select (r #>> '{results,totals,score}')::numeric from wk where r->>'name'='cat'), 1.0, '3rd = 1 point');
-select is((select (r #>> '{results,totals,score}')::numeric from wk where r->>'name'='dan'), 0.7, '4th = 0.7');
-select is((select (r #>> '{results,totals,score}')::numeric from wk where r->>'name'='eve'), 0.6, '5th = 0.6');
+select is((select (r #>> '{results,totals,score}')::int from wk where r->>'name'='ann'), 40, '1st = 40 points');
+select is((select (r #>> '{results,totals,score}')::int from wk where r->>'name'='ben'), 20, '2nd = 20 points');
+select is((select (r #>> '{results,totals,score}')::int from wk where r->>'name'='cat'), 10, '3rd = 10 points');
+select is((select (r #>> '{results,totals,score}')::int from wk where r->>'name'='dan'), 7, '4th = 7');
+select is((select (r #>> '{results,totals,score}')::int from wk where r->>'name'='eve'), 6, '5th = 6');
 select is((select r->>'name' from wk limit 1), 'ann', 'highest total ranks first');
 
 -- Scoring cutover: weeks from 2026-10-05 are additive, earlier weeks are legacy and FROZEN.
