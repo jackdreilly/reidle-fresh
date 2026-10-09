@@ -4,7 +4,7 @@ name: Deploy staging
 #   secrets:   CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID   (+ STAGING_DB_URL for migrations)
 on:
   push:
-    branches: [main, new-score]
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
