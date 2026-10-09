@@ -9,6 +9,8 @@ import {
   PartyChatToast,
 } from "@/components/PartyChat";
 import { rpc } from "@/lib/supabase";
+import { patchSession } from "@/lib/session";
+import { clearPrefetch } from "@/router";
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import Confetti from "@/components/Confetti";
 export type Battle = {
@@ -328,6 +330,9 @@ export default function Game(
       ? rpc<{ pending_challenges: number }>("submit_challenge", { p_challenge_id: challenge_id, ...args })
       : rpc<void>("submit_daily", args).then(() => undefined))
       .then((res) => {
+        // Pages prefetched before the submit (e.g. today's stats) still hide pastes/playbacks.
+        clearPrefetch();
+        if (challenge_id === undefined) patchSession({ played_today: true });
         if (res?.pending_challenges) setPendingChallenges(res.pending_challenges);
       })
       .catch((e: Error) =>

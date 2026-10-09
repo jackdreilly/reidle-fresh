@@ -30,6 +30,8 @@ function match(pathname: string): { route: Route; params: Params } | null {
 
 // Warm chunk + data on hover/touch so the click is (nearly) instant.
 const warm = new Map<string, { at: number; data: Promise<unknown> }>();
+/** Drop prefetched page data, e.g. after a write that changes what pages show. */
+export const clearPrefetch = () => warm.clear();
 export function prefetch(href: string) {
   const url = new URL(href, location.origin);
   const m = match(url.pathname);
