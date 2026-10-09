@@ -66,7 +66,9 @@ npm run db:start        # local Supabase (Docker; headless, no studio)
 npm run db:reset        # migrations + seed fixture
 npm run dev             # http://127.0.0.1:3000 against local Supabase (.env.development)
 npm run check           # typecheck + unit + pgTAP + E2E + build (what CI runs)
-npm run test:e2e        # resets DB, starts vite, runs Playwright headless
+npm run test:e2e        # resets DB, builds + serves the prod bundle, runs Playwright headless
+npm run qa:staging      # closed-loop QA against the DEPLOYED staging site (throwaway `qa…` players)
+npm run sandbox:up      # agent sandbox: (re)start dockerd + local Supabase if they died
 ```
 Playwright in the Claude web sandbox: `PW_CHROMIUM=/opt/pw-browsers/chromium-1194/chrome-linux/chrome npm run test:e2e`.
 Docker daemon may need `dockerd &` first in the sandbox.
@@ -113,6 +115,28 @@ times (cast via numeric). Dropped on purpose: `page_views`, `email`/`notificatio
 `submissions.score`, `alembic_version`. Ids are preserved. After import, run `npm run sync-auth`.
 **Legacy `public.page_views` has RLS disabled (anon key can read/modify 400k rows of name/URL logs)** —
 enable RLS or retire it independently of this port.
+
+## Prod cutover runbook (legacy `reidle` -> new project)
+
+Facts: legacy data is ~55 MB (21k submissions incl. 37 MB playback json; `page_views` 39 MB is dropped).
+Import is idempotent (truncate + reload) and takes seconds. Legacy stays untouched = instant rollback.
+Scoring: weeks from **2026-10-05** are additive; earlier weeks are legacy and frozen (`week_snapshots`,
+pre-computed by the importer). `winners` history is imported verbatim.
+
+1. **Project**: free plan allows 2 active projects (legacy + staging), so prod needs Pro (also: free projects
+   pause after a week idle, no backups) or reuse staging as prod and create a new staging later.
+2. Create prod project -> `supabase db push` -> Auth: Confirm email OFF -> deploy Worker
+   `wrangler deploy --name reidle` built with `.env.production`.
+3. **Rehearse** into staging as often as wanted: `npm run import-prod` (prints the verify report:
+   `failed_checks` must be 0) then `npm run qa:staging`. Needs `SOURCE_DB_URL` (read-only legacy) and
+   `TARGET_DB_URL` as plain env secrets (Postgres is not HTTP, so network-secret injection can't carry it).
+   Players get auth users lazily on first sign-in (trigger links by name); `npm run sync-auth` is optional.
+4. **Cutover** (~15 min): tell players to pause -> final `import-prod` into prod -> verify -> smoke
+   (`STAGING_URL=<prod url> npm run qa:staging`) -> point the domain at the Worker. Everyone signs in once
+   (cookie -> token). `public/service-worker.js` removes the legacy service worker.
+5. After 1-2 stable weeks: pause/retire legacy after a final `pg_dump` archive (and fix/retire `page_views`).
+Real data on staging: names + messages become readable by anyone with the staging URL/key (same exposure
+as prod today: name-only honors system). Gate the Worker or scrub messages if that is a concern.
 
 ## Known gaps / TODO
 

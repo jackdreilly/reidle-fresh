@@ -5,6 +5,9 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 DB=${DB_URL:-postgresql://postgres:postgres@127.0.0.1:54322/postgres}
 psql "$DB" -q -v ON_ERROR_STOP=1 -f tools/legacy/schema.sql -f tools/legacy/fixture.sql -f tools/legacy/import.sql
+echo "--- verify.sql on the synthetic fixture:"
+psql "$DB" -v ON_ERROR_STOP=1 -f tools/legacy/verify.sql | tee /tmp/verify.out | grep -E "FAIL|info|failed_checks|^\s+[0-9]+\s*$"
+grep -qE "^\s*0\s*$" <(tail -3 /tmp/verify.out) || { echo "verify.sql reported failures" >&2; exit 1; }
 psql "$DB" -At -f tools/legacy/assertions.sql | tail -1
 psql "$DB" -q -c "drop schema legacy cascade"
 node_modules/.bin/supabase db reset >/dev/null 2>&1  # back to the standard fixture

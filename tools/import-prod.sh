@@ -23,6 +23,8 @@ echo "2/4 dumping legacy data (read-only)"
 awk -f tools/retarget-dump.awk "$DUMP" > "$DUMP.legacy"
 echo "3/4 importing"
 psql "$TARGET_DB_URL" -q -v ON_ERROR_STOP=1 -f tools/legacy/schema.sql -f "$DUMP.legacy" -f tools/legacy/import.sql
+echo "3b/4 verifying (legacy vs new)"
+psql "$TARGET_DB_URL" -v ON_ERROR_STOP=1 -f tools/legacy/verify.sql
 psql "$TARGET_DB_URL" -q -c "drop schema legacy cascade" 2>/dev/null
 if [ -n "${TARGET_SUPABASE_URL:-}" ] && [ -n "${TARGET_SERVICE_ROLE_KEY:-}" ]; then
   echo "4/4 creating auth users for every player"
