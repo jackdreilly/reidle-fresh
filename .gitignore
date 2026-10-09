@@ -4,9 +4,9 @@ test-results/
 playwright-report/
 .env.local
 .env.*.local
-.env.staging
 .env.production
 supabase/.temp/
 supabase/.branches/
 .DS_Store
 *.log
+dist-e2e/

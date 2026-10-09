@@ -111,6 +111,7 @@ export function useRouter() {
   useEffect(() => {
     const l = () => tick((n) => n + 1);
     listeners.add(l);
+    l(); // re-sync: navigation may have finished before this effect subscribed
     return () => void listeners.delete(l);
   }, []);
   return { current, progress };

@@ -5,7 +5,8 @@ import {
   PartyChatInput,
   PartyChatToast,
 } from "@/components/PartyChat";
-import { supabase } from "@/lib/supabase";
+import { patchRow } from "@/lib/supabase";
+import { realtime } from "@/lib/realtime";
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { ScoredWord } from "@/lib/wordle";
 
@@ -41,7 +42,7 @@ export default function Page(
   );
 
   const channel = useMemo(() => {
-    return supabase.channel(`battle:${battle_id}`, {
+    return realtime.channel(`battle:${battle_id}`, {
       config: {
         broadcast: { self: false },
       },
@@ -103,10 +104,10 @@ export default function Page(
         battle_history: newBattleHistory,
       };
 
-      supabase.from("battles").update({
+      patchRow("battles", { battle_id }, {
         state: nextState,
         updated_at: new Date().toISOString(),
-      }).eq("battle_id", battle_id).then(() => null);
+      }).catch(() => null);
 
       return nextState;
     });
@@ -334,7 +335,7 @@ export default function Page(
 
     const handleBeforeUnload = () => {
       if (users.length <= 1) {
-        supabase.from("battles").update({
+        patchRow("battles", { battle_id }, {
           users: [],
           updated_at: new Date(0).toISOString(),
           state: {
@@ -342,7 +343,7 @@ export default function Page(
             leaderboard: {},
             battle_history: [],
           },
-        }).eq("battle_id", battle_id).then(() => null);
+        }).catch(() => null);
       }
     };
     window.addEventListener("beforeunload", handleBeforeUnload);
@@ -354,16 +355,16 @@ export default function Page(
   }, [channel, battle_id, name]);
 
   useEffect(() => {
-      supabase.from("battles").update({
+      patchRow("battles", { battle_id }, {
       updated_at: new Date().toISOString(),
       users,
-    }).eq("battle_id", battle_id).then(() => null);
+    }).catch(() => null);
 
     const interval = setInterval(async () => {
-      await supabase.from("battles").update({
+      await patchRow("battles", { battle_id }, {
         updated_at: new Date().toISOString(),
         users,
-      }).eq("battle_id", battle_id);
+      });
     }, 10000);
     return () => clearInterval(interval);
   }, [users, battle_id]);

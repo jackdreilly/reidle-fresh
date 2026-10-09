@@ -1,5 +1,5 @@
 begin;
-select plan(21);
+select plan(29);
 
 -- Fixture: isolated players, no seed dependence.
 truncate submissions, checkpoints, messages, message_reads, winners, challenges, players restart identity cascade;
@@ -82,6 +82,26 @@ select is((select (daily_page(current_date) -> 'submissions' -> 0 ->> 'paste')),
 select is(get_playback((select submission_id from ids where name = 'ben')), null, 'playback hidden before playing');
 select act_as('ben');
 select isnt(get_playback((select submission_id from ids where name = 'cat')), null, 'playback visible after playing');
+
+-- Play start is explicit: reads never start the clock or reveal the word
+select reset_role();
+delete from submissions; delete from checkpoints;
+select act_as('eve');
+select is((play_state() ->> 'started')::boolean, false, 'play_state before start: not started');
+select is(play_state() ->> 'word', null, 'play_state never reveals the word before start');
+select is(play_state() ->> 'word', null, 'repeated reads (prefetch/reload) still reveal nothing');
+select reset_role();
+select is((select count(*)::int from checkpoints), 0, 'reading play_state creates no checkpoint');
+select act_as('eve');
+select ok(start_play() ->> 'word' is not null, 'start_play reveals the word');
+select reset_role();
+select is((select count(*)::int from checkpoints where name = 'eve'), 1, 'start_play records the start');
+select act_as('eve');
+select is((start_play() #>> '{checkpoint,created_at}'), (play_state() #>> '{checkpoint,created_at}'), 'a second start never resets the clock');
+select act_as('eve');
+select ok((play_state() ->> 'server_now')::timestamptz is not null, 'server_now is returned for skew correction');
+select reset_role();
+delete from checkpoints;
 
 -- Messages: only the author can delete
 select act_as('ann');

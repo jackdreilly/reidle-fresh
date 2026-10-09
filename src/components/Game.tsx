@@ -35,6 +35,8 @@ interface GameProperties {
   winner?: string;
   name?: string;
   checkpoint?: Checkpoint;
+  /** server clock minus client clock, in ms */
+  clockOffset?: number;
 }
 export default function Game(
   {
@@ -47,13 +49,13 @@ export default function Game(
     battle,
     name,
     checkpoint,
+    clockOffset = 0,
   }: GameProperties,
 ) {
+  // The server stamped the start; express it on this device's clock via the measured offset.
   const checkpointDate = () =>
-    (checkpoint?.created_at &&
-        (new Date().getTime() - new Date(checkpoint?.created_at).getTime()) >
-          10000)
-      ? new Date(checkpoint?.created_at)
+    checkpoint?.created_at
+      ? new Date(new Date(checkpoint.created_at).getTime() - clockOffset)
       : new Date();
   const isPlaying = !isPractice && !challenge_id && !battle && !!checkpoint;
   const [pendingChallenges, setPendingChallenges] = useState(0);

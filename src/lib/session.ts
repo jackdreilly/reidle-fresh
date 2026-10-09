@@ -1,5 +1,5 @@
 import { useEffect, useState } from "preact/hooks";
-import { rpc, supabase } from "./supabase";
+import { hasSession, rpc } from "./supabase";
 import type { Bootstrap } from "./types";
 import { utcToday } from "./time";
 
@@ -28,26 +28,26 @@ function set(next: Bootstrap) {
 }
 
 export const getSession = () => state;
-export const patchSession = (p: Partial<Bootstrap>) => set({ ...state, ...p });
+let rev = 0; // bumps on local patches so a slower bootstrap can't clobber fresher state
+export const patchSession = (p: Partial<Bootstrap>) => { rev++; set({ ...state, ...p }); };
 export const clearSession = () => set(anon);
 
 /** One cheap RPC for the app shell (name, played-today, unread dot). */
 export async function refreshSession(): Promise<Bootstrap> {
+  const startedAt = rev;
   const b = await rpc<Bootstrap>("bootstrap");
-  set(b);
-  return b;
+  set(rev === startedAt ? b : { ...b, unread: state.unread });
+  return state;
 }
 
-export async function hasAuthSession(): Promise<boolean> {
-  const { data } = await supabase.auth.getSession();
-  return !!data.session;
-}
+export const hasAuthSession = async () => hasSession();
 
 export function useSession(): Bootstrap {
   const [, tick] = useState(0);
   useEffect(() => {
     const l = () => tick((n) => n + 1);
     listeners.add(l);
+    l(); // re-sync: state may have changed before this effect subscribed
     return () => void listeners.delete(l);
   }, []);
   return state;

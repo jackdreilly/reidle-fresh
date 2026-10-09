@@ -5,6 +5,7 @@ test("daily game: play, win, appear on the leaderboard, cannot replay", async ({
   await signIn(page, "erin", "/play");
   const answer = sql("select upper(answer) from daily_words where day = current_date");
   await expect(page).toHaveURL(/\/play$/);
+  await page.getByRole("button", { name: "Start" }).click();
   // starting word is forced and auto-submitted; wait for it to land
   await expect(page.locator("div.font-bold").first()).toBeVisible();
   await page.waitForTimeout(500);
@@ -32,4 +33,39 @@ test("practice game loads with a stable word via URL params", async ({ page }) =
   await signIn(page, "grace", "/practice");
   await expect(page).toHaveURL(/\/practice\?word=\d+&startingWord=\d+/);
   await expect(page.getByText("Practice").first()).toBeVisible();
+});
+
+test("loading /play never starts the clock or leaks the word; only the Start POST does", async ({ page }) => {
+  await signIn(page, "grace");
+  const count = () => sql("select count(*) from checkpoints where name='grace' and day=current_date");
+  const word = sql("select upper(answer) from daily_words where day = current_date");
+
+  // visit, reload, prefetch-style revisits: none of it may create a checkpoint or expose the answer
+  const bodies: string[] = [];
+  page.on("response", async (r) => { if (r.url().includes("/rpc/")) bodies.push(await r.text().catch(() => "")); });
+  await page.goto("/play");
+  await page.reload();
+  await page.goto("/stats/today");
+  await page.locator('aside a[href="/play"]').hover();
+  await page.goto("/play");
+  await expect(page.getByRole("button", { name: "Start" })).toBeVisible();
+  expect(count()).toBe("0");
+  expect(bodies.join("")).not.toContain(word);
+
+  // pressing Start is the single start event; it is idempotent and survives reload (clock keeps running)
+  await page.getByRole("button", { name: "Start" }).click();
+  await expect(page.getByRole("button", { name: "Start" })).toHaveCount(0);
+  expect(count()).toBe("1");
+  const startedAt = sql("select created_at from checkpoints where name='grace'");
+  await page.waitForTimeout(1200);
+  await page.reload();
+  await expect(page.getByRole("button", { name: "Start" })).toHaveCount(0); // resumes, no new start gate
+  expect(sql("select created_at from checkpoints where name='grace'")).toBe(startedAt);
+});
+
+test("timer starts at ~0 even when the device clock is minutes off", async ({ page }) => {
+  await page.clock.install({ time: Date.now() + 5 * 60_000 }); // device clock 5 minutes fast
+  await signIn(page, "heidi", "/play");
+  await page.getByRole("button", { name: "Start" }).click();
+  await expect(page.getByText(/^0:0\d$/).first()).toBeVisible({ timeout: 10_000 });
 });

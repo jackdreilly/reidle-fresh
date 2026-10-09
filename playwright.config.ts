@@ -1,4 +1,16 @@
 import { defineConfig } from "@playwright/test";
+import { existsSync, readdirSync } from "node:fs";
+
+// In the Claude web sandbox Chromium is preinstalled (PLAYWRIGHT_BROWSERS_PATH) but may not
+// match Playwright's pinned build number; fall back to whatever is there.
+function chromium(): string | undefined {
+  if (process.env.PW_CHROMIUM) return process.env.PW_CHROMIUM;
+  const root = process.env.PLAYWRIGHT_BROWSERS_PATH ?? "/opt/pw-browsers";
+  if (!existsSync(root)) return undefined;
+  const dir = readdirSync(root).filter((d) => /^chromium-\d+$/.test(d)).sort().at(-1);
+  const exe = dir && `${root}/${dir}/chrome-linux/chrome`;
+  return exe && existsSync(exe) ? exe : undefined;
+}
 
 // Headless E2E against the local Supabase stack (`npm run db:start`).
 // The data fixture is reset before the suite (see e2e/global-setup.ts).
@@ -13,14 +25,15 @@ export default defineConfig({
     baseURL: "http://127.0.0.1:3000",
     headless: true,
     viewport: { width: 1000, height: 800 },
-    launchOptions: process.env.PW_CHROMIUM ? { executablePath: process.env.PW_CHROMIUM } : {},
+    launchOptions: chromium() ? { executablePath: chromium() } : {},
     screenshot: "only-on-failure",
     trace: "retain-on-failure",
   },
+  // E2E runs against the production build (what users get), pointed at the local stack.
   webServer: {
-    command: "npx vite --mode development",
+    command: "npx vite build --mode development --outDir dist-e2e --emptyOutDir && npx vite preview --outDir dist-e2e --port 3000",
     url: "http://127.0.0.1:3000",
     reuseExistingServer: true,
-    timeout: 60_000,
+    timeout: 120_000,
   },
 });

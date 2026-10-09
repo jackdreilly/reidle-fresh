@@ -1,5 +1,5 @@
 import type { ComponentType } from "preact";
-import { rpc, supabase } from "./lib/supabase";
+import { auth, rpc } from "./lib/supabase";
 import { clearSession } from "./lib/session";
 import { setSignedIn } from "./boot";
 import { loadWordle } from "./lib/wordle";
@@ -48,7 +48,8 @@ export const routes: Route[] = [
   {
     path: "/play", page: () => import("./pages/Play"),
     layout: { route: "/play", title: "Play", fullPage: true },
-    load: () => Promise.all([read("play_today"), loadWordle()]).then(([d]) => d, (e) => alreadyPlayed(e, "/")),
+    // play_state is a pure read: it never starts the clock or reveals the word (see start_play).
+    load: () => Promise.all([read("play_state"), loadWordle()]).then(([d]) => d, (e) => alreadyPlayed(e, "/")),
   },
   {
     path: "/practice", page: () => import("./pages/Practice"),
@@ -132,7 +133,7 @@ export const routes: Route[] = [
     path: "/sign-out",
     public: true,
     redirect: async () => {
-      await supabase.auth.signOut();
+      await auth.signOut();
       setSignedIn(false);
       clearSession();
       return "/sign-in";

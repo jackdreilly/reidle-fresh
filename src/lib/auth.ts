@@ -1,4 +1,4 @@
-import { supabase } from "./supabase";
+import { auth } from "./supabase";
 import { credentials, normalizeName } from "./credentials";
 
 export { normalizeName };
@@ -7,15 +7,12 @@ export async function signIn(rawName: string): Promise<string> {
   const name = normalizeName(rawName);
   if (!name) throw new Error("Enter a name");
   const creds = await credentials(name);
-  const attempt = await supabase.auth.signInWithPassword(creds);
-  if (!attempt.error) return name;
-  const created = await supabase.auth.signUp({ ...creds, options: { data: { name } } });
-  if (created.error) throw created.error;
-  if (!created.data.session) {
-    const retry = await supabase.auth.signInWithPassword(creds);
-    if (retry.error) throw retry.error;
-  }
+  try {
+    await auth.signInWithPassword(creds);
+    return name;
+  } catch { /* first visit: no account yet */ }
+  if (!(await auth.signUp(creds, { name }))) await auth.signInWithPassword(creds);
   return name;
 }
 
-export const signOut = () => supabase.auth.signOut();
+export const signOut = () => auth.signOut();

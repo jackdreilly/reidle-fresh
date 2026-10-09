@@ -14,8 +14,8 @@ No app server exists. Keep it that way: lean, fast, vibe-friendly.
 ## Layout
 
 ```
-supabase/migrations/   schema, RPC layer, word lists (generated)   <- source of truth for data logic
-supabase/seed.sql      fake-data fixture, relative to today
+supabase/migrations/   schema + RPC layer   <- source of truth for data logic
+supabase/seed/words.sql (generated) + seed.sql: fake-data fixture, relative to today
 supabase/tests/        pgTAP tests (npm run test:db)
 src/lib/               supabase client, auth, session store, wordle rules, time helpers
 src/routes.ts          route table: path -> page chunk + data loader (one RPC each)
@@ -24,7 +24,7 @@ src/pages/             one component per route
 src/components/        Game, Battle, tables, charts, layout
 src/data/*.csv         word lists (client validation AND generated DB migration)
 e2e/                   Playwright specs (+ helpers: sql(), signIn(), typeWord())
-tools/                 clone-db.sh, sync-auth-users.ts, gen-words-migration.mjs
+tools/                 clone-db.sh, sync-auth-users.ts, gen-words-seed.mjs, check-bundle.mjs
 ```
 
 ## Data access rules
@@ -40,7 +40,7 @@ tools/                 clone-db.sh, sync-auth-users.ts, gen-words-migration.mjs
   `get_playback`, `challenge_page`). Keep that invariant (pgTAP covers it).
 - Changing schema/functions: add a **new migration** (`supabase migration new x`); don't edit
   applied ones once anything is deployed. (Pre-first-deploy they were edited in place.)
-- After editing `src/data/*.csv`: `npm run words` regenerates the word-list migration.
+- Word tables are DATA, not migrations (prod has its own, UPPERCASE). Local/staging fixture words come from `supabase/seed/words.sql`, generated from `src/data/*.csv` via `npm run words`.
 
 ## Scoring (weekly)
 
@@ -82,11 +82,27 @@ Runs migrations on the target, dumps `public` data, nulls `players.user_id`, tru
 relinks existing auth users, then creates missing ones. Refuses source==target or a target
 matching `PROD_GUARD`. Local URLs need `?sslmode=disable`.
 
+## Porting legacy prod (read-only, never in place)
+
+Legacy prod (project `reidle`) is live and uses the old schema. Plan: import into a **new**
+Supabase project (staging first, then the real one) and switch the app over; legacy stays untouched.
+```
+SOURCE_DB_URL=<legacy, read-only role> TARGET_DB_URL=<new project> PROD_GUARD=<legacy ref> \
+TARGET_SUPABASE_URL=... TARGET_SERVICE_ROLE_KEY=... tools/import-prod.sh      # or: npm run import-prod
+npm run test:import     # proves tools/legacy/import.sql on synthetic legacy data (local)
+```
+Legacy facts (inspected): words/answers are UPPERCASE and differ from `src/data/*.csv`; no FKs on
+names (dozens of names exist only in submissions/messages -> importer creates players); duplicate
+daily/challenge submissions and `winners` weeks (first wins); json (not jsonb) columns; float4
+times (cast via numeric). Dropped on purpose: `page_views`, `email`/`notifications_enabled`,
+`submissions.score`, `alembic_version`. Ids are preserved. After import, run `npm run sync-auth`.
+**Legacy `public.page_views` has RLS disabled (anon key can read/modify 400k rows of name/URL logs)** —
+enable RLS or retire it independently of this port.
+
 ## Known gaps / TODO
 
-- Prod import: legacy tables (`score` col, json playback, alembic) need a one-time mapping to
-  this schema (`submissions.score` dropped; `battles.users` jsonb). Not done yet — fixture first.
 - Battles are ported but least tested (E2E coverage pending).
 - `rankings()` recomputes full history per request; materialise if it gets slow.
 - Giphy API key is hardcoded in `src/components/MessageText.tsx` (inherited).
 - Hosting target not chosen (any static host + SPA fallback to `/index.html`).
+- Staging Supabase project does not exist yet (only legacy prod does).

@@ -50,28 +50,53 @@ begin
   return r;
 end $$;
 
-create function play_today() returns jsonb
-language plpgsql volatile security definer set search_path = public as $$
+-- Starting a game is an explicit, side-effecting step (start_play, called by a POST from a user
+-- tap). Merely loading /play (prefetch, prerender, tab restore, reload) is play_state: a pure
+-- read that creates nothing and never reveals the word before the clock has been started.
+create function play_payload(p_name text) returns jsonb
+language sql stable security definer set search_path = public as $$
+  select jsonb_build_object(
+    'started', true,
+    'startingWord', upper(dw.word), 'word', upper(dw.answer),
+    'winner', lead.name, 'winnersTime', lead."time",
+    'checkpoint', jsonb_build_object(
+      'created_at', cp.created_at, 'penalty', cp.penalty, 'history', cp.history),
+    'server_now', clock_timestamp())
+  from checkpoints cp
+  join daily_words dw on dw.day = current_date
+  left join lateral (select name, "time" from submissions
+    where day = current_date and challenge_id is null order by "time" limit 1) lead on true
+  where cp.name = p_name and cp.day = current_date
+$$;
+
+create function play_state() returns jsonb
+language plpgsql stable security definer set search_path = public as $$
 declare
   n text := require_me();
-  dw daily_words := ensure_daily_word(current_date);
-  cp checkpoints;
-  lead record;
+  payload jsonb;
 begin
   if played_today(n) then raise exception 'already played' using errcode = 'P0001'; end if;
+  payload := play_payload(n);
+  if payload is not null then return payload; end if;
+  return jsonb_build_object('started', false,
+    'winner', (select name from submissions where day = current_date and challenge_id is null
+               order by "time" limit 1),
+    'winnersTime', (select "time" from submissions where day = current_date and challenge_id is null
+               order by "time" limit 1));
+end $$;
+
+create function start_play() returns jsonb
+language plpgsql volatile security definer set search_path = public as $$
+declare n text := require_me();
+begin
+  if played_today(n) then raise exception 'already played' using errcode = 'P0001'; end if;
+  perform ensure_daily_word(current_date);
   insert into checkpoints (name, day, penalty, history)
   values (n, current_date, 0, '[]')
   on conflict (name) do update
     set day = excluded.day, penalty = 0, history = '[]', created_at = now()
-    where checkpoints.day <> current_date;
-  select * into cp from checkpoints where name = n;
-  select name, "time" into lead from submissions
-    where day = current_date and challenge_id is null order by "time" limit 1;
-  return jsonb_build_object(
-    'startingWord', upper(dw.word), 'word', upper(dw.answer),
-    'winner', lead.name, 'winnersTime', lead."time",
-    'checkpoint', jsonb_build_object(
-      'created_at', cp.created_at, 'penalty', cp.penalty, 'history', cp.history));
+    where checkpoints.day <> current_date;   -- idempotent: a second start never resets the clock
+  return play_payload(n);
 end $$;
 
 create function save_checkpoint(p_penalty double precision, p_history jsonb) returns void

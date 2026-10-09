@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc --noEmit && vite build && node tools/check-bundle.mjs",
     "preview": "vite preview --port 4173",
     "typecheck": "tsc --noEmit",
     "test": "npm run test:unit && npm run test:db",
@@ -14,13 +14,15 @@
     "db:start": "supabase start",
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
-    "words": "node tools/gen-words-migration.mjs",
+    "words": "node tools/gen-words-seed.mjs",
     "clone": "tools/clone-db.sh",
     "sync-auth": "node tools/sync-auth-users.ts",
-    "check": "npm run typecheck && npm run test:unit && npm run test:db && npm run test:e2e && npm run build"
+    "check": "npm run typecheck && npm run test:unit && npm run test:db && npm run test:e2e && npm run build",
+    "test:import": "tools/test-import.sh",
+    "import-prod": "tools/import-prod.sh"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.50.0",
+    "@supabase/realtime-js": "^2.117.3",
     "preact": "^10.26.0"
   },
   "devDependencies": {
