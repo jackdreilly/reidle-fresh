@@ -609,13 +609,22 @@ export default function Game(
           challenge_id={challenge_id}
           lost={!!challenge_id && !!winnersTime && (totalSeconds > winnersTime)}
         />
-        <div class="flex justify-center items-center flex-grow overflow-hidden m-2 p-2 font-bold text-center">
+        {/* The board area is a size container between the status bar and the keyboard: the grid is
+            always sized to FIT it (6 rows reserved from the start; 7..10+ rows shrink the cells),
+            so the board can never run under the keyboard. */}
+        <div
+          class="flex justify-center items-center flex-grow min-h-0 overflow-hidden m-2 p-2 font-bold text-center"
+          style={{ containerType: "size" }}
+        >
           <div
-            class="relative h-full max-h-[25rem] w-full"
+            data-testid="board"
+            class="relative"
             style={{
-              maxWidth: "min(20.8rem, 40vh)",
-              fontSize: "min(50px, 5vh)",
-            }}
+              "--w": `min(100cqw, calc(100cqh * 5 / ${numRows}), 20.8rem)`,
+              width: "var(--w)",
+              aspectRatio: `5 / ${numRows}`,
+              fontSize: "calc(var(--w) * 0.13)",
+            } as Record<string, string>}
           >
             <div class="absolute bottom-[50%] right-[50%] h-full w-full">
               {won &&
@@ -624,7 +633,7 @@ export default function Game(
                 : null}
             </div>
             <div
-              class={`grid gap-[3px] p-[5px] box-border h-full w-full`}
+              class="grid gap-[3px] box-border h-full w-full"
               style={`grid-template-rows: repeat(${numRows}, minmax(0, 1fr))`}
             >
               {[...Array(numRows).keys()].filter(
@@ -668,6 +677,7 @@ export default function Game(
         </div>
         <div class="m-1">
           <div
+            data-testid="keyboard"
             class="mx-auto max-w-xl h-[calc(min(25vh,12rem))] grid grid-rows-3 gap-1 text-2xl select-none"
             style={{ width: "inherit" }}
           >
