@@ -42,6 +42,16 @@ test("playback of a past submission animates", async ({ page }) => {
   await expect(page.getByText("Wrong C @ 1")).toBeVisible({ timeout: 10_000 });
 });
 
+test("clicking a paste on the daily table opens that player's playback", async ({ page }) => {
+  const day = sql("select max(day) from submissions where name='bob' and day < current_date and challenge_id is null");
+  const id = sql(`select submission_id from submissions where name='bob' and day='${day}' and challenge_id is null`);
+  await page.goto(`/stats/daily/${day}`);
+  await expect(page.getByRole("columnheader", { name: "Watch" })).toHaveCount(0);
+  await page.getByRole("row").filter({ hasText: "bob" }).getByRole("link", { name: "Watch bob's replay" }).click();
+  await expect(page).toHaveURL(new RegExp(`/submissions/${id}/playback$`));
+  await expect(page.getByText(/^\d+:\d{2}$/).first()).toBeVisible();
+});
+
 test("unknown route shows not-found", async ({ page }) => {
   await page.goto("/nope/nothing/here");
   await expect(page.getByText("Not found")).toBeVisible();
