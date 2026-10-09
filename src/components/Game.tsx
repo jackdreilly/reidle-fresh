@@ -217,7 +217,7 @@ export default function Game(
       const wordle = await loadWordle();
       setWordle((_) => wordle);
       setStartTime((_) => checkpointDate());
-      setCandidates(wordle.words);
+      setCandidates(wordle.answers); // hint pool: possible answers only, not every allowed guess
     }
     helper();
   }, []);

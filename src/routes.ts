@@ -57,16 +57,13 @@ export const routes: Route[] = [
     load: async (_, q) => {
       const w = await loadWordle();
       if (!q.has("word") || !q.has("startingWord")) {
-        // Both the target and the pre-filled first guess come from the answer list;
-        // typed guesses are still validated against the full word list.
         const word = Math.floor(Math.random() * w.answers.length);
-        const startingWord = Math.floor(Math.random() * w.answers.length);
+        const startingWord = Math.floor(Math.random() * w.words.length);
         throw new Redirect(`/practice?word=${word}&startingWord=${startingWord}`);
       }
       return {
-        word: w.answers[Math.abs(parseInt(q.get("word") ?? "0") || 0) % w.answers.length],
-        // modulo keeps old links (startingWord indexed the full word list) valid
-        startingWord: w.answers[Math.abs(parseInt(q.get("startingWord") ?? "0") || 0) % w.answers.length],
+        word: w.answers[parseInt(q.get("word") ?? "0")],
+        startingWord: w.words[parseInt(q.get("startingWord") ?? "0")],
       };
     },
   },
