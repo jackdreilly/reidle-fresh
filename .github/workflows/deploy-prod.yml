@@ -1,7 +1,8 @@
 name: Deploy prod
 # One click: Actions -> Deploy prod -> Run workflow. Ships main to the `reidle` Worker
 # (reidle.reillybrothers.net) on Supabase project reidle-prod, applying pending supabase/migrations first.
-# Needs repo secrets: CLOUDFLARE_API_TOKEN (Workers Scripts: Edit), CLOUDFLARE_ACCOUNT_ID, SUPABASE_ACCESS_TOKEN.
+# Needs repo secrets: CLOUDFLARE_API_TOKEN (Workers Scripts: Edit), CLOUDFLARE_ACCOUNT_ID, SUPABASE_ACCESS_TOKEN,
+# GIPHY_API_KEY.
 on:
   workflow_dispatch:
 
@@ -19,6 +20,8 @@ jobs:
       # Public values (they ship in the bundle): reidle-prod URL + publishable key.
       VITE_SUPABASE_URL: https://fjnhsrkjdrmpxidjsfzd.supabase.co
       VITE_SUPABASE_KEY: sb_publishable_mWQa9TDIOYvWTH4VbPP6HA_EW9_CSVO
+      # Reidle's Giphy key for /gif (public in the bundle too; kept out of the repo). Unset -> old shared key.
+      VITE_GIPHY_API_KEY: ${{ secrets.GIPHY_API_KEY }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
