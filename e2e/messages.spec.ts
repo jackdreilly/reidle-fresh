@@ -13,6 +13,7 @@ test("post, like and delete a message; unread dot clears", async ({ page }) => {
   await item.locator('form button:has(img)').click();
   await expect(item).toContainText("dave");
 
+  page.once("dialog", (d) => void d.accept());
   await item.locator('form:not(:has(img)) button').first().click(); // trash (own message)
   await expect(page.getByText(text)).toHaveCount(0);
   await expect(page.locator("aside .animate-ping")).toBeHidden();
