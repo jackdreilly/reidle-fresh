@@ -29,7 +29,7 @@ test("player page and rankings render charts", async ({ page }) => {
   await page.goto("/players/alice");
   await expect(page.getByText(/Playing since \w+ \d{4} · [\d,]+ games/)).toBeVisible();
   await expect(page.getByText("Head to head", { exact: true })).toBeVisible();
-  await expect(page.getByRole("img", { name: "Median solve time by month" })).toBeVisible();
+  await expect(page.getByRole("img", { name: "Rolling median solve time" })).toBeVisible();
   await expect(page.getByText(/weeks? won/)).toBeVisible();
   await page.goto("/rankings");
   await expect(page.getByText("Reidle Power Rankings")).toBeVisible();

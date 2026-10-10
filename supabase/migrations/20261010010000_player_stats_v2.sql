@@ -30,7 +30,17 @@ language sql stable security definer set search_path = public as $$
   winruns as (
     select min(day) as s, max(day) as e, count(*)::int as len
     from (select day, day - (row_number() over (order by day))::int as grp from g where place = 1) x group by grp),
-  edges as (select array[0,15,20,25,30,40,50,60,75,90,120,150,180,240,300,420,600,1200] as e)
+  spread as (
+    select percentile_cont(0.02) within group (order by t) as p02,
+           percentile_cont(0.98) within group (order by t) as p98 from g),
+  binw as (
+    select p02, p98, coalesce((select w from unnest(array[1,2,3,5,10,15,20,30,60,120]) w
+                               where w >= (p98 - p02) / 14 order by w limit 1), 300) as bw
+    from spread where p02 is not null),
+  bins as (
+    select bw, floor(p02 / bw) * bw as lo,
+           greatest(1, (ceil(p98 / bw) * bw - floor(p02 / bw) * bw) / bw)::int as nb
+    from binw)
   select jsonb_build_object(
     'total', (select count(*) from g),
     'since', (select min(day) from g),
@@ -58,21 +68,30 @@ language sql stable security definer set search_path = public as $$
                 from g order by t, day limit 1),
     'calendar', coalesce((select jsonb_agg(jsonb_build_array(day, place, n, submission_id) order by day)
                           from g where day > current_date - 371), '[]'),
-    'months', coalesce((select jsonb_agg(jsonb_build_object('month', mo, 'games', c, 'median', med, 'win', w, 'beat', b)
-                                         order by mo)
-                        from (select date_trunc('month', day)::date as mo, count(*) as c,
-                                     percentile_cont(0.5) within group (order by t) as med,
-                                     avg((place = 1)::int) as w, avg(beat) as b
-                              from g where day >= date_trunc('month', current_date) - interval '23 months'
-                              group by 1) x), '[]'),
+    -- Smoothed trend, one point per week: rolling 28-day median time with its middle-half band
+    -- (outlier-proof) and the rolling share of the field beaten (cancels out word difficulty).
+    'trend', coalesce((select jsonb_agg(jsonb_build_object('week', wk, 'games', c, 'median', med, 'p25', lo,
+                                                           'p75', hi, 'beat', b) order by wk)
+                       from (select w.wk::date as wk, count(*) as c,
+                                    percentile_cont(0.5) within group (order by g.t) as med,
+                                    percentile_cont(0.25) within group (order by g.t) as lo,
+                                    percentile_cont(0.75) within group (order by g.t) as hi,
+                                    avg(g.beat) as b
+                             from generate_series(date_trunc('week', (select min(day) from g)) + interval '6 days',
+                                                  current_date + 6, interval '7 days') w(wk)
+                             join g on g.day > w.wk::date - 28 and g.day <= w.wk::date
+                             group by 1 having count(*) >= 4) x), '[]'),
     'places', coalesce((select jsonb_agg(jsonb_build_object('place', p, 'count', c) order by p)
                         from (select least(place, 6) as p, count(*) as c from g group by 1) x), '[]'),
     'guesses', coalesce((select jsonb_agg(jsonb_build_object('guesses', k, 'count', c) order by k)
                          from (select least(guesses, 7) as k, count(*) as c from g
                                where guesses is not null group by 1) x), '[]'),
-    'times', coalesce((select jsonb_agg(jsonb_build_object('bucket', e[b], 'count', c) order by b)
-                       from edges, (select width_bucket(t, (select e from edges)) as b, count(*) as c
-                                    from g group by 1) x where e[b] is not null), '[]'),
+    -- Even-width solve-time bins over the 2nd..98th percentile; outliers fold into the end bins.
+    'times', coalesce((select jsonb_build_object('width', bw, 'from', lo, 'counts', jsonb_agg(c order by k))
+                       from (select bw, lo, k, count(t) as c
+                             from bins cross join generate_series(0, bins.nb - 1) k
+                             left join g on least(greatest(floor((g.t - lo) / bw)::int, 0), nb - 1) = k
+                             group by bw, lo, k) x group by bw, lo), 'null'),
     'weekdays', coalesce((select jsonb_agg(jsonb_build_object('dow', d, 'games', c, 'win', w, 'beat', b,
                                                               'median', med) order by d)
                           from (select extract(isodow from day)::int as d, count(*) as c,

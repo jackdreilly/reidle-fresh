@@ -26,10 +26,12 @@ type Data = {
   fastest: { time: number; day: string; submission_id: number; word: string | null; place: number; n: number } | null;
   /** [day, place, players, submission_id] for the last ~year. */
   calendar: [string, number, number, number][];
-  months: { month: string; games: number; median: number; win: number; beat: number | null }[];
+  /** Weekly samples of a rolling 28-day window. */
+  trend: { week: string; games: number; median: number; p25: number; p75: number; beat: number | null }[];
   places: { place: number; count: number }[];
   guesses: { guesses: number; count: number }[];
-  times: { bucket: number; count: number }[];
+  /** Even bins of `width` seconds starting at `from`; the end bins also hold the outliers. */
+  times: { width: number; from: number; counts: number[] } | null;
   weekdays: { dow: number; games: number; win: number; beat: number | null; median: number }[];
   rivals: {
     name: string; games: number; wins: number; losses: number;
@@ -166,48 +168,52 @@ function Legend() {
   );
 }
 
-/** Monthly median solve time: one series, lower is better. */
-function TrendChart({ months }: { months: Data["months"] }) {
-  const W = 440, H = 160, L = 38, R = 10, T = 10, B = 22;
-  const vals = months.map((m) => m.median);
-  const lo = Math.max(0, Math.floor((Math.min(...vals) - 5) / 10) * 10);
-  const hi = Math.ceil((Math.max(...vals) + 5) / 10) * 10;
-  const step = Math.max(10, Math.ceil((hi - lo) / 4 / 10) * 10);
-  const ticks = [];
-  for (let t = lo; t <= hi; t += step) ticks.push(t);
-  const top = ticks[ticks.length - 1];
-  const n = months.length;
+type Point = { x: string; y: number; lo?: number; hi?: number; tip: string };
+
+/** Smoothed weekly trend: a line, an optional shaded band, gridlines and a hover strip per point. */
+function Trend({ points, format, domain, refLine, label }: {
+  points: Point[]; format: (v: number) => string; domain?: [number, number]; refLine?: number; label: string;
+}) {
+  const W = 440, H = 150, L = 38, R = 8, T = 8, B = 20;
+  const ys = points.flatMap((p) => [p.y, p.lo ?? p.y, p.hi ?? p.y]);
+  let [lo, hi] = domain ?? [Math.min(...ys), Math.max(...ys)];
+  let step = (hi - lo) / 4;
+  if (!domain) {
+    const pad = Math.max(2, (hi - lo) * 0.1);
+    step = [1, 2, 5, 10, 15, 20, 30, 60].find((s) => s >= (hi - lo + 2 * pad) / 4) ?? 120;
+    lo = Math.max(0, Math.floor((lo - pad) / step) * step);
+    hi = Math.ceil((hi + pad) / step) * step;
+  }
+  const ticks = Array.from({ length: Math.round((hi - lo) / step) + 1 }, (_, i) => lo + i * step);
+  const n = points.length;
   const x = (i: number) => L + (n === 1 ? (W - L - R) / 2 : (i * (W - L - R)) / (n - 1));
-  const y = (v: number) => T + (H - T - B) * (1 - (v - lo) / (top - lo || 1));
-  const every = Math.ceil(n / 8);
-  const area = `M${x(0)},${y(vals[0])} ` + vals.map((v, i) => `L${x(i)},${y(v)}`).join(" ") + ` L${x(n - 1)},${H - B} L${x(0)},${H - B} Z`;
+  const y = (v: number) => T + (H - T - B) * (1 - (v - lo) / (hi - lo || 1));
+  const line = points.map((p, i) => `${x(i)},${y(p.y)}`).join(" ");
+  const band = points[0]?.lo != null
+    ? `M${points.map((p, i) => `${x(i)},${y(p.hi!)}`).join(" L")} L${points.map((p, i) => `${x(i)},${y(p.lo!)}`).reverse().join(" L")} Z`
+    : null;
+  // Month labels at the first point of each month, thinned to ~6.
+  const marks = points.map((p, i) => ({ i, m: p.x.slice(0, 7) })).filter((p, k, a) => k === 0 || p.m !== a[k - 1].m);
+  const every = Math.ceil(marks.length / 6);
+  const strip = (W - L - R) / Math.max(1, n - 1);
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} class="w-full" role="img" aria-label="Median solve time by month">
-      <defs>
-        <linearGradient id="trend-fill" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0" stop-color={ACCENT} stop-opacity=".18" />
-          <stop offset="1" stop-color={ACCENT} stop-opacity="0" />
-        </linearGradient>
-      </defs>
+    <svg viewBox={`0 0 ${W} ${H}`} class="w-full" role="img" aria-label={label}>
       {ticks.map((t) => (
         <g>
           <line x1={L} x2={W - R} y1={y(t)} y2={y(t)} stroke="#f1f5f9" />
-          <text x={L - 6} y={y(t) + 3} text-anchor="end" font-size="10" fill="#9ca3af">{timerTime(t)}</text>
+          <text x={L - 6} y={y(t) + 3} text-anchor="end" font-size="10" fill="#9ca3af">{format(t)}</text>
         </g>
       ))}
-      {n > 1 && <path d={area} fill="url(#trend-fill)" />}
-      <polyline fill="none" stroke={ACCENT} stroke-width="2" stroke-linejoin="round" points={vals.map((v, i) => `${x(i)},${y(v)}`).join(" ")} />
-      {months.map((m, i) => (
-        <g>
-          <circle cx={x(i)} cy={y(m.median)} r={4} fill="white" stroke={ACCENT} stroke-width="2" />
-          <circle cx={x(i)} cy={y(m.median)} r={12} fill="transparent">
-            <title>{`${monthYear(m.month)}: median ${timerTime(m.median)} · ${m.games} games · won ${pct(m.win)}`}</title>
-          </circle>
-        </g>
+      {refLine != null && <line x1={L} x2={W - R} y1={y(refLine)} y2={y(refLine)} stroke="#cbd5e1" stroke-dasharray="3 3" />}
+      {band && <path d={band} fill={ACCENT} fill-opacity=".15" />}
+      <polyline fill="none" stroke={ACCENT} stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points={line} />
+      {n > 0 && <circle cx={x(n - 1)} cy={y(points[n - 1].y)} r={4} fill={ACCENT} stroke="white" stroke-width="2" />}
+      {points.map((p, i) => (
+        <rect x={x(i) - strip / 2} y={T} width={strip} height={H - T - B} fill="transparent"><title>{p.tip}</title></rect>
       ))}
-      {months.map((m, i) => (i % every === 0 || i === n - 1) && (
-        <text x={x(i)} y={H - 6} text-anchor="middle" font-size="10" fill="#9ca3af">
-          {prettyDay(m.month, m.month.slice(5, 7) === "01" || i === 0 ? { month: "short", year: "2-digit" } : { month: "short" })}
+      {marks.filter((_, k) => k % every === 0).map(({ i, m }) => (
+        <text x={Math.min(Math.max(x(i), L + 12), W - R - 12)} y={H - 5} text-anchor="middle" font-size="10" fill="#9ca3af">
+          {prettyDay(m + "-01", m.endsWith("-01") || i === 0 ? { month: "short", year: "2-digit" } : { month: "short" })}
         </text>
       ))}
     </svg>
@@ -238,20 +244,29 @@ function Bars({ rows }: { rows: { label: string; count: number; color?: string; 
   );
 }
 
-function TimeHistogram({ times }: { times: Data["times"] }) {
-  const max = Math.max(1, ...times.map((t) => t.count));
-  const total = times.reduce((a, t) => a + t.count, 0) || 1;
+function TimeHistogram({ times }: { times: NonNullable<Data["times"]> }) {
+  const { width, from, counts } = times;
+  const max = Math.max(1, ...counts);
+  const total = counts.reduce((a, c) => a + c, 0) || 1;
+  const last = counts.length - 1;
+  const range = (i: number) =>
+    i === 0 && last > 0 ? `under ${timerTime(from + width)}`
+    : i === last && last > 0 ? `${timerTime(from + i * width)} or more`
+    : `${timerTime(from + i * width)}–${timerTime(from + (i + 1) * width)}`;
+  const every = Math.ceil(counts.length / 5);
   return (
     <div>
       <div class="flex h-28 items-end gap-0.5">
-        {times.map((t) => (
-          <div class="group flex h-full flex-1 flex-col justify-end" title={`${timerTime(t.bucket)}+: ${t.count} games (${pct(t.count / total)})`}>
-            <div class="rounded-t-[4px] bg-sky-300 transition-colors group-hover:bg-sky-500" style={{ height: `${(t.count / max) * 100}%`, minHeight: "2px" }} />
+        {counts.map((c, i) => (
+          <div class="group flex h-full flex-1 flex-col justify-end" title={`${range(i)}: ${c} games (${pct(c / total)})`}>
+            <div class="rounded-t-[4px] bg-sky-300 transition-colors group-hover:bg-sky-500" style={{ height: `${(c / max) * 100}%`, minHeight: c ? "2px" : "0" }} />
           </div>
         ))}
       </div>
-      <div class="mt-1 flex gap-0.5 text-[10px] tabular-nums text-gray-400">
-        {times.map((t, i) => <div class="flex-1 text-center">{i % Math.ceil(times.length / 6) === 0 ? timerTime(t.bucket) : ""}</div>)}
+      <div class="relative mt-1 h-3 text-[10px] tabular-nums text-gray-400">
+        {counts.map((_, i) => i > 0 && i % every === 0 && (
+          <span class="absolute -translate-x-1/2" style={{ left: `${(i / counts.length) * 100}%` }}>{timerTime(from + i * width)}</span>
+        ))}
       </div>
     </div>
   );
@@ -401,10 +416,33 @@ export default function Player({ params, data: d }: PageProps<Data>) {
         <Legend />
       </Card>
 
-      {d.months.length > 1 && (
-        <Card title="Median time by month" aside="lower is faster">
-          <TrendChart months={d.months} />
-        </Card>
+      {d.trend.length > 1 && (
+        <>
+          <Card title="Speed" aside="median of the last 4 weeks · band = middle half">
+            <Trend
+              label="Rolling median solve time"
+              format={timerTime}
+              points={d.trend.map((t) => ({
+                x: t.week, y: t.median, lo: t.p25, hi: t.p75,
+                tip: `4 weeks to ${short(t.week)}: median ${timerTime(t.median)}, middle half ${timerTime(t.p25)}–${timerTime(t.p75)} (${t.games} games)`,
+              }))}
+            />
+          </Card>
+          {d.trend.some((t) => t.beat != null) && (
+            <Card title="Form" aside="share of the field beaten, last 4 weeks">
+              <Trend
+                label="Rolling share of the field beaten"
+                format={(v) => `${Math.round(v * 100)}%`}
+                domain={[0, 1]}
+                refLine={0.5}
+                points={d.trend.filter((t) => t.beat != null).map((t) => ({
+                  x: t.week, y: t.beat!,
+                  tip: `4 weeks to ${short(t.week)}: beat ${pct(t.beat)} of the field (${t.games} games)`,
+                }))}
+              />
+            </Card>
+          )}
+        </>
       )}
 
       <div class="grid gap-4 md:grid-cols-2">
@@ -425,7 +463,7 @@ export default function Player({ params, data: d }: PageProps<Data>) {
       <div class="grid gap-4 md:grid-cols-2">
         <Card title="Win rate by weekday"><Weekdays weekdays={d.weekdays} /></Card>
         <Card title="Solve times" aside={d.clean != null ? `${pct(d.clean)} penalty-free` : undefined}>
-          <TimeHistogram times={d.times} />
+          {d.times && <TimeHistogram times={d.times} />}
         </Card>
       </div>
 
