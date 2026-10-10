@@ -88,19 +88,19 @@ export function DailyTable(
             const me = name === myName;
             return (
               <tr class={"border-b border-gray-100 last:border-0 " + (me ? "bg-amber-50" : "")}>
-                <th scope="row" class={"py-2 pl-3 pr-2 font-medium " + (me ? "shadow-[inset_3px_0_0_var(--color-amber-400)]" : "")}>
+                <th scope="row" class={"py-2.5 pl-3 pr-2 font-medium " + (me ? "shadow-[inset_3px_0_0_var(--color-amber-400)]" : "")}>
                   <div class="flex items-center gap-2">
                     <RankBadge rank={i + 1} />
                     <Name name={name} class="text-gray-900 hover:text-blue-600" />
                   </div>
                 </th>
-                <td class="px-2 py-2 text-right font-semibold tabular-nums text-gray-900">
+                <td class="px-2 py-2.5 text-right font-semibold tabular-nums text-gray-900">
                   <TimerText seconds={time} />
                 </td>
-                <td class={"px-2 py-2 text-right tabular-nums " + (penalty ? "text-rose-500" : "text-gray-300")}>
+                <td class={"px-2 py-2.5 text-right tabular-nums " + (penalty ? "text-rose-500" : "text-gray-300")}>
                   {penalty >= 60 ? <TimerText seconds={penalty} /> : penalty}
                 </td>
-                <td class={"py-1.5 pl-2 pr-3 text-right " + (hide ? "invisible" : "")}>
+                <td class={"py-2 pl-2 pr-3 text-right " + (hide ? "invisible" : "")}>
                   <a
                     class="group inline-flex items-center gap-1.5 rounded-md px-1.5 py-0.5 transition-colors hover:bg-gray-100"
                     href={`/submissions/${submission_id}/playback` +
