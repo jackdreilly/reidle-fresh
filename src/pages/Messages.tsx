@@ -2,7 +2,7 @@ import { Fragment } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import type { PageProps } from "@/router";
 import { Name } from "@/components/DailyTable";
-import MessageText from "@/components/MessageText";
+import MessageText, { resolveGif } from "@/components/MessageText";
 import { rpc } from "@/lib/supabase";
 import { patchSession, useSession } from "@/lib/session";
 import { fromNow } from "@/lib/time";
@@ -26,12 +26,12 @@ function Like({ m, me, onLike }: { m: Msg; me: string | null | undefined; onLike
   const likes = m.likes ?? [];
   const mine = !!me && likes.includes(me);
   return (
-    <form class="inline-flex" onSubmit={(e) => { e.preventDefault(); if (!mine) onLike(); }}>
+    <form class="inline-flex" onSubmit={(e) => { e.preventDefault(); onLike(); }}>
       <button
         type="submit"
-        title={mine ? "You liked this" : "Like"}
+        title={mine ? "Unlike" : "Like"}
         class={"inline-flex items-center gap-1.5 rounded-full py-0.5 pl-0.5 pr-2.5 text-xs ring-1 transition " +
-          (mine ? "cursor-default bg-sky-50 text-sky-800 ring-sky-300"
+          (mine ? "cursor-pointer bg-sky-50 text-sky-800 ring-sky-300 hover:ring-sky-400"
             : likes.length ? "cursor-pointer bg-white text-gray-600 ring-gray-200 hover:ring-sky-300"
             : "cursor-pointer bg-white text-gray-400 ring-gray-200 hover:ring-sky-300 hover:text-gray-600")}
       >
@@ -135,8 +135,10 @@ export default function Messages({ data }: PageProps<Msg[]>) {
     if (!myName) return;
     const set = (f: (likes: string[]) => string[]) =>
       setMessages((ms) => ms.map((m) => m.message_id === id ? { ...m, likes: f(m.likes ?? []) } : m));
-    set((l) => [...l, myName]);
-    void sync(rpc("like_message", { p_id: id }), () => set((l) => l.filter((x) => x !== myName)));
+    // like_message toggles: a second click takes the like back
+    const toggle = (l: string[]) => l.includes(myName) ? l.filter((x) => x !== myName) : [...l, myName];
+    set(toggle);
+    void sync(rpc("like_message", { p_id: id }), () => set(toggle));
   };
   const remove = (id: number) => {
     const before = messages;
@@ -146,8 +148,12 @@ export default function Messages({ data }: PageProps<Msg[]>) {
   const post = (text: string) => {
     const temp: Msg = { message_id: tempId.current--, name: myName ?? "", message: text, created_at: new Date().toISOString(), likes: [] };
     setPending((p) => [...p, temp]);
+    // Look a /gif up once, now, and send its embed URL with the message: viewers then never hit the
+    // rate-limited Giphy API for it. If the lookup fails, the bare /gif is sent and resolved on view.
+    const gif = /^\/gif\b/i.test(text) ? resolveGif(text.slice(4)) : Promise.resolve(undefined);
     return sync(
-      rpc("post_message", { p_message: text }).then(() => { temp.confirmed = true; }),
+      gif.then((url) => rpc("post_message", { p_message: url ? `${text} ${url}` : text }))
+        .then(() => { temp.confirmed = true; }),
       () => setPending((p) => p.filter((m) => m !== temp)),
     );
   };

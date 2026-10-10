@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { signIn } from "./helpers";
+import { signIn, sql } from "./helpers";
 
 test("post, like and delete a message; unread dot clears", async ({ page }) => {
   await signIn(page, "dave", "/messages");
@@ -35,6 +35,8 @@ test("send, like and delete show before the server answers", async ({ page }) =>
   const theirs = page.getByRole("listitem").filter({ hasText: "good morning reidlers" });
   await theirs.locator("form button:has(img)").click();
   await expect(theirs).toContainText("dave", { timeout: 300 });
+  await theirs.locator("form button:has(img)").click(); // again: unlike
+  await expect(theirs).not.toContainText("dave", { timeout: 300 });
 
   const mine = page.getByRole("listitem").filter({ hasText: text });
   page.once("dialog", (d) => void d.accept());
@@ -54,4 +56,14 @@ test("sign out returns to sign-in and protects routes", async ({ page }) => {
   await expect(page).toHaveURL(/sign-in/);
   await page.goto("/stats/today");
   await expect(page).toHaveURL(/sign-in\?redirect=/);
+});
+
+test("a /gif sent with its embed URL renders without a Giphy lookup", async ({ page }) => {
+  sql(`insert into messages (name, message) values ('alice', '/gif pinned https://giphy.com/embed/abc123')`);
+  let lookups = 0;
+  await page.route(/api\.giphy\.com/, (r) => { if (r.request().url().includes("q=pinned")) lookups++; return r.abort(); });
+  await page.route(/giphy\.com\/embed/, (r) => r.fulfill({ body: "<html></html>", contentType: "text/html" }));
+  await signIn(page, "dave", "/messages");
+  await expect(page.locator('iframe[src="https://giphy.com/embed/abc123"]')).toBeVisible();
+  expect(lookups).toBe(0);
 });

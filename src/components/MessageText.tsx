@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
 
-type LinkType = "text" | "url" | "spotify" | "random" | "gif_search";
+type LinkType = "text" | "url" | "spotify" | "random" | "gif_search" | "gif";
 
-const GIPHY_API_KEY = "kC0kZcGTTNZITKMQPLaxGwHeGpwYMn4S";
+// Giphy keys are public by nature (every browser sends them); the old shared key is a fallback.
+const GIPHY_API_KEY = import.meta.env.VITE_GIPHY_API_KEY || "kC0kZcGTTNZITKMQPLaxGwHeGpwYMn4S";
 
 function RandomGif() {
   return <SearchGif query="" />;
@@ -23,24 +24,42 @@ function GifFrame({ src }: { src: string }) {
   );
 }
 
+// One request per query per page load, shared by the composer (which pins the result into the message)
+// and the renderer. The shared Giphy key is rate-limited, so failures are not cached: a later load retries.
+const inflight = new Map<string, Promise<string | undefined>>();
+export function resolveGif(query: string): Promise<string | undefined> {
+  const q = query.trim();
+  const hit = q ? cachedGif(q) : undefined;
+  if (hit) return Promise.resolve(hit);
+  if (q && inflight.has(q.toLowerCase())) return inflight.get(q.toLowerCase())!;
+  const endpoint = q
+    ? `https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(q)}&limit=1`
+    : `https://api.giphy.com/v1/gifs/random?api_key=${GIPHY_API_KEY}`;
+  const p = fetch(endpoint)
+    .then((d) => d.json())
+    .then((d) => {
+      const embedUrl: string | undefined = q ? d.data?.[0]?.embed_url : d.data?.embed_url;
+      if (embedUrl && q) try { localStorage.setItem(gifCacheKey(q), embedUrl); } catch { /* ignore */ }
+      return embedUrl;
+    })
+    .catch(() => undefined)
+    .finally(() => { if (q) inflight.delete(q.toLowerCase()); });
+  if (q) inflight.set(q.toLowerCase(), p);
+  return p;
+}
+
+/** A `/gif` message whose GIF was looked up when it was sent carries the embed URL at the end. */
+const PINNED_GIF = /\s+(https:\/\/giphy\.com\/embed\/[\w-]+)$/;
+
 function SearchGif({ query }: { query: string }) {
   const trimmed = query.trim();
   const [url, setUrl] = useState<string | undefined>(() => (trimmed ? cachedGif(trimmed) : undefined));
   const [failed, setFailed] = useState(false);
   useEffect(() => {
-    if (url) return; // cached: no API call (the shared Giphy key is rate-limited)
-    const endpoint = trimmed
-      ? `https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(trimmed)}&limit=1`
-      : `https://api.giphy.com/v1/gifs/random?api_key=${GIPHY_API_KEY}`;
-    fetch(endpoint)
-      .then((d) => d.json())
-      .then((d) => {
-        const embedUrl: string | undefined = trimmed ? d.data?.[0]?.embed_url : d.data?.embed_url;
-        if (!embedUrl) return setFailed(true);
-        if (trimmed) try { localStorage.setItem(gifCacheKey(trimmed), embedUrl); } catch { /* ignore */ }
-        setUrl(embedUrl);
-      })
-      .catch(() => setFailed(true));
+    if (url) return; // cached: no API call
+    let live = true;
+    void resolveGif(trimmed).then((u) => { if (live) u ? setUrl(u) : setFailed(true); });
+    return () => { live = false; };
   }, [query]);
   if (url) return <GifFrame src={url} />;
   // never render an empty message: say what was meant when Giphy is unavailable
@@ -152,6 +171,8 @@ export default function Message({ message }: { message: string }) {
   const parsed = useMemo(() => {
     const trimmed = message.trim();
     if (trimmed.toLowerCase().startsWith("/gif")) {
+      const pinned = trimmed.match(PINNED_GIF);
+      if (pinned) return [{ type: "gif" as LinkType, value: pinned[1] }];
       const query = trimmed.slice(4).trim();
       return [{ type: "gif_search" as LinkType, value: query }];
     }
@@ -169,7 +190,9 @@ export default function Message({ message }: { message: string }) {
   return (
     <>
       {parsed.map(({ type, value }) =>
-        type === "gif_search"
+        type === "gif"
+          ? <GifFrame src={value} />
+          : type === "gif_search"
           ? <SearchGif query={value} />
           : type === "random"
           ? <RandomGif />
