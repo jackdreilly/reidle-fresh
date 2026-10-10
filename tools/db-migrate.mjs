@@ -9,7 +9,7 @@
 // Each pending file runs in one transaction together with its row in supabase_migrations.schema_migrations
 // (version = the filename's timestamp, same table and key the Supabase CLI uses), so a failing migration
 // leaves nothing behind. Consequence: no `create index concurrently` in migrations.
-// Refuses to run if the live history has versions the repo doesn't (someone applied SQL by hand).
+// On prod, refuses to run if the live history has versions the repo doesn't (someone applied SQL by hand).
 import { execFileSync } from 'node:child_process';
 import { readFileSync, readdirSync } from 'node:fs';
 
@@ -73,7 +73,11 @@ async function main() {
   );
   const known = new Set(files.map((f) => f.version));
   const unknown = [...applied].filter((v) => !known.has(v)).sort();
-  if (unknown.length) {
+  // Staging is shared by every work branch, so it may carry another branch's migrations: note them and go on
+  // (only the drift check is skipped). Prod only ever gets main's migrations, so there it means hand-applied SQL.
+  if (unknown.length && target === 'staging') {
+    console.log(`${label}: has migrations from other branches (not in this checkout): ${unknown.join(', ')}`);
+  } else if (unknown.length) {
     die(`${label}: live migration history has versions that are not in supabase/migrations: ${unknown.join(', ')}
 Someone applied SQL outside this repo. Add it as a migration file, or fix the history, then re-run.`);
   }
@@ -92,8 +96,8 @@ insert into supabase_migrations.schema_migrations (version, name, statements) va
 commit;`);
   }
 
-  if (driftUrl && pending.length) {
-    console.log(`${label}: drift check skipped until the pending migrations are applied`);
+  if (driftUrl && (pending.length || unknown.length)) {
+    console.log(`${label}: drift check skipped (${pending.length ? 'pending migrations' : 'migrations from other branches'})`);
   } else if (driftUrl) {
     const fp = readFileSync(new URL('./db-fingerprint.sql', import.meta.url), 'utf8').trim().replace(/;$/, '');
     const [live, repo] = [await rows(fp), await rows(fp, driftUrl)];
