@@ -110,11 +110,34 @@ function Hero({ name, d, me }: { name: string; d: Data; me: boolean }) {
           </div>
         )}
       </div>
+      <Rivalry rivals={d.rivals} />
       {d.streak.current > 1 && (
         <p class="mt-3 text-sm font-medium text-sky-900">
           🔥 {d.streak.current}-day streak{d.streak.current_wins > 1 && <> · 👑 won the last {d.streak.current_wins} in a row</>}
         </p>
       )}
+    </div>
+  );
+}
+
+/** Nemesis = the regular opponent with the worst record against; "owns" = the best. */
+function Rivalry({ rivals }: { rivals: Data["rivals"] }) {
+  const rate = (r: Data["rivals"][number]) => r.wins / (r.wins + r.losses || 1);
+  const regulars = rivals.filter((r) => r.games >= 10).sort((a, b) => rate(a) - rate(b));
+  if (regulars.length < 2) return null;
+  const nemesis = regulars[0], victim = regulars[regulars.length - 1];
+  const chip = (emoji: string, label: string, r: Data["rivals"][number]) => (
+    <a href={`/players/${r.name}`} class="flex min-w-0 items-center gap-1.5 rounded-lg bg-white/60 px-2 py-1 text-xs ring-1 ring-sky-200 hover:bg-white">
+      <span>{emoji}</span>
+      <span class="text-sky-700">{label}</span>
+      <span class="truncate font-semibold text-sky-950">{r.name}</span>
+      <span class="tabular-nums text-sky-700">{r.wins}–{r.losses}</span>
+    </a>
+  );
+  return (
+    <div class="mt-3 flex flex-wrap gap-2">
+      {rate(nemesis) < 0.5 && chip("😈", "Nemesis", nemesis)}
+      {rate(victim) > 0.5 && chip("🎯", "Owns", victim)}
     </div>
   );
 }
