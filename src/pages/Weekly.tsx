@@ -44,11 +44,8 @@ export default function Weekly({ params, data: { players, additive } }: PageProp
   monday.setUTCDate(monday.getUTCDate() - (monday.getUTCDay() + 6) % 7);
   return (
     <StatsTabs route="this_week">
-      <header class="mb-3 flex items-baseline justify-between gap-2 px-1">
+      <header class="mb-3 px-1">
         <h1 class="text-lg font-semibold text-gray-900">Week of {prettyDay(isoDay(monday), { month: "short", day: "numeric" })}</h1>
-        <span class="text-xs text-gray-400">
-          {isNewWeek ? "1st 40 · 2nd 20 · 3rd 10" : "daily rank product"}
-        </span>
       </header>
       {players.length
         ? (
