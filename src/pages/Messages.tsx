@@ -79,7 +79,7 @@ function Composer({ onPost }: { onPost: (text: string) => Promise<void> }) {
     <form class="rounded-2xl border border-gray-200 bg-white p-3 shadow-sm focus-within:border-sky-300 focus-within:ring-2 focus-within:ring-sky-100" onSubmit={send}>
       <textarea
         required
-        rows={2}
+        rows={1}
         class="block w-full resize-none border-0 bg-transparent p-1 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-0"
         placeholder="Your message..."
         autocomplete="off"
@@ -122,20 +122,38 @@ export default function Messages({ data }: PageProps<Msg[]>) {
     await reload();
   }
 
+  // oldest at the top, newest at the bottom next to the composer, like a chat app
+  const thread = [...messages].reverse();
+  const list = useRef<HTMLUListElement>(null);
+  const last = thread[thread.length - 1]?.message_id;
+  const toBottom = () => window.scrollTo(0, document.documentElement.scrollHeight);
+  useEffect(toBottom, [last]);
+  // GIFs and images load after the first paint and push the newest messages down: stay pinned to the
+  // bottom while that happens, unless the reader has scrolled up.
+  useEffect(() => {
+    let pinned = true;
+    const onScroll = () => {
+      const el = document.documentElement;
+      pinned = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+    };
+    const ro = new ResizeObserver(() => { if (pinned) toBottom(); });
+    ro.observe(list.current!);
+    addEventListener("scroll", onScroll, { passive: true });
+    return () => { ro.disconnect(); removeEventListener("scroll", onScroll); };
+  }, []);
+
   return (
-    <div class="mx-auto max-w-2xl space-y-4">
-      <Composer onPost={post} />
-      {messages.length === 0 && (
+    <div class="mx-auto max-w-2xl">
+      {thread.length === 0 && (
         <p class="py-10 text-center text-sm text-gray-400">No messages this month. Say hi 👋</p>
       )}
-      <ul class="space-y-1">
-        {messages.map((m, i) => {
-          // newest first: the message above is newer
-          const newer = messages[i - 1];
-          const newDay = !newer || dayKey(newer.created_at) !== dayKey(m.created_at);
-          // the burst header sits on its newest (topmost) message; older ones from the same author tuck under it
-          const startsBurst = newDay || newer.name !== m.name ||
-            new Date(newer.created_at).getTime() - new Date(m.created_at).getTime() > BURST_MS;
+      <ul ref={list} class="space-y-1 pb-3">
+        {thread.map((m, i) => {
+          const prev = thread[i - 1];
+          const newDay = !prev || dayKey(prev.created_at) !== dayKey(m.created_at);
+          // same author within a few minutes reads as one burst: only its first message gets the header
+          const startsBurst = newDay || prev.name !== m.name ||
+            new Date(m.created_at).getTime() - new Date(prev.created_at).getTime() > BURST_MS;
           const mine = m.name === myName;
           return (
             <Fragment key={m.message_id}>
@@ -174,6 +192,9 @@ export default function Messages({ data }: PageProps<Msg[]>) {
           );
         })}
       </ul>
+      <div class="sticky bottom-0 -mx-4 -mb-4 bg-white px-4 pt-2 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <Composer onPost={post} />
+      </div>
     </div>
   );
 }
