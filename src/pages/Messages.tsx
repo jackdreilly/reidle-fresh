@@ -7,7 +7,7 @@ import { rpc } from "@/lib/supabase";
 import { patchSession, useSession } from "@/lib/session";
 import { fromNow } from "@/lib/time";
 
-type Msg = { message_id: number; name: string; message: string; created_at: string; likes: string[] };
+type Msg = { message_id: number; name: string; message: string; created_at: string; likes: string[]; confirmed?: boolean };
 
 // Same author within this window reads as one burst: one header, tighter spacing.
 const BURST_MS = 5 * 60 * 1000;
@@ -58,22 +58,17 @@ function Trash({ onDelete }: { onDelete: () => void }) {
   );
 }
 
-function Composer({ onPost }: { onPost: (text: string) => Promise<void> }) {
+function Composer({ onPost }: { onPost: (text: string) => Promise<boolean> }) {
   const box = useRef<HTMLTextAreaElement>(null);
   const [text, setText] = useState("");
-  const [busy, setBusy] = useState(false);
-  async function send(e?: Event) {
+  function send(e?: Event) {
     e?.preventDefault();
     const t = text.trim();
-    if (!t || busy) return;
-    setBusy(true);
-    try {
-      await onPost(t);
-      setText("");
-    } finally {
-      setBusy(false);
-      box.current?.focus();
-    }
+    if (!t) return;
+    setText("");
+    box.current?.focus();
+    // shows instantly; if the server refuses it, the text comes back so nothing is lost
+    void onPost(t).then((ok) => { if (!ok) setText((cur) => cur || t); });
   }
   return (
     <form class="rounded-2xl border border-gray-200 bg-white p-3 shadow-sm focus-within:border-sky-300 focus-within:ring-2 focus-within:ring-sky-100" onSubmit={send}>
@@ -98,7 +93,7 @@ function Composer({ onPost }: { onPost: (text: string) => Promise<void> }) {
         </span>
         <button
           type="submit"
-          disabled={busy || !text.trim()}
+          disabled={!text.trim()}
           class="cursor-pointer rounded-full bg-sky-500 px-4 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-40"
         >
           Send
@@ -111,19 +106,54 @@ function Composer({ onPost }: { onPost: (text: string) => Promise<void> }) {
 export default function Messages({ data }: PageProps<Msg[]>) {
   const { name: myName } = useSession();
   const [messages, setMessages] = useState(data);
+  // Optimistic UI: every action shows instantly; the server catches up in the background.
+  // Sent-but-unconfirmed messages live apart so a refresh can't drop them.
+  const [pending, setPending] = useState<Msg[]>([]);
+  const [error, setError] = useState<string | null>(null);
   useEffect(() => patchSession({ unread: false }), []);
-  const reload = async () => setMessages(await rpc<Msg[]>("messages_page"));
-  async function act(fn: string, id: number) {
-    await rpc(fn, { p_id: id });
-    await reload();
+  const inflight = useRef(0);
+  const tempId = useRef(-1);
+  async function sync(call: Promise<unknown>, undo: () => void): Promise<boolean> {
+    inflight.current++;
+    setError(null);
+    try {
+      await call;
+      return true;
+    } catch (e) {
+      undo();
+      setError((e as Error).message || "Something went wrong");
+      return false;
+    } finally {
+      // refresh once the last action settles, so a refresh never undoes an action still in flight
+      if (--inflight.current === 0) {
+        try { setMessages(await rpc<Msg[]>("messages_page")); } catch { /* keep what we have */ }
+        setPending((p) => p.filter((m) => !m.confirmed));
+      }
+    }
   }
-  async function post(text: string) {
-    await rpc("post_message", { p_message: text });
-    await reload();
-  }
+  const like = (id: number) => {
+    if (!myName) return;
+    const set = (f: (likes: string[]) => string[]) =>
+      setMessages((ms) => ms.map((m) => m.message_id === id ? { ...m, likes: f(m.likes ?? []) } : m));
+    set((l) => [...l, myName]);
+    void sync(rpc("like_message", { p_id: id }), () => set((l) => l.filter((x) => x !== myName)));
+  };
+  const remove = (id: number) => {
+    const before = messages;
+    setMessages((ms) => ms.filter((m) => m.message_id !== id));
+    void sync(rpc("delete_message", { p_id: id }), () => setMessages(before));
+  };
+  const post = (text: string) => {
+    const temp: Msg = { message_id: tempId.current--, name: myName ?? "", message: text, created_at: new Date().toISOString(), likes: [] };
+    setPending((p) => [...p, temp]);
+    return sync(
+      rpc("post_message", { p_message: text }).then(() => { temp.confirmed = true; }),
+      () => setPending((p) => p.filter((m) => m !== temp)),
+    );
+  };
 
   // oldest at the top, newest at the bottom next to the composer, like a chat app
-  const thread = [...messages].reverse();
+  const thread = [...messages].reverse().concat(pending);
   const list = useRef<HTMLUListElement>(null);
   const last = thread[thread.length - 1]?.message_id;
   const toBottom = () => window.scrollTo(0, document.documentElement.scrollHeight);
@@ -164,7 +194,7 @@ export default function Messages({ data }: PageProps<Msg[]>) {
                   <span class="h-px flex-1 bg-gray-200" />
                 </li>
               )}
-              <li class={"group flex rounded-2xl px-3 " + (startsBurst ? "pt-3 pb-2 " : "pb-2 ") + (mine ? "bg-sky-50/60" : "hover:bg-gray-50")}>
+              <li class={"group flex rounded-2xl px-3 " + (startsBurst ? "pt-3 pb-2 " : "pb-2 ") + (mine ? "bg-sky-50/60" : "hover:bg-gray-50") + (m.message_id < 0 ? " opacity-60" : "")}>
                 <div class="min-w-0 flex-1">
                   {startsBurst && (
                     <div class="flex items-baseline gap-2">
@@ -177,15 +207,15 @@ export default function Messages({ data }: PageProps<Msg[]>) {
                   <div class="whitespace-break-spaces break-words text-[15px] leading-snug text-gray-800">
                     <MessageText message={m.message} />
                   </div>
-                  <div class="mt-1.5 flex items-center gap-2">
-                    <Like m={m} me={myName} onLike={() => void act("like_message", m.message_id)} />
+                  {m.message_id > 0 && <div class="mt-1.5 flex items-center gap-2">
+                    <Like m={m} me={myName} onLike={() => like(m.message_id)} />
                     {!startsBurst && (
                       <time class="text-[11px] text-gray-400 opacity-0 transition group-hover:opacity-100" dateTime={m.created_at}>
                         {clock(m.created_at)}
                       </time>
                     )}
-                    {mine && <span class="ml-auto"><Trash onDelete={() => void act("delete_message", m.message_id)} /></span>}
-                  </div>
+                    {mine && <span class="ml-auto"><Trash onDelete={() => remove(m.message_id)} /></span>}
+                  </div>}
                 </div>
               </li>
             </Fragment>
@@ -193,6 +223,7 @@ export default function Messages({ data }: PageProps<Msg[]>) {
         })}
       </ul>
       <div class="sticky bottom-0 -mx-4 -mb-4 bg-white px-4 pt-2 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        {error && <p class="mb-2 rounded-lg bg-rose-50 px-3 py-1.5 text-xs text-rose-700 ring-1 ring-rose-200">Couldn't save that: {error}</p>}
         <Composer onPost={post} />
       </div>
     </div>
