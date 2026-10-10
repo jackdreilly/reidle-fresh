@@ -48,6 +48,13 @@ tools/                 clone-db.sh, sync-auth-users.ts, gen-words-seed.mjs, chec
   `get_playback`, `challenge_page`). Keep that invariant (pgTAP covers it).
 - Changing schema/functions: add a **new migration** (`supabase migration new x`); don't edit
   applied ones once anything is deployed. (Pre-first-deploy they were edited in place.)
+- **Migrations ship through CI, never by hand.** Pushing a branch that touches `supabase/migrations/` applies the
+  pending files to staging (`.github/workflows/db.yml`); "Deploy prod" applies them to prod before the Worker.
+  Both use `tools/db-migrate.mjs` (Management API + `SUPABASE_ACCESS_TOKEN` secret), which records each file
+  under its filename version in `supabase_migrations.schema_migrations` and refuses to run if a live DB has a
+  version the repo doesn't. So don't use the MCP `apply_migration` tool or the SQL editor for schema changes
+  (they record a different version and break the next run). Drift check (staging/prod vs a fresh local build,
+  comments ignored): `node tools/db-migrate.mjs prod --dry-run --drift <local db url>`; prod runs it nightly.
 - Word tables are DATA, not migrations (prod has its own, UPPERCASE). Local/staging fixture words come from `supabase/seed/words.sql`, generated from `src/data/*.csv` via `npm run words`.
 
 ## Scoring (weekly)
@@ -162,5 +169,5 @@ landed on legacy (append-only, idempotent).
   Staging site is public with fake data + open name-only signup: put it behind Cloudflare Access before
   loading cloned prod data.
 - Staging is live: Supabase project `reidle-staging` (`noxissvouravthzvoapw`) with schema, RPCs and fixture
-  data (applied via the Supabase MCP connector; Confirm email is OFF) + the Worker above. Verified end to end
+  data (migrations now via CI, see Data access rules; Confirm email is OFF) + the Worker above. Verified end to end
   with a headless browser. Optional: `STAGING_DB_URL` secret for bulk loads/`db push`.
