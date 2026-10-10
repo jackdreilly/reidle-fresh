@@ -1,118 +1,133 @@
 import type { PageProps } from "@/router";
-import StatsTabs from "@/components/StatsTabs";
-import { HeadColumn, Table, TableBody, TableCell, TableHead, TableRow, TableRowHeader } from "@/components/Tables";
+import StatsTabs, { prettyDay, RankBadge } from "@/components/StatsTabs";
 import { Name } from "@/components/DailyTable";
 import { useSession } from "@/lib/session";
-import { timerTime, utcToday } from "@/lib/time";
+import { isoDay, timerTime, utcToday } from "@/lib/time";
 import type { WeekOutput } from "@/lib/types";
 
-function getLegacyColor(v: number): string {
-  return {
-    1: "rgb(217 249 157)",
-    2: "rgb(254 240 138)",
-    3: "rgb(254 215 170)",
-    4: "hsl(0deg 96.3% 89.41%)",
-    5: "hsl(0deg 96.3% 84.41%)",
-    6: "hsl(0deg 96.3% 79.41%)",
-    7: "hsl(0deg 96.3% 74.41%)",
-    8: "hsl(0deg 96.3% 70.41%)",
-    9: "hsl(0deg 96.3% 65.2%)",
-  }[v] ??
-    "#dddddd";
+type Chip = [bg: string, fg: string];
+const GRAY: Chip = ["#f3f4f6", "#c4c8cf"];
+const GREEN: Chip = ["#bbf7d0", "#14532d"];
+const YELLOW: Chip = ["#fef08a", "#713f12"];
+const ORANGE: Chip = ["#fed7aa", "#7c2d12"];
+// Lower finishes fade from peach to rose.
+const rose = (i: number): Chip => [`hsl(${20 - i * 4}deg 95% ${90 - i * 2}%)`, "#881337"];
+
+/** Legacy weeks: daily rank (1 best), 10 = no-show. */
+function legacyColor(v: number): Chip {
+  if (v === 1) return GREEN;
+  if (v === 2) return YELLOW;
+  if (v === 3) return ORANGE;
+  if (v >= 4 && v <= 9) return rose(v - 4);
+  return GRAY;
 }
 
-function getPointsColor(v: number): string {
-  if (v >= 40) return "rgb(217 249 157)";
-  if (v >= 20) return "rgb(254 240 138)";
-  if (v >= 10) return "rgb(254 215 170)";
-  if (v <= 0) return "#dddddd";
-  return {
-    7: "hsl(20deg 96.3% 88%)",
-    6: "hsl(15deg 96.3% 86%)",
-    5: "hsl(10deg 96.3% 85%)",
-    4: "hsl(5deg 96.3% 85%)",
-    3: "hsl(0deg 96.3% 85%)",
-    2: "hsl(0deg 96.3% 80%)",
-    1: "hsl(0deg 96.3% 75%)",
-  }[v] ?? "#dddddd";
+/** Additive weeks: daily points (40/20/10, then 7..1), 0 = no-show. */
+function pointsColor(v: number): Chip {
+  if (v >= 40) return GREEN;
+  if (v >= 20) return YELLOW;
+  if (v >= 10) return ORANGE;
+  if (v <= 0) return GRAY;
+  return rose(Math.max(0, 7 - v));
+}
+
+function compact(score: number) {
+  return score < 1000 ? `${score}` : score.toString().slice(0, 1) + "e" + Math.floor(Math.log10(score));
 }
 
 export default function Weekly({ params, data: { players, additive } }: PageProps<{ players: WeekOutput; additive: boolean }>) {
   const { name: myName, played_today } = useSession();
-  const week = new Date(params.date);
   const isNewWeek = additive; // fixed cutover (server-side): weeks from 2026-10-05 use additive points
-  const getColor = isNewWeek ? getPointsColor : getLegacyColor;
+  const getColor = isNewWeek ? pointsColor : legacyColor;
+  const today = utcToday();
+  const monday = new Date(params.date.slice(0, 10) + "T00:00:00Z");
+  monday.setUTCDate(monday.getUTCDate() - (monday.getUTCDay() + 6) % 7);
   return (
     <StatsTabs route="this_week">
-      <h1>{week.toISOString().slice(0, 10)}</h1>
+      <header class="mb-3 flex items-baseline justify-between gap-2 px-1">
+        <h1 class="text-lg font-semibold text-gray-900">Week of {prettyDay(isoDay(monday), { month: "short", day: "numeric" })}</h1>
+        <span class="text-xs text-gray-400">
+          {isNewWeek ? "1st 40 · 2nd 20 · 3rd 10" : "daily rank product"}
+        </span>
+      </header>
       {players.length
         ? (
-          <Table>
-            <TableHead>
-              <HeadColumn>Name</HeadColumn>
-              {players[0].results.days.map(({ day }) => (
-                <HeadColumn>
-                  <a
-                    class="text-blue-600 dark:text-blue-500 hover:underline"
-                    href={`/stats/daily/${
-                      new Date(day).toISOString().slice(0, 10)
-                    }`}
-                  >
-                    {"MTWRFSU"[(new Date(day).getUTCDay() + 6) % 7]}
-                  </a>
-                </HeadColumn>
-              ))}
-              <HeadColumn>{isNewWeek ? "Σ" : "Π"}</HeadColumn>
-              <HeadColumn>⏱️</HeadColumn>
-            </TableHead>
-            <TableBody>
-              {players.map((
-                { name, results: { days, totals: { score, time } } },
-                i,
-              ) => (
-                <TableRow>
-                  <TableRowHeader
-                    class={name === myName ? "bg-yellow-100" : ""}
-                  >
-                    <Name name={name} />
-                  </TableRowHeader>
-                  {days.map(({ score, time, submission_id, day }) => (
-                    <TableCell
-                      style={{
-                        backgroundColor: getColor(score),
-                        padding: 0,
-                        textAlign: "center",
-                      }}
-                    >
-                      {!submission_id ? score : (
+          <div class="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-sm">
+            <table class="w-full text-sm">
+              <thead class="border-b border-gray-100 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                <tr>
+                  <th scope="col" class="sticky left-0 z-10 bg-white py-2 pl-3 pr-1 text-left">Player</th>
+                  {players[0].results.days.map(({ day }) => {
+                    const iso = isoDay(new Date(day));
+                    return (
+                      <th scope="col" class="px-px py-1 text-center">
                         <a
-                          class="leading-[35px] w-full block"
-                          href={!played_today && day === utcToday()
-                            ? undefined
-                            : `/submissions/${submission_id}/playback`}
+                          class={"mx-auto flex w-6 sm:w-7 flex-col items-center rounded-md py-0.5 leading-tight hover:bg-gray-100 " +
+                            (iso === today ? "bg-gray-900 text-white hover:bg-gray-700" : "")}
+                          href={`/stats/daily/${iso}`}
                         >
-                          {score}
+                          {"MTWRFSU"[(new Date(day).getUTCDay() + 6) % 7]}
+                          <span class="text-[10px] font-normal normal-case tracking-normal opacity-70">{new Date(day).getUTCDate()}</span>
                         </a>
-                      )}
-                    </TableCell>
-                  ))}
-                  <TableCell>
-                    {isNewWeek ? score : (
-                      <span title={`${score}`}>
-                        {score < 1000
-                          ? score
-                          : score.toString().slice(0, 1) + "e" +
-                            Math.floor(Math.log10(score))}
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell>{timerTime(time)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                      </th>
+                    );
+                  })}
+                  <th scope="col" class="py-2 pl-2 pr-3 text-right text-gray-500">{isNewWeek ? "Σ" : "Π"}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {players.map(({ name, results: { days, totals: { score, time } } }, i) => {
+                  const me = name === myName;
+                  const rowBg = me ? "bg-amber-50" : "bg-white";
+                  return (
+                    <tr class={"border-b border-gray-100 last:border-0 " + rowBg}>
+                      <th
+                        scope="row"
+                        class={"sticky left-0 z-10 py-1.5 pl-3 pr-1 text-left font-medium " + rowBg +
+                          (me ? " shadow-[inset_3px_0_0_var(--color-amber-400)]" : "")}
+                      >
+                        <div class="flex items-center gap-1.5">
+                          <RankBadge rank={i + 1} />
+                          <div class="leading-tight">
+                            <Name name={name} class="text-gray-900 hover:text-blue-600" />
+                            <div class="text-[11px] font-normal tabular-nums text-gray-400" title="Total time">⏱ {timerTime(time)}</div>
+                          </div>
+                        </div>
+                      </th>
+                      {days.map(({ score, submission_id, day }) => {
+                        const [bg, fg] = getColor(score);
+                        const chip = "mx-auto flex h-8 w-6 sm:w-7 items-center justify-center rounded-md text-xs font-semibold tabular-nums";
+                        return (
+                          <td class="px-px py-1.5 text-center">
+                            {!submission_id
+                              ? <span class={chip} style={{ backgroundColor: bg, color: fg }}>{score}</span>
+                              : (
+                                <a
+                                  class={chip + " transition-transform hover:scale-110"}
+                                  style={{ backgroundColor: bg, color: fg }}
+                                  href={!played_today && day === today ? undefined : `/submissions/${submission_id}/playback`}
+                                >
+                                  {score}
+                                </a>
+                              )}
+                          </td>
+                        );
+                      })}
+                      <td class="py-1.5 pl-2 pr-3 text-right font-bold tabular-nums text-gray-900">
+                        {isNewWeek ? score : <span title={`${score}`}>{compact(score)}</span>}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )
-        : "No data for this week yet. Check back later!"}
+        : (
+          <div class="rounded-2xl border border-dashed border-gray-300 bg-white px-4 py-8 text-center text-sm text-gray-500">
+            No data for this week yet. Check back later!
+          </div>
+        )}
     </StatsTabs>
   );
 }

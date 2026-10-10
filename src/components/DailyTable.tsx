@@ -1,10 +1,4 @@
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableRow,
-  TableRowHeader,
-} from "@/components/Tables";
+import { RankBadge } from "@/components/StatsTabs";
 import TimerText from "@/components/TimerText";
 import type { DailySubmission } from "@/lib/types";
 
@@ -48,12 +42,12 @@ export function Birthday({ name }: { name: string }) {
   return null;
 }
 
-export function Name({ name }: { name: string }) {
+export function Name({ name, class: cls }: { name: string; class?: string }) {
   return (
     <div class="inline-block">
       <a
         href={`/players/${name}`}
-        class="flex items-center whitespace-nowrap text-blue-600 dark:text-blue-500 hover:underline"
+        class={"flex items-center whitespace-nowrap hover:underline " + (cls ?? "text-blue-600 dark:text-blue-500")}
       >
         {name.toLowerCase().trim().substring(0, 13)}
         <Birthday name={name} />
@@ -71,48 +65,67 @@ export function DailyTable(
     challenge?: boolean;
   },
 ) {
+  if (!submissions.length) {
+    return (
+      <div class="rounded-2xl border border-dashed border-gray-300 bg-white px-4 py-8 text-center text-sm text-gray-500">
+        No games yet. Be the first!
+      </div>
+    );
+  }
   return (
-    <Table
-      columns={["Name", "Time", "Pen", "Paste"]}
-    >
-      <TableBody>
-        {submissions.map((
-          { name, time, penalty, paste, submission_id },
-        ) => (
-          <TableRow class={name === myName ? "bg-yellow-100" : ""}>
-            <TableRowHeader>
-              <Name name={name} />
-            </TableRowHeader>
-            <TableCell>
-              <TimerText seconds={time} />
-            </TableCell>
-            <TableCell>
-              {penalty >= 60 ? <TimerText seconds={penalty} /> : penalty}
-            </TableCell>
-            <TableCell class={hide ? "invisible" : ""}>
-              <a
-                class="group inline-flex items-center gap-1 rounded p-0.5 hover:bg-gray-200"
-                href={`/submissions/${submission_id}/playback` +
-                  (challenge ? "?challenge" : "")}
-                title="Watch replay"
-                aria-label={`Watch ${name}'s replay`}
-              >
-                <Paste paste={paste} />
-                <svg
-                  class="w-3 h-3 shrink-0 text-gray-400 group-hover:text-gray-700"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                  xmlns="http://www.w3.org/2000/svg"
-                  aria-hidden="true"
-                >
-                  <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
-                </svg>
-              </a>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+    <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+      <table class="w-full text-left text-sm">
+        <thead class="border-b border-gray-100 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+          <tr>
+            <th scope="col" class="py-2 pl-3 pr-2">Player</th>
+            <th scope="col" class="px-2 py-2 text-right">Time</th>
+            <th scope="col" class="px-2 py-2 text-right">Pen</th>
+            <th scope="col" class="py-2 pl-2 pr-3 text-right">Paste</th>
+          </tr>
+        </thead>
+        <tbody>
+          {submissions.map(({ name, time, penalty, paste, submission_id }, i) => {
+            const me = name === myName;
+            return (
+              <tr class={"border-b border-gray-100 last:border-0 " + (me ? "bg-amber-50" : "")}>
+                <th scope="row" class={"py-2.5 pl-3 pr-2 font-medium " + (me ? "shadow-[inset_3px_0_0_var(--color-amber-400)]" : "")}>
+                  <div class="flex items-center gap-2">
+                    <RankBadge rank={i + 1} />
+                    <Name name={name} class="text-gray-900 hover:text-blue-600" />
+                  </div>
+                </th>
+                <td class="px-2 py-2.5 text-right font-semibold tabular-nums text-gray-900">
+                  <TimerText seconds={time} />
+                </td>
+                <td class={"px-2 py-2.5 text-right tabular-nums " + (penalty ? "text-rose-500" : "text-gray-300")}>
+                  {penalty >= 60 ? <TimerText seconds={penalty} /> : penalty}
+                </td>
+                <td class={"py-1.5 pl-2 pr-3 text-right " + (hide ? "invisible" : "")}>
+                  <a
+                    class="group inline-flex items-center gap-1.5 rounded-lg px-1.5 py-1 transition-colors hover:bg-gray-100"
+                    href={`/submissions/${submission_id}/playback` +
+                      (challenge ? "?challenge" : "")}
+                    title="Watch replay"
+                    aria-label={`Watch ${name}'s replay`}
+                  >
+                    <Paste paste={paste} />
+                    <svg
+                      class="h-3 w-3 shrink-0 text-gray-300 transition-colors group-hover:text-gray-700"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                      xmlns="http://www.w3.org/2000/svg"
+                      aria-hidden="true"
+                    >
+                      <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+                    </svg>
+                  </a>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
@@ -122,17 +135,16 @@ function Paste({ paste }: { paste: string }) {
   }
   return (
     <div
-      class="grid w-7"
+      class="grid w-9 gap-px"
       style={{ gridTemplateRows: `repeat(${Math.min(12, paste.split("\n").length)}, minmax(0, 1fr))` }}
     >
       {paste.split("\n").map((line) => (
-        <div class="h-1 grid grid-cols-5">
+        <div class="grid h-1.5 grid-cols-5 gap-px">
           {Array.from(line).map((char) => (
             <div
               style={{
-                borderRadius: "1px",
+                borderRadius: "1.5px",
                 backgroundColor: bg(char),
-                margin: "0.15px",
               }}
             />
           ))}
@@ -143,5 +155,5 @@ function Paste({ paste }: { paste: string }) {
 }
 
 function bg(s: string): string {
-  return { "🟩": "#049404", "⬜": "#dddddd", "🟨": "#e9e51b" }[s] ?? "white";
+  return { "🟩": "#16a34a", "⬜": "#e5e7eb", "🟨": "#eab308" }[s] ?? "white";
 }
