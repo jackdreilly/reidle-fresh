@@ -315,7 +315,7 @@ function Recent({ games, hide }: { games: Data["recent"]; hide: boolean }) {
       {games.map((g) => {
         const row = (
           <>
-            <span class="w-20 shrink-0 text-gray-500">{prettyDay(g.day, { weekday: "short", month: "short", day: "numeric" })}</span>
+            <span class="w-24 shrink-0 whitespace-nowrap text-gray-500">{prettyDay(g.day, { weekday: "short", month: "short", day: "numeric" })}</span>
             <span class="min-w-0 flex-1 truncate font-mono text-xs font-semibold uppercase tracking-widest text-gray-700">
               {g.word ?? (hide ? "?????" : "")}
             </span>
