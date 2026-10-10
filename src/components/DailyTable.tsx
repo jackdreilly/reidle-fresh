@@ -133,11 +133,14 @@ function Paste({ paste }: { paste: string }) {
   if (paste === "") {
     return <span class="text-xs text-gray-400">No paste</span>;
   }
+  const lines = paste.split("\n");
+  const rowHeight = Math.min(4, (30 - (lines.length - 1)) / lines.length);
   return (
     // Just for fun, not to scale: short, wide cells keep table rows compact.
+    // Rows are 4px until the grid would pass 30px; longer pastes squish to fit.
     <div class="flex w-11 flex-col gap-px">
-      {paste.split("\n").slice(0, 12).map((line) => (
-        <div class="grid h-1 grid-cols-5 gap-px">
+      {lines.map((line) => (
+        <div class="grid grid-cols-5 gap-px" style={{ height: `${rowHeight}px` }}>
           {Array.from(line).map((char) => (
             <div
               style={{
