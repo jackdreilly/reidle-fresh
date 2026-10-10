@@ -11,8 +11,6 @@ type Msg = { message_id: number; name: string; message: string; created_at: stri
 
 // Same author within this window reads as one burst: one header, tighter spacing.
 const BURST_MS = 5 * 60 * 1000;
-const AVATAR = ["bg-sky-500", "bg-pink-500", "bg-emerald-500", "bg-amber-500", "bg-violet-500", "bg-rose-500", "bg-teal-500", "bg-indigo-500"];
-const avatarColor = (name: string) => AVATAR[[...name].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) % AVATAR.length];
 
 const dayKey = (iso: string) => new Date(iso).toDateString();
 function dayLabel(iso: string) {
@@ -23,14 +21,6 @@ function dayLabel(iso: string) {
   return d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
 }
 const clock = (iso: string) => new Date(iso).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
-
-function Avatar({ name }: { name: string }) {
-  return (
-    <a href={`/players/${name}`} class={"flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold uppercase text-white " + avatarColor(name)}>
-      {name.trim().charAt(0)}
-    </a>
-  );
-}
 
 function Like({ m, me, onLike }: { m: Msg; me: string | null | undefined; onLike: () => void }) {
   const likes = m.likes ?? [];
@@ -156,8 +146,7 @@ export default function Messages({ data }: PageProps<Msg[]>) {
                   <span class="h-px flex-1 bg-gray-200" />
                 </li>
               )}
-              <li class={"group flex gap-3 rounded-2xl px-3 " + (startsBurst ? "pt-3 pb-2 " : "pb-2 ") + (mine ? "bg-sky-50/60" : "hover:bg-gray-50")}>
-                <div class="w-9 shrink-0">{startsBurst && <Avatar name={m.name} />}</div>
+              <li class={"group flex rounded-2xl px-3 " + (startsBurst ? "pt-3 pb-2 " : "pb-2 ") + (mine ? "bg-sky-50/60" : "hover:bg-gray-50")}>
                 <div class="min-w-0 flex-1">
                   {startsBurst && (
                     <div class="flex items-baseline gap-2">
