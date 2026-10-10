@@ -22,13 +22,15 @@ test("current week uses additive points (Σ), prior week legacy product (Π)", a
 
 test("past winners lists last week's winner", async ({ page }) => {
   await page.goto("/stats/past_winners");
-  await expect(page.getByRole("row").filter({ hasText: "alice" })).toBeVisible();
+  await expect(page.getByRole("row").filter({ hasText: "alice" }).first()).toBeVisible();
 });
 
 test("player page and rankings render charts", async ({ page }) => {
   await page.goto("/players/alice");
-  await expect(page.getByText(/Total Games: \d+/)).toBeVisible();
-  await expect(page.locator("svg[role=img]")).toHaveCount(6);
+  await expect(page.getByText(/Playing since \w+ \d{4} · [\d,]+ games/)).toBeVisible();
+  await expect(page.getByText("Head to head", { exact: true })).toBeVisible();
+  await expect(page.getByRole("img", { name: "Median solve time by month" })).toBeVisible();
+  await expect(page.getByText(/weeks? won/)).toBeVisible();
   await page.goto("/rankings");
   await expect(page.getByText("Reidle Power Rankings")).toBeVisible();
   await expect(page.locator("svg path[stroke-width='12']").first()).toBeAttached();

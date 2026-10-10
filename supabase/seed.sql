@@ -5,10 +5,10 @@ insert into players (name) values
 
 -- Daily words for a window around today.
 insert into daily_words (day, word, answer)
-select current_date + o,
-  (select word from words order by md5(o::text || 'w') limit 1),
-  (select answer from answers order by md5(o::text || 'a') limit 1)
-from generate_series(-21, 7) o;
+select current_date + o, w.word, a.answer
+from generate_series(-364, 7) o,
+  lateral (select answer from answers order by md5(answer || o::text) limit 1) a,
+  lateral (select word from words where word <> a.answer order by md5(word || o::text || 'w') limit 1) w;
 
 -- Submissions: previous week = full (legacy scoring); current week = shrinking
 -- participation (additive scoring). alice/bob/carol/dave also played today.
@@ -16,22 +16,31 @@ with names as (
   select n, i from unnest(array['alice','bob','carol','dave','erin','frank','grace','heidi'])
     with ordinality as t(n, i)),
 days as (
-  select current_date - o as day, o from generate_series(0, 89) o
+  select current_date - o as day, o from generate_series(0, 364) o
   union
   -- fixed legacy-scoring weeks (before the 2026-10-05 cutover) so tests never depend on today's date
   select d::date, (current_date - d::date) from generate_series(date '2026-09-14', date '2026-09-27', interval '1 day') d),
 plays as (
   select d.day, n.n, n.i, d.o,
-    (30 + n.i * 10 + (d.o % 4) * 3 + (n.i * d.o % 5))::double precision as t,
+    -- deterministic noise (so places shuffle) plus a slow improvement over the year
+    (25 + n.i * 6 + ('x' || substr(md5(n.n || d.day), 1, 6))::bit(24)::int % 50
+      + least(d.o, 364) / 20)::double precision as t,
+    ('x' || substr(md5(d.day || n.n), 1, 6))::bit(24)::int as h,
     case
       when d.day >= date_trunc('week', current_date)::date
         then n.i <= greatest(4, 8 - (d.day - date_trunc('week', current_date)::date))  -- participation shrinks through the week
+      -- older history has gaps (~1 in 6 days skipped); the last two weeks are complete
+      when d.day < date_trunc('week', current_date)::date - 7
+        then ('x' || substr(md5(d.day || n.n), 1, 6))::bit(24)::int % 6 <> 0
       else true
     end as plays
   from days d cross join names n)
 insert into submissions (day, name, "time", penalty, word, paste, playback, "rank")
-select p.day, p.n, p.t, (p.i % 3) * 10, 'crane',
-  E'⬜🟨⬜⬜🟨\n🟩🟩🟨⬜⬜\n🟩🟩🟩🟩🟩',
+select p.day, p.n, p.t, case when p.h % 4 = 0 then 10 else 0 end,
+  coalesce((select answer from daily_words dw where dw.day = p.day), 'crane'),
+  -- 2 to 5 rows
+  array_to_string((array[E'⬜🟨⬜⬜🟨', E'🟩⬜🟨⬜⬜', E'🟩🟩🟨⬜⬜', E'🟩🟩🟩⬜🟩'])[1:1 + (p.h / 7) % 4], E'\n')
+    || E'\n🟩🟩🟩🟩🟩',
   jsonb_build_object('events', jsonb_build_array(
     jsonb_build_object('time', 400, 'letter', 'C'),
     jsonb_build_object('time', 800, 'letter', 'R'),
@@ -45,6 +54,12 @@ select p.day, p.n, p.t, (p.i % 3) * 10, 'crane',
     jsonb_build_object('time', 3000, 'error', jsonb_build_object('message', 'Wrong C @ 1', 'penalty', 10)))),
   (row_number() over (partition by p.day order by p.t, p.i))::int
 from plays p where p.plays;
+
+-- Older weekly winners (last week's is computed and memoised on demand).
+insert into winners (week, name)
+select date_trunc('week', current_date)::date - 7 * w,
+       (array['alice','bob','alice','carol','bob','alice','dave'])[1 + w % 7]
+from generate_series(2, 40) w;
 
 -- Challenges (today + yesterday) with submissions so the leaderboards populate.
 insert into challenges (starting_word, answer, created_at)

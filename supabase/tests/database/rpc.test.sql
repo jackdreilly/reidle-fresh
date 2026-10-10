@@ -2,7 +2,7 @@ begin;
 select plan(40);
 
 -- Fixture: isolated players, no seed dependence.
-truncate submissions, checkpoints, messages, message_reads, winners, challenges, players restart identity cascade;
+truncate submissions, checkpoints, messages, message_reads, winners, week_snapshots, challenges, players restart identity cascade;
 insert into auth.users (id, instance_id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-00000000000' || i)::uuid, '00000000-0000-0000-0000-000000000000',
        'authenticated', 'authenticated', n || '@t.t', jsonb_build_object('name', n)
