@@ -88,21 +88,21 @@ export function DailyTable(
             const me = name === myName;
             return (
               <tr class={"border-b border-gray-100 last:border-0 " + (me ? "bg-amber-50" : "")}>
-                <th scope="row" class={"py-2.5 pl-3 pr-2 font-medium " + (me ? "shadow-[inset_3px_0_0_var(--color-amber-400)]" : "")}>
+                <th scope="row" class={"py-1.5 pl-3 pr-2 font-medium " + (me ? "shadow-[inset_3px_0_0_var(--color-amber-400)]" : "")}>
                   <div class="flex items-center gap-2">
                     <RankBadge rank={i + 1} />
                     <Name name={name} class="text-gray-900 hover:text-blue-600" />
                   </div>
                 </th>
-                <td class="px-2 py-2.5 text-right font-semibold tabular-nums text-gray-900">
+                <td class="px-2 py-1.5 text-right font-semibold tabular-nums text-gray-900">
                   <TimerText seconds={time} />
                 </td>
-                <td class={"px-2 py-2.5 text-right tabular-nums " + (penalty ? "text-rose-500" : "text-gray-300")}>
+                <td class={"px-2 py-1.5 text-right tabular-nums " + (penalty ? "text-rose-500" : "text-gray-300")}>
                   {penalty >= 60 ? <TimerText seconds={penalty} /> : penalty}
                 </td>
-                <td class={"py-1.5 pl-2 pr-3 text-right " + (hide ? "invisible" : "")}>
+                <td class={"py-1 pl-2 pr-3 text-right " + (hide ? "invisible" : "")}>
                   <a
-                    class="group inline-flex items-center gap-1.5 rounded-lg px-1.5 py-1 transition-colors hover:bg-gray-100"
+                    class="group inline-flex items-center gap-1.5 rounded-md px-1.5 py-0.5 transition-colors hover:bg-gray-100"
                     href={`/submissions/${submission_id}/playback` +
                       (challenge ? "?challenge" : "")}
                     title="Watch replay"
@@ -134,16 +134,14 @@ function Paste({ paste }: { paste: string }) {
     return <span class="text-xs text-gray-400">No paste</span>;
   }
   return (
-    <div
-      class="grid w-9 gap-px"
-      style={{ gridTemplateRows: `repeat(${Math.min(12, paste.split("\n").length)}, minmax(0, 1fr))` }}
-    >
-      {paste.split("\n").map((line) => (
-        <div class="grid h-1.5 grid-cols-5 gap-px">
+    // Just for fun, not to scale: short, wide cells keep table rows compact.
+    <div class="flex w-10 flex-col gap-px">
+      {paste.split("\n").slice(0, 12).map((line) => (
+        <div class="grid h-[3px] grid-cols-5 gap-px">
           {Array.from(line).map((char) => (
             <div
               style={{
-                borderRadius: "1.5px",
+                borderRadius: "1px",
                 backgroundColor: bg(char),
               }}
             />
