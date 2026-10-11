@@ -92,13 +92,16 @@ function Composer({ onPost }: { onPost: (text: string) => Promise<boolean> }) {
         <span class="text-xs text-gray-400">
           Try <code class="rounded bg-gray-100 px-1 text-gray-600">/gif cats</code><span class="hidden sm:inline"> · Shift+Enter for a new line</span>
         </span>
-        <button
-          type="submit"
-          disabled={!text.trim()}
-          class="cursor-pointer rounded-full bg-sky-500 px-4 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          Send
-        </button>
+        <span class="flex items-center gap-2">
+          <PushToggle />
+          <button
+            type="submit"
+            disabled={!text.trim()}
+            class="cursor-pointer rounded-full bg-sky-500 px-4 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Send
+          </button>
+        </span>
       </div>
     </form>
   );
@@ -116,43 +119,48 @@ function Bell({ on }: { on: boolean }) {
   );
 }
 
-// Opt-in browser notifications for new messages from others. Off until the player asks for it.
+// Opt-in browser notifications for new messages from others, as a bell next to Send: always in view,
+// never buried above old messages. Off until the player taps it; tapping again turns it off.
 function PushToggle() {
   const [state, setState] = useState<PushState | "busy" | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [note, setNote] = useState<string | null>(null);
   useEffect(() => { pushState().then(setState, () => setState("unsupported")); }, []);
   if (state === null || state === "unsupported") return null;
-  const toggle = async () => {
+  const tap = async () => {
+    if (state === "install") return setNote(note ? null : "To get notifications on iPhone, add Reidle to your Home Screen (Share, then Add to Home Screen) and open it from there.");
+    if (state === "denied") return setNote(note ? null : "Notifications are blocked for this site. Allow them in your browser's site settings, then tap the bell again.");
     const was = state;
     setState("busy");
-    setError(null);
+    setNote(null);
     try {
       setState(await (was === "on" ? disablePush() : enablePush()));
     } catch (e) {
       setState(was);
-      setError((e as Error).message || "Couldn't turn on notifications");
+      setNote((e as Error).message || "Couldn't turn on notifications");
     }
   };
-  const hint = state === "install" ? "To get notifications on iPhone, add Reidle to your Home Screen (Share, then Add to Home Screen) and open it from there."
-    : state === "denied" ? "Notifications are blocked for this site. Allow them in your browser's site settings to turn them on."
-    : error;
+  const on = state === "on";
+  const label = on ? "Notifications on (tap to turn off)" : "Notify me of new messages";
   return (
-    <div class="flex flex-col items-end gap-1 pb-1">
-      {(state === "on" || state === "off" || state === "busy") && (
-        <button
-          type="button"
-          onClick={toggle}
-          disabled={state === "busy"}
-          title={state === "on" ? "Stop notifying me about new messages" : "Get a notification when someone posts"}
-          class={"inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ring-1 transition disabled:cursor-wait disabled:opacity-60 " +
-            (state === "on" ? "bg-sky-50 text-sky-800 ring-sky-300 hover:ring-sky-400" : "bg-white text-gray-600 ring-gray-200 hover:ring-sky-300 hover:text-gray-800")}
-        >
-          <Bell on={state === "on"} />
-          {state === "on" ? "Notifications on · Turn off" : state === "busy" ? "One moment…" : "Notify me of new messages"}
-        </button>
+    <span class="relative">
+      {note && (
+        <span role="status" class="absolute right-0 bottom-full z-10 mb-2 w-64 rounded-xl bg-gray-900 px-3 py-2 text-xs text-white shadow-lg">
+          {note}
+        </span>
       )}
-      {hint && <p class="max-w-sm text-right text-xs text-gray-400">{hint}</p>}
-    </div>
+      <button
+        type="button"
+        onClick={tap}
+        disabled={state === "busy"}
+        aria-label={label}
+        title={label}
+        class={"inline-flex cursor-pointer items-center gap-1 rounded-full py-1.5 text-xs font-medium transition disabled:cursor-wait disabled:opacity-60 " +
+          (on ? "px-2 text-sky-600 hover:bg-sky-50" : "px-2.5 text-gray-500 ring-1 ring-gray-200 hover:text-gray-800 hover:ring-sky-300")}
+      >
+        <Bell on={on} />
+        {!on && <span>{state === "busy" ? "…" : "Notify me"}</span>}
+      </button>
+    </span>
   );
 }
 
@@ -233,7 +241,6 @@ export default function Messages({ data }: PageProps<Msg[]>) {
 
   return (
     <div class="mx-auto max-w-2xl">
-      <PushToggle />
       {thread.length === 0 && (
         <p class="py-10 text-center text-sm text-gray-400">No messages this month. Say hi 👋</p>
       )}
