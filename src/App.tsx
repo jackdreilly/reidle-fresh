@@ -11,8 +11,9 @@ export default function App() {
   return (
     <>
       {!online && (
-        <div role="status" class="fixed bottom-0 inset-x-0 z-[200] bg-gray-800 px-3 pt-1.5 pb-[max(.375rem,env(safe-area-inset-bottom))] text-center text-sm text-white">
-          You're offline. Practice still works; everything else needs a connection.
+        <div role="status" title="Practice still works; everything else needs a connection."
+          class="fixed right-3 top-[calc(env(safe-area-inset-top)+.75rem)] z-[200] rounded-full bg-gray-800 px-3 py-1 text-xs font-medium text-white">
+          Offline
         </div>
       )}
       {progress && <div class="fixed top-[env(safe-area-inset-top)] left-0 z-[200] h-0.5 w-full animate-pulse bg-blue-500" />}

@@ -4,6 +4,8 @@
 // - hashed assets are cache-first (immutable); old builds' assets are pruned on activate;
 // - navigations are network-first (a new deploy shows up immediately), falling back to the cached
 //   shell only when offline or slow. Supabase calls (another origin) are never touched.
+// Unhashed files the shell shows (logo) or the OS asks for (icons); refreshed with each new build.
+const STATIC = ["/android-chrome-96x96.webp", "/android-chrome-192x192.png", "/manifest.webmanifest"];
 const PRECACHE = self.__PRECACHE__ ?? [];
 const CACHE = "reidle-" + (self.__BUILD__ ?? "dev");
 const SHELL = "/index.html";
@@ -18,8 +20,10 @@ self.addEventListener("install", (e) =>
       const r = await fetch(u);
       if (r.ok) await c.put(u, r);
     })).catch(() => {});
-    const shell = await fetch(SHELL, { cache: "no-cache" }).catch(() => null);
-    if (shell?.ok) await c.put(SHELL, shell);
+    for (const u of [SHELL, ...STATIC]) {
+      const r = await fetch(u, { cache: "no-cache" }).catch(() => null);
+      if (r?.ok) await c.put(u, r);
+    }
     await self.skipWaiting();
   })()));
 
@@ -37,6 +41,9 @@ self.addEventListener("fetch", (e) => {
   if (url.pathname.startsWith("/assets/")) {
     e.respondWith(caches.open(CACHE).then(async (c) =>
       (await c.match(request)) ?? fetch(request).then((r) => (r.ok && c.put(request, r.clone()), r))));
+  } else if (STATIC.includes(url.pathname)) {
+    // network-first: the files can change in place; the cached copy is the offline fallback
+    e.respondWith(fetch(request).catch(async () => (await caches.match(url.pathname)) ?? Response.error()));
   } else if (request.mode === "navigate") {
     e.respondWith((async () => {
       const c = await caches.open(CACHE);

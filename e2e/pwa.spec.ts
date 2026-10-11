@@ -24,10 +24,11 @@ test("offline: the installed shell still opens and Practice is playable", async 
   await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
   await context.setOffline(true);
   await page.goto("/practice?word=3&startingWord=5");
-  await expect(page.getByText("You're offline")).toBeVisible();
+  await expect(page.getByRole("status").getByText("Offline")).toBeVisible();
   await expect(page.locator(".grid").first()).toBeVisible();
+  await expect.poll(() => page.getByAltText("Reidle Logo").evaluate((i: HTMLImageElement) => i.naturalWidth)).toBeGreaterThan(0);
   await context.setOffline(false);
-  await expect(page.getByText("You're offline")).toBeHidden();
+  await expect(page.getByRole("status").getByText("Offline")).toBeHidden();
 });
 
 test("coming back to the app after a while reloads the page's data", async ({ page }) => {
