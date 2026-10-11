@@ -12,3 +12,4 @@ supabase/.branches/
 dist-e2e/
 .wrangler/
 .worker/
+deno.lock
