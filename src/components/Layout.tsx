@@ -1,6 +1,7 @@
 import type { ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
 import { useSession } from "@/lib/session";
+import { useInstall } from "@/lib/pwa";
 
 function AllNotification() {
   const { unread } = useSession();
@@ -21,11 +22,12 @@ export default function Layout(
 ) {
   const { played_today: playedToday } = useSession();
   const [open, setOpen] = useState(false);
+  const install = useInstall();
   return (
     <div class={fullPage ? "h-dvh overflow-hidden" : ""} onClick={(e) => {
       if (open && (e.target as HTMLElement).closest("aside a")) setOpen(false);
     }}>
-        <nav class="fixed top-0 z-50 w-full bg-white border-b border-gray-200 ">
+        <nav class="fixed top-0 z-50 w-full bg-white border-b border-gray-200 pt-[env(safe-area-inset-top)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
           <div
             class={[
               "px-3",
@@ -102,7 +104,7 @@ export default function Layout(
 
         <aside
           id="logo-sidebar"
-          class={"fixed top-0 left-0 z-40 w-48 h-screen pt-20 transition-transform bg-white border-r border-gray-200 md:translate-x-0 " + (open ? "" : "-translate-x-full")}
+          class={"fixed top-0 left-0 z-40 w-48 h-dvh pt-[calc(5rem+env(safe-area-inset-top))] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] transition-transform bg-white border-r border-gray-200 md:translate-x-0 " + (open ? "" : "-translate-x-full")}
           aria-label="Sidebar"
         >
           <div class="h-full px-3 pb-4 overflow-y-auto bg-white ">
@@ -220,6 +222,21 @@ export default function Layout(
                   </span>
                 </a>
               </li>
+              {install && (
+                <li>
+                  <a
+                    href="/account#install"
+                    onClick={(e) => { if (install.kind === "prompt") { e.preventDefault(); void install.install(); } }}
+                    class="flex items-center p-2 text-base font-normal text-gray-900 rounded-lg hover:bg-gray-100"
+                  >
+                    <svg aria-hidden="true" class="flex-shrink-0 w-6 h-6 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M10.75 2.75a.75.75 0 0 0-1.5 0v8.69L6.28 8.47a.75.75 0 0 0-1.06 1.06l4.25 4.25a.75.75 0 0 0 1.06 0l4.25-4.25a.75.75 0 1 0-1.06-1.06l-2.97 2.97V2.75Z" />
+                      <path d="M3.5 12.75a.75.75 0 0 0-1.5 0v2.5A2.75 2.75 0 0 0 4.75 18h10.5A2.75 2.75 0 0 0 18 15.25v-2.5a.75.75 0 0 0-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5Z" />
+                    </svg>
+                    <span class="ml-3">Install app</span>
+                  </a>
+                </li>
+              )}
               <li class="flex items-center rounded-lg hover:bg-gray-100">
                 <a
                   href="/account"
@@ -273,7 +290,9 @@ export default function Layout(
         <div
           class={[
             "md:ml-48",
-            fullPage ? "pt-[4em] h-full" : "pt-[6em] px-4 pb-4",
+            fullPage
+              ? "pt-[calc(4em+env(safe-area-inset-top))] pb-[env(safe-area-inset-bottom)] h-full"
+              : "pt-[calc(6em+env(safe-area-inset-top))] px-4 pb-[max(1rem,env(safe-area-inset-bottom))]",
           ].join(" ")}
         >
           {children}

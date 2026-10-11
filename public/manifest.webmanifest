@@ -1,36 +1,27 @@
 {
-    "short_name": "Reidle",
-    "id": "/",
-    "start_url": "/",
-    "description": "Wordle but stricter",
-    "lang": "en",
-    "orientation": "portrait",
-    "name": "Reidle",
-    "icons": [
-        {
-            "src": "/android-chrome-512x512.png",
-            "sizes": "512x512",
-            "type": "image/png"
-        },
-        {
-            "src": "/android-chrome-192x192.png",
-            "sizes": "192x192",
-            "type": "image/png"
-        },
-        {
-            "src": "/android-chrome-384x384.png",
-            "sizes": "384x384",
-            "type": "image/png"
-        },
-        {
-            "src": "/mask.png",
-            "sizes": "512x512",
-            "type": "image/png",
-            "purpose": "maskable"
-        }
-    ],
-    "$schema": "https://json.schemastore.org/web-manifest-combined.json",
-    "theme_color": "#ffffff",
-    "background_color": "#ffffff",
-    "display": "standalone"
+  "$schema": "https://json.schemastore.org/web-manifest-combined.json",
+  "id": "/",
+  "name": "Reidle",
+  "short_name": "Reidle",
+  "description": "Wordle but stricter: a daily word game with a leaderboard, challenges and live battles.",
+  "lang": "en",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    { "src": "/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/android-chrome-384x384.png", "sizes": "384x384", "type": "image/png", "purpose": "any" },
+    { "src": "/android-chrome-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/mask.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Play today's word", "short_name": "Play", "url": "/play", "icons": [{ "src": "/android-chrome-192x192.png", "sizes": "192x192" }] },
+    { "name": "Leaderboard", "short_name": "Leaderboard", "url": "/stats/today", "icons": [{ "src": "/android-chrome-192x192.png", "sizes": "192x192" }] },
+    { "name": "Challenges", "short_name": "Challenges", "url": "/challenges", "icons": [{ "src": "/android-chrome-192x192.png", "sizes": "192x192" }] },
+    { "name": "Messages", "short_name": "Messages", "url": "/messages", "icons": [{ "src": "/android-chrome-192x192.png", "sizes": "192x192" }] }
+  ]
 }

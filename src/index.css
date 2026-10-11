@@ -32,3 +32,9 @@ html, body { height: 100%; }
   20%, 60% { transform: translateX(-4%); }
   40%, 80% { transform: translateX(4%); }
 }
+
+/* Installed app: feel native. No rubber-band overscroll or grey tap flashes. */
+@media (display-mode: standalone) {
+  html, body { overscroll-behavior: none; }
+}
+html { -webkit-tap-highlight-color: transparent; }

@@ -46,7 +46,9 @@ export function prefetch(href: string) {
   }
 }
 
-export async function navigate(href: string, opts: { replace?: boolean; pop?: boolean } = {}): Promise<void> {
+type NavOpts = { replace?: boolean; pop?: boolean; refresh?: boolean };
+
+export async function navigate(href: string, opts: NavOpts = {}): Promise<void> {
   const id = ++navId;
   const url = new URL(href, location.origin);
   const hit = match(url.pathname);
@@ -67,7 +69,8 @@ export async function navigate(href: string, opts: { replace?: boolean; pop?: bo
     warm.delete(key);
     const fresh = cached && Date.now() - cached.at < 10_000 ? cached.data : route.load?.(params, url.searchParams);
     const [mod, data] = await Promise.all([route.page!(), fresh]);
-    finish(id, opts, url, { route, Page: mod.default, params, query: url.searchParams, data, key: url.href });
+    // a refresh remounts the page so state derived from the old data (and realtime channels) restart
+    finish(id, opts, url, { route, Page: mod.default, params, query: url.searchParams, data, key: url.href + (opts.refresh ? "#" + id : "") });
   } catch (e) {
     // superseded by a newer navigation, or the page is going away: nothing to report
     if (id !== navId || (e as { code?: string }).code === "unloading") return;
@@ -91,7 +94,7 @@ export async function navigate(href: string, opts: { replace?: boolean; pop?: bo
   }
 }
 
-function finish(id: number, opts: { replace?: boolean; pop?: boolean }, url: URL, next: Current) {
+function finish(id: number, opts: NavOpts, url: URL, next: Current) {
   if (id !== navId) return;
   if (!opts.pop) history[opts.replace ? "replaceState" : "pushState"](null, "", url.pathname + url.search);
   current = next;
@@ -117,6 +120,22 @@ export function startRouter() {
   document.addEventListener("pointerover", hover, { passive: true });
   document.addEventListener("touchstart", hover, { passive: true });
   return navigate(location.pathname + location.search, { replace: true });
+}
+
+/**
+ * Re-load the current page's data in place, e.g. when an installed app comes back to the foreground
+ * hours later (there is no reload button or pull-to-refresh in standalone mode). Pages pinned to
+ * "today" move on to the new day. Game pages (fullPage) are left alone so a running game is never reset.
+ */
+export function refresh(prevDay: string, today: string) {
+  if (!current || current.route.layout?.fullPage || progress) return;
+  let href = location.pathname + location.search;
+  if (prevDay !== today) {
+    if (href === `/stats/daily/${prevDay}`) href = "/stats/today";
+    else if (href === `/stats/weekly/${prevDay}`) href = "/stats/this_week";
+  }
+  warm.clear();
+  return navigate(href, { replace: true, pop: href === location.pathname + location.search, refresh: true });
 }
 
 export function useRouter() {
