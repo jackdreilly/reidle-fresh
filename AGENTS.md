@@ -57,6 +57,17 @@ tools/                 clone-db.sh, sync-auth-users.ts, gen-words-seed.mjs, chec
   comments ignored): `node tools/db-migrate.mjs prod --dry-run --drift <local db url>`; prod runs it nightly.
 - Word tables are DATA, not migrations (prod has its own, UPPERCASE). Local/staging fixture words come from `supabase/seed/words.sql`, generated from `src/data/*.csv` via `npm run words`.
 
+## Chat push notifications
+
+Opt-in per browser from the Messages page (`src/lib/push.ts`, bell button). Subscriptions live in the closed
+`push_subscriptions` table (`push_subscribe`/`push_unsubscribe`). Sending is the one edge function,
+`supabase/functions/push` (Deno, `verify_jwt = false` in config.toml): the page POSTs to it after posting; it
+claims recent unsent messages once (`push_claim`, service_role only) and Web-Pushes them to everyone else's
+browsers; `public/sw.js` shows them. VAPID keys are generated on first use into `push_vapid` (no secrets to set).
+CI deploys functions (db.yml -> staging, Deploy prod -> prod). Local stack runs no edge runtime: the page's ping
+just fails silently; run the function with `deno run -A supabase/functions/push/index.ts` to try it.
+iPhone/iPad: push only works from the Home Screen app (iOS 16.4+).
+
 ## Scoring (weekly)
 
 `week_scores(date)` in `*_rpc.sql`. Current week = additive points per day by rank among

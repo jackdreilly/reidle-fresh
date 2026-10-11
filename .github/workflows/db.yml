@@ -1,12 +1,13 @@
 name: Database
-# Ships supabase/migrations to the live projects so nobody pastes SQL by hand.
-#   - push touching supabase/migrations (any branch, incl. work branches) -> applies pending migrations to STAGING
+# Ships supabase/migrations (and supabase/functions) to the live projects so nobody pastes SQL by hand.
+#   - push touching supabase/migrations or supabase/functions (any branch, incl. work branches) -> applies pending
+#     migrations to STAGING, then deploys the edge functions there
 #   - Deploy prod applies them to PROD (see deploy-prod.yml), never this workflow
 #   - then drift check: live schema vs a fresh local build of the migrations (prod also nightly, from main)
 # Needs repo secret SUPABASE_ACCESS_TOKEN (supabase.com/dashboard/account/tokens).
 on:
   push:
-    paths: ['supabase/migrations/**', 'tools/db-migrate.mjs', 'tools/db-fingerprint.sql', '.github/workflows/db.yml']
+    paths: ['supabase/migrations/**', 'supabase/functions/**', 'supabase/config.toml', 'tools/db-migrate.mjs', 'tools/db-fingerprint.sql', '.github/workflows/db.yml']
   schedule:
     - cron: '0 13 * * *'
   workflow_dispatch:
@@ -23,6 +24,10 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - run: node tools/db-migrate.mjs staging
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      - name: Deploy edge functions (settings such as verify_jwt come from supabase/config.toml)
+        run: npx --yes supabase@2.120.0 functions deploy --project-ref noxissvouravthzvoapw --use-api
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 

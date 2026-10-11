@@ -67,3 +67,10 @@ test("a /gif sent with its embed URL renders without a Giphy lookup", async ({ p
   await expect(page.locator('iframe[src="https://giphy.com/embed/abc123"]')).toBeVisible();
   expect(lookups).toBe(0);
 });
+
+test("chat notifications are opt-in from the Messages page", async ({ page }) => {
+  await signIn(page, "dave", "/messages");
+  await expect(page.getByRole("button", { name: "Notify me of new messages" })).toBeVisible();
+  await page.goto("/weekly");
+  await expect(page.getByRole("button", { name: /Notify me/ })).toHaveCount(0);
+});

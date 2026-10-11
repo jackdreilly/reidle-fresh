@@ -5,6 +5,7 @@ import { Name } from "@/components/DailyTable";
 import MessageText, { resolveGif } from "@/components/MessageText";
 import { rpc } from "@/lib/supabase";
 import { patchSession, useSession } from "@/lib/session";
+import { disablePush, enablePush, notifyNewMessages, pushState, type PushState } from "@/lib/push";
 import { fromNow } from "@/lib/time";
 
 type Msg = { message_id: number; name: string; message: string; created_at: string; likes: string[]; confirmed?: boolean };
@@ -103,6 +104,58 @@ function Composer({ onPost }: { onPost: (text: string) => Promise<boolean> }) {
   );
 }
 
+function Bell({ on }: { on: boolean }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" fill={on ? "currentColor" : "none"} viewBox="0 0 24 24" stroke-width={1.5} stroke="currentColor" class="h-4 w-4">
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"
+      />
+    </svg>
+  );
+}
+
+// Opt-in browser notifications for new messages from others. Off until the player asks for it.
+function PushToggle() {
+  const [state, setState] = useState<PushState | "busy" | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => { pushState().then(setState, () => setState("unsupported")); }, []);
+  if (state === null || state === "unsupported") return null;
+  const toggle = async () => {
+    const was = state;
+    setState("busy");
+    setError(null);
+    try {
+      setState(await (was === "on" ? disablePush() : enablePush()));
+    } catch (e) {
+      setState(was);
+      setError((e as Error).message || "Couldn't turn on notifications");
+    }
+  };
+  const hint = state === "install" ? "To get notifications on iPhone, add Reidle to your Home Screen (Share, then Add to Home Screen) and open it from there."
+    : state === "denied" ? "Notifications are blocked for this site. Allow them in your browser's site settings to turn them on."
+    : error;
+  return (
+    <div class="flex flex-col items-end gap-1 pb-1">
+      {(state === "on" || state === "off" || state === "busy") && (
+        <button
+          type="button"
+          onClick={toggle}
+          disabled={state === "busy"}
+          title={state === "on" ? "Stop notifying me about new messages" : "Get a notification when someone posts"}
+          class={"inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ring-1 transition disabled:cursor-wait disabled:opacity-60 " +
+            (state === "on" ? "bg-sky-50 text-sky-800 ring-sky-300 hover:ring-sky-400" : "bg-white text-gray-600 ring-gray-200 hover:ring-sky-300 hover:text-gray-800")}
+        >
+          <Bell on={state === "on"} />
+          {state === "on" ? "Notifications on · Turn off" : state === "busy" ? "One moment…" : "Notify me of new messages"}
+        </button>
+      )}
+      {hint && <p class="max-w-sm text-right text-xs text-gray-400">{hint}</p>}
+    </div>
+  );
+}
+
 export default function Messages({ data }: PageProps<Msg[]>) {
   const { name: myName } = useSession();
   const [messages, setMessages] = useState(data);
@@ -153,7 +206,7 @@ export default function Messages({ data }: PageProps<Msg[]>) {
     const gif = /^\/gif\b/i.test(text) ? resolveGif(text.slice(4)) : Promise.resolve(undefined);
     return sync(
       gif.then((url) => rpc("post_message", { p_message: url ? `${text} ${url}` : text }))
-        .then(() => { temp.confirmed = true; }),
+        .then(() => { temp.confirmed = true; notifyNewMessages(); }),
       () => setPending((p) => p.filter((m) => m !== temp)),
     );
   };
@@ -180,6 +233,7 @@ export default function Messages({ data }: PageProps<Msg[]>) {
 
   return (
     <div class="mx-auto max-w-2xl">
+      <PushToggle />
       {thread.length === 0 && (
         <p class="py-10 text-center text-sm text-gray-400">No messages this month. Say hi 👋</p>
       )}
