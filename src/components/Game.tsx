@@ -81,6 +81,8 @@ export default function Game(
   const [showUsers, setShowUsers] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [showPenaltyBox, setShowPenaltyBox] = useState(false);
+  // Bumped on a rejected guess; the active row re-mounts with a shake.
+  const [shake, setShake] = useState({ n: 0, row: -1 });
   useEffect(() => {
     if (!isPlaying) {
       return;
@@ -380,6 +382,7 @@ export default function Game(
       return;
     }
     setCurrentWord("");
+    setShake((s) => ({ n: s.n + 1, row: previousWords.length }));
     const { error, penalty } = wordScore;
     addError(error, penalty);
   }
@@ -649,13 +652,20 @@ export default function Game(
                 ) => i < previousWords.length || !won)
                 .map((row) => (
                   <div
-                    class="grid grid-cols-5 gap-1 min-h-0"
-                    key={row}
+                    class={"grid grid-cols-5 gap-1 min-h-0" +
+                      (row === shake.row && row === activeRow ? " row-shake" : "")}
+                    key={row === shake.row ? `${row}-${shake.n}` : row}
                   >
                     {[0, 1, 2, 3, 4].map((column) => (
                       <div
-                        class="border-solid border-2 box-border flex items-center justify-center min-h-0 min-w-0 overflow-hidden leading-none"
+                        class={"border-solid border-2 box-border flex items-center justify-center min-h-0 min-w-0 overflow-hidden leading-none" +
+                          (row === activeRow && column < activeCol
+                            ? " tile-pop"
+                            : row === previousWords.length - 1
+                            ? won ? " tile-win" : " tile-reveal"
+                            : "")}
                         style={{
+                          "--i": column,
                           borderColor: row < previousWords.length
                             ? "transparent"
                             : row === activeRow && column < activeCol
@@ -693,7 +703,7 @@ export default function Game(
               >
                 {row.split("").map((c) => (
                   <button
-                    class="rounded-lg cursor-pointer font-bold"
+                    class="key rounded-lg cursor-pointer font-bold"
                     style={{
                       color: keyColor(c) === "#d3d6da" ? "black" : "white",
                       backgroundColor: keyColor(c),
