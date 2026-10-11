@@ -1,21 +1,27 @@
 import "./index.css";
 import { render } from "preact";
 import App from "./App";
-import { startRouter } from "./router";
-import { detectSignedIn } from "./boot";
+import { refresh, startRouter } from "./router";
+import { detectSignedIn, signedIn } from "./boot";
 import { refreshSession } from "./lib/session";
 import { loadWordle } from "./lib/wordle";
+import { initPwa } from "./lib/pwa";
+import { utcToday } from "./lib/time";
 
 render(<App />, document.getElementById("app")!);
 
+// Back in the foreground after a while: fresh shell state (played today, unread) and page data.
+initPwa((prevDay, today) => {
+  if (!signedIn()) return;
+  refreshSession().catch(() => {});
+  void refresh(prevDay, today);
+}, utcToday);
+
 // No top-level await: lazy route chunks import this entry chunk, which must finish evaluating.
 void (async () => {
-  const signedIn = await detectSignedIn();
-  if (signedIn) refreshSession().catch(() => {});
+  const isIn = await detectSignedIn();
+  if (isIn) refreshSession().catch(() => {});
   await startRouter();
   // Warm the (cacheable) word lists while the user reads the first page, so Play is instant.
-  if (signedIn) (window.requestIdleCallback ?? setTimeout)(() => void loadWordle().catch(() => {}));
-  if (import.meta.env.PROD && "serviceWorker" in navigator) {
-    navigator.serviceWorker.register("/sw.js").catch(() => {});
-  }
+  if (isIn) (window.requestIdleCallback ?? setTimeout)(() => void loadWordle().catch(() => {}));
 })();

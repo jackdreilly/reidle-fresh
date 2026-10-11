@@ -228,7 +228,7 @@ export default function Messages({ data }: PageProps<Msg[]>) {
           );
         })}
       </ul>
-      <div class="sticky bottom-0 -mx-4 -mb-4 bg-white px-4 pt-2 pb-[max(1rem,env(safe-area-inset-bottom))]">
+      <div class="sticky bottom-0 -mx-4 -mb-[max(1rem,env(safe-area-inset-bottom))] bg-white px-4 pt-2 pb-[max(1rem,env(safe-area-inset-bottom))]">
         {error && <p class="mb-2 rounded-lg bg-rose-50 px-3 py-1.5 text-xs text-rose-700 ring-1 ring-rose-200">Couldn't save that: {error}</p>}
         <Composer onPost={post} />
       </div>

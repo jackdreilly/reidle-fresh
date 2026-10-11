@@ -2,6 +2,7 @@ import { useEffect, useState } from "preact/hooks";
 import { hasSession, rpc } from "./supabase";
 import type { Bootstrap } from "./types";
 import { utcToday } from "./time";
+import { setBadge } from "./pwa";
 
 const KEY = "reidle:boot";
 const anon: Bootstrap = { name: null, played_today: false, unread: false };
@@ -19,6 +20,7 @@ const listeners = new Set<() => void>();
 
 function set(next: Bootstrap) {
   if (next.name === state.name && next.played_today === state.played_today && next.unread === state.unread) return;
+  if (next.unread !== state.unread) setBadge(next.unread);
   state = next;
   try {
     if (next.name) localStorage.setItem(KEY, JSON.stringify({ ...next, day: utcToday() }));
