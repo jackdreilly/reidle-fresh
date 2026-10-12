@@ -4,6 +4,7 @@ import { navigate } from "@/router";
 import Game from "@/components/Game";
 import TimerText from "@/components/TimerText";
 import { rpc } from "@/lib/supabase";
+import { resumeFrom } from "@/lib/checkpoint";
 import type { Checkpoint } from "@/lib/types";
 
 type Data = {
@@ -18,10 +19,15 @@ type Data = {
 
 /** Server-minus-client clock offset (ms), so timers never depend on the device clock being right. */
 const offsetOf = (d: Data) => (d.server_now ? Date.parse(d.server_now) - Date.now() : 0);
+/** Once per load: the game resumes from the furthest of the server's and this device's progress. */
+const resumed = (d: Data): { data: Data; offset: number } => ({
+  data: { ...d, checkpoint: resumeFrom(d.checkpoint, d.word!, d.startingWord!) },
+  offset: offsetOf(d),
+});
 
 export default function Play({ data }: PageProps<Data>) {
   const [game, setGame] = useState<{ data: Data; offset: number } | null>(
-    data.started ? { data, offset: offsetOf(data) } : null,
+    () => (data.started ? resumed(data) : null),
   );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -32,7 +38,7 @@ export default function Play({ data }: PageProps<Data>) {
     setError("");
     try {
       const d = await rpc<Data>("start_play");
-      setGame({ data: d, offset: offsetOf(d) });
+      setGame(resumed(d));
     } catch (e) {
       if (/already played/i.test((e as Error).message)) return void navigate("/", { replace: true });
       setError("Couldn't start. Check your connection and try again.");

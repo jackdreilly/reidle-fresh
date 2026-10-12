@@ -90,3 +90,45 @@ test("timer starts at ~0 even when the device clock is minutes off", async ({ pa
   await page.getByRole("button", { name: "Start" }).click();
   await expect(page.getByText(/^0:0\d$/).first()).toBeVisible({ timeout: 10_000 });
 });
+
+const historyLen = (name: string) => sql(`select jsonb_array_length(history) from checkpoints where name='${name}'`);
+
+test("resuming on another device keeps every guess already made", async ({ page, browser }) => {
+  await signIn(page, "judy", "/play");
+  await page.getByRole("button", { name: "Start" }).click();
+  await expect.poll(() => historyLen("judy")).toBe("1"); // auto-scored starting word saved
+  // two more guesses made on this device
+  sql(`update checkpoints set history = history || (select jsonb_agg(jsonb_build_array(jsonb_build_object('letter','X','score',2))) from generate_series(1,2)) where name='judy'`);
+
+  const other = await browser.newPage(); // a second device: no local copy
+  // Saves can land out of order: hold back any save of an empty board, as a slow network would.
+  await other.route("**/rpc/save_checkpoint", async (r) => {
+    if (JSON.parse(r.request().postData() ?? "{}").p_history?.length === 0) await new Promise((f) => setTimeout(f, 700));
+    await r.continue();
+  });
+  await signIn(other, "judy", "/play");
+  await expect(other.getByTestId("board")).toBeVisible();
+  await other.waitForTimeout(1500); // let any mount-time saves land
+  expect(historyLen("judy")).toBe("3"); // opening the game never wipes the saved guesses
+  await other.reload();
+  await expect(other.getByTestId("board")).toBeVisible();
+  await other.waitForTimeout(1500);
+  expect(historyLen("judy")).toBe("3");
+  await other.close();
+});
+
+test("progress whose save never reached the server is kept on this device and re-sent", async ({ page }) => {
+  await signIn(page, "mallory", "/play");
+  await page.getByRole("button", { name: "Start" }).click();
+  await expect.poll(() => historyLen("mallory")).toBe("1");
+  let blocked = true;
+  await page.route("**/rpc/save_checkpoint", (r) => (blocked ? r.abort() : r.continue()));
+  await typeWord(page, "ZZZZZ"); // not a word: +5s penalty, whose save is lost
+  await expect(page.getByText("Not a word")).toBeVisible();
+  await page.waitForTimeout(500);
+  expect(sql("select penalty from checkpoints where name='mallory'")).toBe("0");
+
+  blocked = false;
+  await page.reload();
+  await expect.poll(() => sql("select penalty from checkpoints where name='mallory'")).toBe("5");
+});

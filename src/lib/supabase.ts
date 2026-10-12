@@ -94,10 +94,11 @@ export const auth = {
 };
 
 /** Call a Postgres function; throws on error. One round trip per page. */
-export async function rpc<T = unknown>(fn: string, args?: Record<string, unknown>): Promise<T> {
+export async function rpc<T = unknown>(fn: string, args?: Record<string, unknown>, opts: { keepalive?: boolean } = {}): Promise<T> {
   const token = await accessToken();
   const res = await request(`${URL}/rest/v1/rpc/${fn}`, {
     method: "POST",
+    keepalive: opts.keepalive,
     headers: { apikey: KEY, authorization: `Bearer ${token ?? KEY}`, "content-type": "application/json" },
     body: JSON.stringify(args ?? {}),
   });

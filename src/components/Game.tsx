@@ -9,6 +9,7 @@ import {
   PartyChatToast,
 } from "@/components/PartyChat";
 import { rpc } from "@/lib/supabase";
+import { clearProgress, saveProgress } from "@/lib/checkpoint";
 import { patchSession } from "@/lib/session";
 import { clearPrefetch } from "@/router";
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
@@ -84,10 +85,12 @@ export default function Game(
   // Bumped on a rejected guess; the active row re-mounts with a shake.
   const [shake, setShake] = useState({ n: 0, row: -1 });
   useEffect(() => {
-    if (!isPlaying) {
+    // Nothing to save before the first guess, and saving the still-empty board of a resumed game
+    // would only race the restore below.
+    if (!isPlaying || (!previousWords.length && !penalties)) {
       return;
     }
-    rpc("save_checkpoint", { p_penalty: penalties, p_history: previousWords }).catch(() => {});
+    saveProgress(word, startingWord, { penalty: penalties, history: previousWords });
   }, [isPlaying, penalties, previousWords]);
   useEffect(() => {
     if (!isPlaying || !checkpoint.history?.length) {
@@ -334,7 +337,10 @@ export default function Game(
       .then((res) => {
         // Pages prefetched before the submit (e.g. today's stats) still hide pastes/playbacks.
         clearPrefetch();
-        if (challenge_id === undefined) patchSession({ played_today: true });
+        if (challenge_id === undefined) {
+          clearProgress();
+          patchSession({ played_today: true });
+        }
         if (res?.pending_challenges) setPendingChallenges(res.pending_challenges);
       })
       .catch((e: Error) =>
