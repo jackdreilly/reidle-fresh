@@ -25,7 +25,7 @@ export default function Layout(
   const install = useInstall();
   return (
     <div class={fullPage ? "h-dvh overflow-hidden" : ""} onClick={(e) => {
-      if (open && (e.target as HTMLElement).closest("aside a")) setOpen(false);
+      if (open && (e.target as HTMLElement).closest("a")) setOpen(false);
     }}>
         <nav class="fixed top-0 z-50 w-full bg-white border-b border-gray-200 pt-[env(safe-area-inset-top)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
           <div
@@ -102,6 +102,13 @@ export default function Layout(
           </div>
         </nav>
 
+        {open && (
+          <div
+            class="fixed inset-0 z-30 bg-black/20 md:hidden"
+            aria-hidden="true"
+            onClick={() => setOpen(false)}
+          />
+        )}
         <aside
           id="logo-sidebar"
           class={"fixed top-0 left-0 z-40 w-48 h-dvh pt-[calc(5rem+env(safe-area-inset-top))] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] transition-transform bg-white border-r border-gray-200 md:translate-x-0 " + (open ? "" : "-translate-x-full")}

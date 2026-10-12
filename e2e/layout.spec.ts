@@ -61,3 +61,15 @@ test("board never overlaps the keyboard, from 6 rows up to 10", async ({ page })
     await expectFits(page, Math.max(6, guesses + 1));
   }
 });
+
+test("mobile drawer closes when tapping outside it", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 667 });
+  await signIn(page, "frank", "/stats/today");
+  const drawer = page.locator("#logo-sidebar");
+  const toggle = page.getByRole("button", { name: "Open sidebar" });
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-expanded", "true");
+  await page.mouse.click(330, 500); // page content, right of the 192px drawer
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
+  await expect(drawer).not.toBeInViewport();
+});
