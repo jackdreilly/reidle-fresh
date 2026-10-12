@@ -39,8 +39,10 @@ self.addEventListener("fetch", (e) => {
   const url = new URL(request.url);
   if (request.method !== "GET" || url.origin !== location.origin) return;
   if (url.pathname.startsWith("/assets/")) {
+    // ignoreVary: hashed files never vary, and a server's `Vary: Origin` (vite preview) would otherwise make
+    // the precached copy (fetched without Origin) miss for module imports (sent with Origin).
     e.respondWith(caches.open(CACHE).then(async (c) =>
-      (await c.match(request)) ?? fetch(request).then((r) => (r.ok && c.put(request, r.clone()), r))));
+      (await c.match(request, { ignoreVary: true })) ?? fetch(request).then((r) => (r.ok && c.put(request, r.clone()), r))));
   } else if (STATIC.includes(url.pathname)) {
     // network-first: the files can change in place; the cached copy is the offline fallback
     e.respondWith(fetch(request).catch(async () => (await caches.match(url.pathname)) ?? Response.error()));
