@@ -20,7 +20,7 @@ export default function Layout(
     fullPage?: boolean;
   },
 ) {
-  const { played_today: playedToday } = useSession();
+  const { played_today: playedToday, name } = useSession();
   const [open, setOpen] = useState(false);
   const install = useInstall();
   return (
@@ -247,7 +247,7 @@ export default function Layout(
               <li class="flex items-center rounded-lg hover:bg-gray-100">
                 <a
                   href="/account"
-                  class="flex flex-1 items-center p-2 text-base font-normal text-gray-900"
+                  class="flex flex-1 min-w-0 items-center p-2 text-base font-normal text-gray-900"
                 >
                   <svg
                     aria-hidden="true"
@@ -264,10 +264,11 @@ export default function Layout(
                     </path>
                   </svg>
                   <span
-                    class={"flex-1 ml-3 whitespace-nowrap " +
+                    class={"flex-1 min-w-0 ml-3 truncate " +
                       (route === "/account" ? "font-bold" : "")}
+                    title={name ? `Account (${name})` : undefined}
                   >
-                    Account
+                    {name ?? "Account"}
                   </span>
                 </a>
                 <a
