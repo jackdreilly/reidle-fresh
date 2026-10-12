@@ -2,6 +2,7 @@ import type { ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
 import { useSession } from "@/lib/session";
 import { useInstall } from "@/lib/pwa";
+import StagingTag, { STAGING } from "@/components/StagingTag";
 
 function AllNotification() {
   const { unread } = useSession();
@@ -27,7 +28,7 @@ export default function Layout(
     <div class={fullPage ? "h-dvh overflow-hidden" : ""} onClick={(e) => {
       if (open && (e.target as HTMLElement).closest("a")) setOpen(false);
     }}>
-        <nav class="fixed top-0 z-50 w-full bg-white border-b border-gray-200 pt-[env(safe-area-inset-top)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
+        <nav class={"fixed top-0 z-50 w-full bg-white border-b border-gray-200 " + (STAGING ? "shadow-[inset_0_3px_0_#0d9488] " : "") + "pt-[env(safe-area-inset-top)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]"}>
           <div
             class={[
               "px-3",
@@ -72,6 +73,7 @@ export default function Layout(
                     class="mr-3"
                     alt="Reidle Logo"
                   />
+                  <StagingTag class="self-center mr-2" />
                   <span class="self-center text-xl font-semibold md:text-2xl whitespace-nowrap hidden md:contents">
                     Reidle
                   </span>

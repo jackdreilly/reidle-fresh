@@ -106,6 +106,10 @@ default to "Confirm email" ON, which blocks these accounts: turn it OFF per proj
 | staging | separate Supabase project  | `vite build --mode staging` with `.env.staging` |
 | prod    | prod Supabase project      | `vite build` with `.env.production` |
 
+Staging builds look different on purpose (`reidle-staging` plugin in vite.config.ts): icons from `public-staging/`
+(teal STAGING pill; regenerate with `python3 tools/gen-staging-icons.py`), app name "Reidle Staging", teal theme colour,
+and a STAGING tag in the header (`src/components/StagingTag.tsx`). Prod builds are unchanged.
+
 Env vars: `VITE_SUPABASE_URL`, `VITE_SUPABASE_KEY` (publishable key only; never ship service keys).
 
 **Clone prod → staging/local** (data only; auth is never copied, logins are re-derived):

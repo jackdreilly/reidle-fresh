@@ -1,7 +1,7 @@
 import preact from "@preact/preset-vite";
 import tailwind from "@tailwindcss/vite";
 import { fileURLToPath } from "node:url";
-import { readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { copyFileSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { resolve } from "node:path";
 import { defineConfig, type Plugin } from "vitest/config";
@@ -23,8 +23,36 @@ const precache = (): Plugin => {
   };
 };
 
+// Staging build only: badged icons from public-staging/ replace the prod ones, and the app is named
+// "Reidle Staging" with a teal theme colour, so an installed staging app is easy to tell from prod.
+// (Regenerate the icons with tools/gen-staging-icons.py.) Prod builds are untouched.
+const TEAL = "#0d9488";
+const staging = (): Plugin => {
+  let dist = "", on = false;
+  return {
+    name: "reidle-staging",
+    apply: "build",
+    configResolved(c) { dist = resolve(c.root, c.build.outDir) + "/"; on = c.mode === "staging"; },
+    transformIndexHtml(html) {
+      if (!on) return html;
+      return html
+        .replace("<title>Reidle</title>", "<title>Reidle Staging</title>")
+        .replace('name="theme-color" content="#ffffff"', `name="theme-color" content="${TEAL}"`)
+        .replace('name="apple-mobile-web-app-title" content="Reidle"', 'name="apple-mobile-web-app-title" content="Reidle Stg"');
+    },
+    closeBundle() {
+      if (!on) return;
+      const dir = resolve(dist, "../public-staging") + "/";
+      for (const f of readdirSync(dir)) copyFileSync(dir + f, dist + f);
+      const m = JSON.parse(readFileSync(dist + "manifest.webmanifest", "utf8"));
+      Object.assign(m, { name: "Reidle Staging", short_name: "Reidle Stg", theme_color: TEAL });
+      writeFileSync(dist + "manifest.webmanifest", JSON.stringify(m, null, 2));
+    },
+  };
+};
+
 export default defineConfig({
-  plugins: [preact(), tailwind(), precache()],
+  plugins: [preact(), tailwind(), precache(), staging()],
   resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
   server: { host: "127.0.0.1", port: 3000 },
   preview: { host: "127.0.0.1" },

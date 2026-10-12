@@ -1,4 +1,5 @@
 import { useState } from "preact/hooks";
+import StagingTag from "@/components/StagingTag";
 import Input from "@/components/Input";
 import { signIn } from "@/lib/auth";
 import { refreshSession } from "@/lib/session";
@@ -26,7 +27,7 @@ export default function SignIn({ query }: { query: URLSearchParams }) {
   }
   return (
     <div class="m-2">
-      <nav><h1 class="m-2 font-bold text-3xl">Reidle</h1></nav>
+      <nav><h1 class="m-2 font-bold text-3xl">Reidle <StagingTag /></h1></nav>
       <main class="m-2">
         <h2 class="text-2xl">Sign in</h2>
         <div>Just put your name to start playing Reidle!</div>
