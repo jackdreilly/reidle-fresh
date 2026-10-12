@@ -27,6 +27,8 @@ plays as (
       + least(d.o, 364) / 20)::double precision as t,
     ('x' || substr(md5(d.day || n.n), 1, 6))::bit(24)::int as h,
     case
+      -- today is always alice..dave only (on Mondays the weekly rule below would make it everyone)
+      when d.day = current_date then n.i <= 4
       when d.day >= date_trunc('week', current_date)::date
         then n.i <= greatest(4, 8 - (d.day - date_trunc('week', current_date)::date))  -- participation shrinks through the week
       -- older history has gaps (~1 in 6 days skipped); the last two weeks are complete
@@ -65,7 +67,8 @@ from generate_series(2, 40) w;
 insert into challenges (starting_word, answer, created_at)
 select (select word from words order by md5(g::text) limit 1),
        (select answer from answers order by md5(g::text || 'x') limit 1),
-       case when g <= 3 then now() - interval '1 hour' * g else now() - interval '1 day' end
+       case when g <= 3 then greatest(now() - interval '1 hour' * g, date_trunc('day', now())) -- stays today just after midnight
+            else now() - interval '1 day' end
 from generate_series(1, 5) g;
 insert into submissions (challenge_id, day, name, "time", penalty, word, paste)
 select c.challenge_id, c.created_at::date, p.n, 20 + p.i * 7 + c.challenge_id,
