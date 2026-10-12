@@ -2,7 +2,7 @@ import type { ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
 import { useSession } from "@/lib/session";
 import { useInstall } from "@/lib/pwa";
-import StagingTag, { STAGING } from "@/components/StagingTag";
+import { STAGING } from "@/components/StagingTag";
 
 function AllNotification() {
   const { unread } = useSession();
@@ -73,7 +73,6 @@ export default function Layout(
                     class="mr-3"
                     alt="Reidle Logo"
                   />
-                  <StagingTag class="self-center mr-2" />
                   <span class="self-center text-xl font-semibold md:text-2xl whitespace-nowrap hidden md:contents">
                     Reidle
                   </span>

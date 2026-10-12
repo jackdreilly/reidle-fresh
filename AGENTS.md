@@ -108,7 +108,7 @@ default to "Confirm email" ON, which blocks these accounts: turn it OFF per proj
 
 Staging builds look different on purpose (`reidle-staging` plugin in vite.config.ts): icons from `public-staging/`
 (teal STAGING pill; regenerate with `python3 tools/gen-staging-icons.py`), app name "Reidle Staging", teal theme colour,
-and a STAGING tag in the header (`src/components/StagingTag.tsx`). Prod builds are unchanged.
+a teal strip on the header, and a STAGING tag on sign-in (`src/components/StagingTag.tsx`). Prod builds are unchanged.
 
 Env vars: `VITE_SUPABASE_URL`, `VITE_SUPABASE_KEY` (publishable key only; never ship service keys).
 
