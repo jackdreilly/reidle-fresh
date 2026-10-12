@@ -4,6 +4,8 @@ name: Deploy prod
 # deploying supabase/functions first.
 # Needs repo secrets: CLOUDFLARE_API_TOKEN (Workers Scripts: Edit), CLOUDFLARE_ACCOUNT_ID, SUPABASE_ACCESS_TOKEN,
 # GIPHY_API_KEY.
+# Each successful deploy tags the deployed commit prod-YYYY-MM-DD-N (UTC date, N counts that day's deploys),
+# so `git tag -l 'prod-*'` is the prod release history and `git describe --match 'prod-*'` names what's live.
 on:
   workflow_dispatch:
 
@@ -17,6 +19,8 @@ jobs:
     name: Build · deploy · verify prod
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: write # push the prod-* tag
     env:
       # Public values (they ship in the bundle): reidle-prod URL + publishable key.
       VITE_SUPABASE_URL: https://fjnhsrkjdrmpxidjsfzd.supabase.co
@@ -54,3 +58,16 @@ jobs:
             sleep 5
           done
           echo "live site serves '$got', expected '$want'" >&2; exit 1
+      - name: Tag the deployed commit (prod-YYYY-MM-DD-N)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          day=$(date -u +%Y-%m-%d)
+          n=$(git ls-remote --tags origin "refs/tags/prod-$day-*" | sed -n 's|.*refs/tags/prod-'"$day"'-\([0-9]*\)$|\1|p' | sort -n | tail -1)
+          for attempt in 1 2 3; do
+            n=$(( ${n:-0} + 1 )); tag="prod-$day-$n"
+            git tag -a "$tag" -m "Deployed to prod by $GITHUB_ACTOR ($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)" "$GITHUB_SHA"
+            git push origin "refs/tags/$tag" && { echo "tagged $GITHUB_SHA as $tag"; echo "Tagged \`$tag\`" >> "$GITHUB_STEP_SUMMARY"; exit 0; }
+            git tag -d "$tag"
+          done
+          exit 1

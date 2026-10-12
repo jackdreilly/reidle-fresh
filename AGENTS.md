@@ -176,6 +176,7 @@ landed on legacy (append-only, idempotent).
   short-lived asset-upload JWT. Plain Worker script uploads work. NEVER run `wrangler pages ...` or `wrangler
   deploy` autoconfig in this repo: it rewrites vite.config.ts/package.json (adds @cloudflare/vite-plugin).
   Prod: one click on GitHub (Actions -> Deploy prod -> Run workflow, `.github/workflows/deploy-prod.yml`),
+  which tags each successful deploy `prod-YYYY-MM-DD-N` (UTC; `git tag -l 'prod-*'` = release history),
   or locally: build with `.env.production`, `wrangler deploy --name reidle`. Supabase cannot host the SPA.
   Staging site is public with fake data + open name-only signup: put it behind Cloudflare Access before
   loading cloned prod data.
