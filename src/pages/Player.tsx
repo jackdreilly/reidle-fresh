@@ -429,12 +429,16 @@ const vsHref = (name: string, vs: string[]) => `/players/${name}` + (vs.length ?
 const goVs = (name: string, vs: string[]) => void navigate(vsHref(name, vs), { replace: true, keepScroll: true });
 
 /** Pick up to 3 players to overlay: one-tap chips for frequent opponents, or any name. */
-function ComparePicker({ name, vs, rivals }: { name: string; vs: string[]; rivals: string[] }) {
-  const suggest = rivals.filter((r) => !vs.includes(r)).slice(0, 5);
+function ComparePicker({ name, vs, rivals, me }: { name: string; vs: string[]; rivals: string[]; me: string | null }) {
+  const suggest = rivals.filter((r) => !vs.includes(r) && r !== me).slice(0, 5);
   const full = vs.length >= 3;
   const chip = "flex items-center gap-1.5 rounded-lg border px-2 py-1 text-xs";
   return (
     <div class="flex flex-wrap items-center gap-2">
+      {!full && me && me !== name && !vs.includes(me) && (
+        <button type="button" class={chip + " border-sky-200 bg-sky-50 font-semibold text-sky-900 hover:bg-white"}
+          onClick={() => goVs(name, [me, ...vs])}>+ me ({me})</button>
+      )}
       {vs.map((v, i) => (
         <button type="button" class={chip + " border-gray-200 bg-white font-semibold text-gray-900 hover:bg-gray-100"}
           onClick={() => goVs(name, vs.filter((x) => x !== v))} aria-label={`Stop comparing with ${v}`}>
@@ -601,7 +605,7 @@ export default function Player({ params, query, data }: PageProps<Data & { compa
       </Card>
 
       <Card title="Compare" aside={vs.length ? undefined : "overlay other players on the charts"}>
-        <ComparePicker name={params.name} vs={vs} rivals={d.rivals.map((r) => r.name)} />
+        <ComparePicker name={params.name} vs={vs} rivals={d.rivals.map((r) => r.name)} me={myName} />
         {compare.filter((c) => !c.d.total).map((c) => (
           <p class="mt-2 text-xs text-gray-500">{c.name} has no daily games.</p>
         ))}

@@ -59,6 +59,16 @@ test("player page compares other players on the charts", async ({ page }) => {
   await expect(page.getByRole("columnheader", { name: "bob" })).toHaveCount(0);
 });
 
+test("on another player's page, me is the first compare choice", async ({ page }) => {
+  await page.goto("/players/bob");
+  await page.getByRole("button", { name: "+ me (alice)" }).click();
+  await expect(page).toHaveURL(/\/players\/bob\?vs=alice$/);
+  await expect(page.getByRole("columnheader", { name: "alice" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "+ me (alice)" })).toHaveCount(0);
+  await page.goto("/players/alice");
+  await expect(page.getByRole("button", { name: /^\+ me/ })).toHaveCount(0);
+});
+
 test("playback of a past submission animates", async ({ page }) => {
   const id = sql("select submission_id from submissions where name='bob' and day < current_date and challenge_id is null limit 1");
   await page.goto(`/submissions/${id}/playback`);
