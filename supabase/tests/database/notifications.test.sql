@@ -40,9 +40,8 @@ select is((select array_agg(title || ' | ' || body || ' > ' || array_to_string(r
 truncate push_outbox;
 insert into submissions (name, "time", word) values ('notb', 64.5, 'x'), ('notc', 41, 'x');
 select is((select array_agg(title || ' | ' || body || ' > ' || array_to_string(recipients, ',') order by id) from push_outbox),
-  array['👑 notc took 1st place from you | 41.0s vs your 50.3s > nota',
-        'notc finished today''s Reidle | 41.0s · 1st of 3 so far > notb'],
-  'a beaten player hears about it once (and not twice as a result)');
+  array['👑 notc took 1st place from you | 41.0s vs your 50.3s > nota'],
+  'a beaten player hears about it once (and notb''s second result waits out its cooldown)');
 truncate push_outbox;
 
 -- challenges
