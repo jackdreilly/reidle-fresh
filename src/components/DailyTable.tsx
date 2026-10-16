@@ -42,14 +42,15 @@ export function Birthday({ name }: { name: string }) {
   return null;
 }
 
-export function Name({ name, class: cls }: { name: string; class?: string }) {
+export function Name({ name, class: cls, max = 13 }: { name: string; class?: string; max?: number }) {
+  const short = name.toLowerCase().trim();
   return (
     <div class="inline-block">
       <a
         href={`/players/${name}`}
         class={"flex items-center whitespace-nowrap hover:underline " + (cls ?? "text-blue-600 dark:text-blue-500")}
       >
-        {name.toLowerCase().trim().substring(0, 13)}
+        {short.length > max ? short.substring(0, max - 1) + "…" : short}
         <Birthday name={name} />
       </a>
     </div>
