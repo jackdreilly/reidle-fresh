@@ -10,3 +10,9 @@ test("weekly race: points and standing views, replay", async ({ page }) => {
   await expect(race.getByRole("img", { name: "Standings through the week" })).toBeVisible();
   await race.getByRole("button", { name: /Replay/ }).click();
 });
+
+test("weekly race also runs on legacy (product-score) weeks", async ({ page }) => {
+  await signIn(page, "alice", "/stats/weekly/2026-09-21");
+  const race = page.locator("section").filter({ hasText: "The race" });
+  await expect(race.getByRole("img", { name: "Running score through the week" })).toBeVisible();
+});

@@ -126,7 +126,7 @@ export default function Weekly({ params, data: { players, additive } }: PageProp
             No data for this week yet. Check back later!
           </div>
         )}
-      {isNewWeek && <Race players={players} me={myName} />}
+      <Race players={players} me={myName} additive={isNewWeek} />
     </StatsTabs>
   );
 }

@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import type { WeekOutput } from "@/lib/types";
 
-// The week as a race, under the Weekly table. Two views of the same running points:
-//   Points   — the scoreboard climbing day by day (basketball);
+// The week as a race, under the Weekly table. Two views of the same running score:
+//   Points   — the scoreboard climbing day by day (basketball). Legacy weeks (before the additive cutover) run the
+//              old product of daily ranks instead: lower is better, so it is drawn on a log scale with the best on top;
 //   Standing — the leaderboard as positions (election night), but continuous: on each day the leader sits at 1st,
 //              the last player at the bottom, and everyone else in between in proportion to their points gap, so a
 //              runaway leader opens a visible gap and a tight pack bunches together.
@@ -13,25 +14,33 @@ const ME = "#d97706";
 const PACK = "#d1d5db";
 const W = 320, H = 150, L = 22, R = 70, T = 10, B = 18;
 
-type Line = { name: string; i: number; pts: number[]; ranks: number[]; pos: number[] };
+// `good` is the running score on a higher-is-better scale (points, or minus the log of the legacy product).
+type Line = { name: string; i: number; good: number[]; ranks: number[]; pos: number[] };
 
-function build(players: WeekOutput): { lines: Line[]; days: string[] } {
+function build(players: WeekOutput, additive: boolean): { lines: Line[]; days: string[] } {
   const days = players[0].results.days.map((d) => d.day);
   const lines: Line[] = players.map(({ name, results }, i) => {
     let sum = 0;
-    return { name, i, pts: results.days.map((d) => (sum += d.score)), ranks: [], pos: [] };
+    return { name, i, good: results.days.map((d) => (sum += additive ? d.score : -Math.log(d.score))), ranks: [], pos: [] };
   });
   const n = lines.length;
   days.forEach((_, k) => {
-    const col = lines.map((l) => l.pts[k]);
+    const col = lines.map((l) => l.good[k]);
     const hi = Math.max(...col), lo = Math.min(...col);
     for (const l of lines) {
-      l.ranks[k] = 1 + col.filter((v) => v > l.pts[k]).length;
-      l.pos[k] = hi === lo ? (1 + n) / 2 : 1 + ((n - 1) * (hi - l.pts[k])) / (hi - lo);
+      l.ranks[k] = 1 + col.filter((v) => v > l.good[k] + 1e-9).length;
+      l.pos[k] = hi - lo < 1e-9 ? (1 + n) / 2 : 1 + ((n - 1) * (hi - l.good[k])) / (hi - lo);
     }
   });
   return { lines, days };
 }
+
+/** The score as shown: points, or the legacy product (1e4 style once it gets long, like the table). */
+const fmt = (good: number, additive: boolean) => {
+  if (additive) return `${Math.round(good)}`;
+  const v = Math.round(Math.exp(-good));
+  return v < 1000 ? `${v}` : `${String(v)[0]}e${Math.floor(Math.log10(v))}`;
+};
 
 /** Smooth path through points (Catmull-Rom as cubic Béziers, control points kept between their two ends so a
  *  line never overshoots 1st place or the top score). */
@@ -69,7 +78,7 @@ function useTween(target: number, ms: number, from?: number) {
   return v;
 }
 
-export default function Race({ players, me }: { players: WeekOutput; me: string | null }) {
+export default function Race({ players, me, additive }: { players: WeekOutput; me: string | null; additive: boolean }) {
   const [standing, setStanding] = useState(false);
   const [run, setRun] = useState(0); // bump to replay
   if (!players.length || players[0].results.days.length < 2) return null;
@@ -78,7 +87,7 @@ export default function Race({ players, me }: { players: WeekOutput; me: string 
       <div class="mb-1 flex items-center justify-between gap-3">
         <h2 class="text-[11px] font-semibold uppercase tracking-wider text-gray-400">The race</h2>
         <div class="flex items-center gap-1 text-xs">
-          {([["Points", false], ["Standing", true]] as const).map(([label, v]) => (
+          {([[additive ? "Points" : "Score", false], ["Standing", true]] as const).map(([label, v]) => (
             <button
               type="button"
               aria-pressed={standing === v}
@@ -93,21 +102,24 @@ export default function Race({ players, me }: { players: WeekOutput; me: string 
           </button>
         </div>
       </div>
-      <Chart key={run} players={players} me={me} standing={standing} />
+      <Chart key={run} players={players} me={me} standing={standing} additive={additive} />
     </section>
   );
 }
 
-function Chart({ players, me, standing }: { players: WeekOutput; me: string | null; standing: boolean }) {
-  const { lines, days } = build(players);
+function Chart({ players, me, standing, additive }: { players: WeekOutput; me: string | null; standing: boolean; additive: boolean }) {
+  const { lines, days } = build(players, additive);
   const n = lines.length, D = days.length;
   const m = useTween(standing ? 1 : 0, 450); // 0 = points, 1 = standing
   const p = useTween(D - 1, 700 * (D - 1), 0); // how far through the week the race has run
-  const max = Math.max(1, ...lines.map((l) => l.pts[D - 1]));
+  const all = lines.flatMap((l) => l.good);
+  const top = additive ? Math.max(1, ...all) : Math.max(...all);
+  const bottom = additive ? 0 : Math.min(...all);
+  const span = top - bottom || 1;
   const x = (k: number) => L + (k * (W - L - R)) / (D - 1);
-  const yPts = (v: number) => T + (H - T - B) * (1 - v / max);
+  const yPts = (v: number) => T + (H - T - B) * ((top - v) / span);
   const yPos = (pos: number) => T + ((H - T - B) * (pos - 1)) / Math.max(1, n - 1);
-  const yAt = (l: Line, k: number) => yPts(l.pts[k]) * (1 - m) + yPos(l.pos[k]) * m;
+  const yAt = (l: Line, k: number) => yPts(l.good[k]) * (1 - m) + yPos(l.pos[k]) * m;
   const lerp = (a: number[], k: number) => a[Math.floor(k)] + (a[Math.ceil(k)] - a[Math.floor(k)]) * (k - Math.floor(k));
 
   const color = (l: Line) => (l.i < 3 ? PODIUM[l.i] : l.name === me ? ME : PACK);
@@ -134,11 +146,11 @@ function Chart({ players, me, standing }: { players: WeekOutput; me: string | nu
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} width={W} class="block h-auto max-w-full" role="img"
-      aria-label={standing ? "Standings through the week" : "Running points through the week"}>
+      aria-label={standing ? "Standings through the week" : additive ? "Running points through the week" : "Running score through the week"}>
       {/* left axis: points scale or positions, crossfading */}
       <g opacity={1 - m}>
-        {[0, Math.round(max / 2), max].map((v) => (
-          <text x={L - 4} y={yPts(v) + 3} text-anchor="end" font-size="9" fill="#9ca3af">{v}</text>
+        {[bottom, (top + bottom) / 2, top].map((v) => (
+          <text x={L - 4} y={yPts(v) + 3} text-anchor="end" font-size="9" fill="#9ca3af">{fmt(v, additive)}</text>
         ))}
       </g>
       <g opacity={m}>
@@ -161,7 +173,7 @@ function Chart({ players, me, standing }: { players: WeekOutput; me: string | nu
           <g>
             <path d={path(pts)} fill="none" stroke={color(l)} stroke-width={l.name === me ? 2.5 : loud(l) ? 2 : 1.25}
               stroke-linejoin="round" stroke-linecap="round">
-              <title>{l.name}: {l.pts[D - 1]} pts, {ordinal(l.ranks[D - 1])}</title>
+              <title>{l.name}: {fmt(l.good[D - 1], additive)}{additive ? " pts" : ""}, {ordinal(l.ranks[D - 1])}</title>
             </path>
             {loud(l) && <circle cx={hx} cy={hy} r={l.name === me ? 3.5 : 3} fill={color(l)} stroke="#fff" stroke-width="1.5" />}
           </g>
@@ -170,7 +182,7 @@ function Chart({ players, me, standing }: { players: WeekOutput; me: string | nu
       {labels.map(({ l, hx, ly }) => (
         <text x={hx + 6} y={ly + 3} font-size="10" fill={color(l)} font-weight={l.name === me ? 700 : 500}>
           {l.name.length > 8 ? l.name.slice(0, 7) + "…" : l.name}{" "}
-          {standing ? ordinal(l.ranks[Math.min(D - 1, day)]) : Math.round(lerp(l.pts, p))}
+          {standing ? ordinal(l.ranks[Math.min(D - 1, day)]) : fmt(lerp(l.good, p), additive)}
         </text>
       ))}
     </svg>
