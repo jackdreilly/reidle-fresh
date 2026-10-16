@@ -1,5 +1,5 @@
 begin;
-select plan(40);
+select plan(44);
 
 -- Fixture: isolated players, no seed dependence.
 truncate submissions, checkpoints, messages, message_reads, winners, week_snapshots, challenges, players restart identity cascade;
@@ -28,7 +28,7 @@ select is(
       and has_function_privilege('authenticated', p.oid, 'execute')),
   array['battle_get','battle_home','battle_restart','bootstrap','challenge_next','challenge_page',
         'challenge_play','challenges_page','daily_page','delete_message','get_playback','like_message',
-        'messages_page','new_battle','past_winners','play_state','player_stats','post_message',
+        'messages_page','new_battle','past_page','past_winners','play_state','player_stats','post_message',
         'push_subscribe','push_unsubscribe','rankings','save_checkpoint','start_play','submit_challenge','submit_daily','weekly_page']::text[],
   'authenticated can execute exactly the RPC allowlist');
 select is((select count(*)::int from pg_proc p where p.pronamespace = 'public'::regnamespace
@@ -89,6 +89,9 @@ select is(weekly_page('2026-09-28'), (select page from frozen), 'legacy weeks ar
 select is((past_winners() -> 0 ->> 'name'), 'ann', 'last week winner is computed and memoised');
 select reset_role();
 select is((select name from winners order by week desc limit 1), 'ann', 'winner persisted');
+select act_as('ben');
+select is((select (h ->> 'wins')::int from jsonb_array_elements(past_page(null) -> 'hall') h where h ->> 'name' = 'ann'),
+  1, 'past_page hall of fame counts weekly titles');
 
 -- Daily submit: once per day, ranks recomputed, validation
 select reset_role();
@@ -113,6 +116,11 @@ select is((select (daily_page(current_date) -> 'submissions' -> 0 ->> 'paste')),
 select is(get_playback((select submission_id from ids where name = 'ben')), null, 'playback hidden before playing');
 select act_as('ben');
 select isnt(get_playback((select submission_id from ids where name = 'cat')), null, 'playback visible after playing');
+select act_as('dan');
+select is(past_page(null) -> 'days' -> 0 ->> 'answer', null, 'past_page hides today''s answer before playing');
+select is(past_page(null) -> 'days' -> 0 ->> 'winner', 'cat', 'past_page still shows today''s leader');
+select act_as('ben');
+select isnt(past_page(null) -> 'days' -> 0 ->> 'answer', null, 'past_page shows today''s answer after playing');
 
 -- Play start is explicit: reads never start the clock or reveal the word
 select reset_role();

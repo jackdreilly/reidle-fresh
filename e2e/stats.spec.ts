@@ -20,9 +20,17 @@ test("current week uses additive points (Σ), prior week legacy product (Π)", a
   await expect(page.getByRole("row").filter({ hasText: "alice" })).toBeVisible();
 });
 
-test("past winners lists last week's winner", async ({ page }) => {
+test("past tab: hall of fame, month archive with answers, month navigation", async ({ page }) => {
   await page.goto("/stats/past_winners");
-  await expect(page.getByRole("row").filter({ hasText: "alice" }).first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Hall of fame" })).toBeVisible();
+  await expect(page.getByRole("list", { name: "Most weekly titles" }).getByRole("link").first()).toBeVisible();
+  // alice played today, so today's answer is shown (the fixture answer for today)
+  const answer = sql("select upper(answer) from daily_words where day = current_date");
+  await expect(page.getByLabel(`Answer ${answer}`)).toBeVisible();
+  await expect(page.getByText("Most daily wins")).toBeVisible();
+  await page.getByRole("link", { name: "Previous month" }).click();
+  await expect(page).toHaveURL(/\/stats\/past_winners\?month=\d{4}-\d{2}$/);
+  await expect(page.getByText(/🏆/).first()).toBeVisible();
 });
 
 test("player page and rankings render charts", async ({ page }) => {

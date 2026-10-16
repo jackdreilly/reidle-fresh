@@ -41,9 +41,9 @@ export const routes: Route[] = [
     load: (p) => read("weekly_page", { p_week: p.date }),
   },
   {
-    path: "/stats/past_winners", page: () => import("./pages/PastWinners"), prefetchData: true,
+    path: "/stats/past_winners", page: () => import("./pages/Past"), prefetchData: true,
     layout: { route: "/stats", title: "Stats" },
-    load: () => read("past_winners"),
+    load: (_, q) => read("past_page", { p_month: /^\d{4}-\d{2}$/.test(q.get("month") ?? "") ? `${q.get("month")}-01` : null }),
   },
   {
     path: "/play", page: () => import("./pages/Play"),
