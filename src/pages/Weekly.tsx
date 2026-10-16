@@ -5,6 +5,7 @@ import { useSession } from "@/lib/session";
 import { isoDay, timerTime, utcToday } from "@/lib/time";
 import type { WeekOutput } from "@/lib/types";
 import Race from "@/components/Race";
+import { useEffect, useState } from "preact/hooks";
 
 type Chip = [bg: string, fg: string];
 const GRAY: Chip = ["#f3f4f6", "#c4c8cf"];
@@ -38,6 +39,10 @@ function compact(score: number) {
 
 export default function Weekly({ params, data: { players, additive } }: PageProps<{ players: WeekOutput; additive: boolean }>) {
   const { name: myName, played_today } = useSession();
+  const wide = useWide();
+  // Laptop/desktop: same table, roomier (inline sizes keep new classes out of the first-load CSS budget).
+  const cell = wide ? { padding: "4px 3px" } : undefined;
+  const chipSize = wide ? { width: "46px", height: "34px", fontSize: "15px" } : {};
   const isNewWeek = additive; // fixed cutover (server-side): weeks from 2026-10-05 use additive points
   const getColor = isNewWeek ? pointsColor : legacyColor;
   const today = utcToday();
@@ -51,15 +56,16 @@ export default function Weekly({ params, data: { players, additive } }: PageProp
       {players.length
         ? (
           <div class="w-fit max-w-full overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-sm">
-            <table class="text-xs">
+            <table class="text-xs" style={wide ? { fontSize: "15px" } : undefined}>
               <thead class="border-b border-gray-100 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
                 <tr>
-                  <th scope="col" class="sticky left-0 z-10 bg-white py-1 pl-2 pr-1 text-left">Player</th>
+                  <th scope="col" class="sticky left-0 z-10 bg-white py-1 pl-2 pr-1 text-left" style={wide ? { padding: "8px 12px" } : undefined}>Player</th>
                   {players[0].results.days.map(({ day }) => {
                     const iso = isoDay(new Date(day));
                     return (
-                      <th scope="col" class="px-px py-0.5 text-center">
+                      <th scope="col" class="px-px py-0.5 text-center" style={cell}>
                         <a
+                          style={wide ? { width: "46px", padding: "4px 0", fontSize: "13px" } : undefined}
                           class={"mx-auto flex w-6 sm:w-7 flex-col items-center rounded-md py-0.5 leading-tight hover:bg-gray-100 " +
                             (iso === today ? "bg-gray-900 text-white hover:bg-gray-700" : "")}
                           href={`/stats/daily/${iso}`}
@@ -70,7 +76,7 @@ export default function Weekly({ params, data: { players, additive } }: PageProp
                       </th>
                     );
                   })}
-                  <th scope="col" class="py-1 pl-1.5 pr-2 text-right text-gray-500">{isNewWeek ? "Σ" : "Π"}</th>
+                  <th scope="col" class="py-1 pl-1.5 pr-2 text-right text-gray-500" style={wide ? { padding: "8px 16px 8px 10px" } : undefined}>{isNewWeek ? "Σ" : "Π"}</th>
                 </tr>
               </thead>
               <tbody>
@@ -83,12 +89,13 @@ export default function Weekly({ params, data: { players, additive } }: PageProp
                         scope="row"
                         class={"sticky left-0 z-10 py-0.5 pl-2 pr-1 text-left font-medium " + rowBg +
                           (me ? " shadow-[inset_3px_0_0_var(--color-amber-400)]" : "")}
+                        style={wide ? { padding: "6px 16px 6px 12px" } : undefined}
                       >
-                        <div class="flex items-center gap-1.5">
+                        <div class="flex items-center gap-1.5" style={wide ? { gap: "10px" } : undefined}>
                           <RankBadge rank={i + 1} />
                           <div class="leading-tight">
-                            <Name name={name} max={8} class="text-gray-900 hover:text-blue-600" />
-                            <div class="text-[10px] font-normal tabular-nums text-gray-400" title="Total time">⏱ {timerTime(time)}</div>
+                            <Name name={name} max={wide ? 16 : 8} class="text-gray-900 hover:text-blue-600" />
+                            <div class="text-[10px] font-normal tabular-nums text-gray-400" style={wide ? { fontSize: "12px" } : undefined} title="Total time">⏱ {timerTime(time)}</div>
                           </div>
                         </div>
                       </th>
@@ -96,13 +103,13 @@ export default function Weekly({ params, data: { players, additive } }: PageProp
                         const [bg, fg] = getColor(score);
                         const chip = "mx-auto flex h-6 w-6 sm:w-7 items-center justify-center rounded-md text-xs font-semibold tabular-nums";
                         return (
-                          <td class="px-px py-0.5 text-center">
+                          <td class="px-px py-0.5 text-center" style={cell}>
                             {!submission_id
-                              ? <span class={chip} style={{ backgroundColor: bg, color: fg }}>{score}</span>
+                              ? <span class={chip} style={{ backgroundColor: bg, color: fg, ...chipSize }}>{score}</span>
                               : (
                                 <a
                                   class={chip + " transition-transform hover:scale-110"}
-                                  style={{ backgroundColor: bg, color: fg }}
+                                  style={{ backgroundColor: bg, color: fg, ...chipSize }}
                                   href={!played_today && day === today ? undefined : `/submissions/${submission_id}/playback`}
                                 >
                                   {score}
@@ -111,7 +118,7 @@ export default function Weekly({ params, data: { players, additive } }: PageProp
                           </td>
                         );
                       })}
-                      <td class="py-0.5 pl-1.5 pr-2 text-right font-bold tabular-nums text-gray-900">
+                      <td class="py-0.5 pl-1.5 pr-2 text-right font-bold tabular-nums text-gray-900" style={wide ? { padding: "6px 16px 6px 10px", fontSize: "16px" } : undefined}>
                         {isNewWeek ? score : <span title={`${score}`}>{compact(score)}</span>}
                       </td>
                     </tr>
@@ -131,3 +138,15 @@ export default function Weekly({ params, data: { players, additive } }: PageProp
   );
 }
 
+
+/** Laptop-and-up layout (matches Tailwind's md breakpoint). */
+function useWide() {
+  const q = "(min-width: 768px)";
+  const [wide, setWide] = useState(() => matchMedia(q).matches);
+  useEffect(() => {
+    const m = matchMedia(q), on = () => setWide(m.matches);
+    m.addEventListener("change", on);
+    return () => m.removeEventListener("change", on);
+  }, []);
+  return wide;
+}

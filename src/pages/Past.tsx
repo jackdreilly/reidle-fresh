@@ -72,13 +72,20 @@ function HallOfFame({ hall, me }: { hall: Champ[]; me: string }) {
         <span class="text-xs text-gray-400">{total} weekly titles</span>
       </header>
       {champ && (
+        // the card opens the week they won; just the name opens their stats (a nested link isn't allowed, hence onClick)
         <a
-          href={`/players/${champ.name}`}
+          href={`/stats/weekly/${champ.last}`}
           class="mb-2 flex items-center gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900 hover:shadow-md"
         >
           <span class="text-lg" aria-hidden>👑</span>
           <span>
-            <b>{champ.name}</b> holds the title
+            <b
+              role="link"
+              class="hover:underline"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); void navigate(`/players/${champ.name}`); }}
+            >
+              {champ.name}
+            </b> holds the title
             {champ.current_streak > 1 ? <> · <b>{champ.current_streak}</b> weeks running</> : " · won last week"}
           </span>
         </a>

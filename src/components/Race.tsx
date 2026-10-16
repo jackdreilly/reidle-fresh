@@ -12,7 +12,8 @@ import type { WeekOutput } from "@/lib/types";
 const PODIUM = ["#16a34a", "#ca8a04", "#ea580c"]; // 1st, 2nd, 3rd (the chip colours)
 const ME = "#d97706";
 const PACK = "#d1d5db";
-const W = 320, H = 150, L = 22, R = 70, T = 10, B = 18;
+const L = 22, R = 70, T = 10, B = 18;
+const weekday = (iso: string) => (new Date(iso).getUTCDay() + 6) % 7; // Monday = 0
 
 // `good` is the running score on a higher-is-better scale (points, or minus the log of the legacy product).
 type Line = { name: string; i: number; good: number[]; ranks: number[]; pos: number[] };
@@ -81,9 +82,19 @@ function useTween(target: number, ms: number, from?: number) {
 export default function Race({ players, me, additive }: { players: WeekOutput; me: string | null; additive: boolean }) {
   const [standing, setStanding] = useState(false);
   const [run, setRun] = useState(0); // bump to replay
-  if (!players.length || players[0].results.days.length < 2) return null;
+  // the chart fills the card's width (phone to laptop); text stays the same size
+  const box = useRef<HTMLElement>(null);
+  const [width, setWidth] = useState(0);
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setWidth(el.clientWidth));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  if (!players.length || !players[0].results.days.length) return null;
   return (
-    <section class="mt-6 w-fit max-w-full rounded-2xl border border-gray-200 bg-white p-3 shadow-sm">
+    <section ref={box} class="mt-6 w-full rounded-2xl border border-gray-200 bg-white p-3 shadow-sm">
       <div class="mb-1 flex items-center justify-between gap-3">
         <h2 class="text-[11px] font-semibold uppercase tracking-wider text-gray-400">The race</h2>
         <div class="flex items-center gap-1 text-xs">
@@ -102,12 +113,13 @@ export default function Race({ players, me, additive }: { players: WeekOutput; m
           </button>
         </div>
       </div>
-      <Chart key={run} players={players} me={me} standing={standing} additive={additive} />
+      {width > 0 && <Chart key={run} players={players} me={me} standing={standing} additive={additive} w={width - 24} />}
     </section>
   );
 }
 
-function Chart({ players, me, standing, additive }: { players: WeekOutput; me: string | null; standing: boolean; additive: boolean }) {
+function Chart({ players, me, standing, additive, w }: { players: WeekOutput; me: string | null; standing: boolean; additive: boolean; w: number }) {
+  const W = Math.max(280, w), H = W >= 560 ? 230 : 150;
   const { lines, days } = build(players, additive);
   const n = lines.length, D = days.length;
   const m = useTween(standing ? 1 : 0, 450); // 0 = points, 1 = standing
@@ -116,7 +128,9 @@ function Chart({ players, me, standing, additive }: { players: WeekOutput; me: s
   const top = additive ? Math.max(1, ...all) : Math.max(...all);
   const bottom = additive ? 0 : Math.min(...all);
   const span = top - bottom || 1;
-  const x = (k: number) => L + (k * (W - L - R)) / (D - 1);
+  // x follows the calendar (Mon..Sun) so the live week shows where it is; k is an index into the days played
+  const xDay = (wd: number) => L + (wd * (W - L - R)) / 6;
+  const x = (k: number) => xDay(weekday(days[k]));
   const yPts = (v: number) => T + (H - T - B) * ((top - v) / span);
   const yPos = (pos: number) => T + ((H - T - B) * (pos - 1)) / Math.max(1, n - 1);
   const yAt = (l: Line, k: number) => yPts(l.good[k]) * (1 - m) + yPos(l.pos[k]) * m;
@@ -158,11 +172,11 @@ function Chart({ players, me, standing, additive }: { players: WeekOutput; me: s
           <text x={L - 4} y={yPos(v) + 3} text-anchor="end" font-size="9" fill="#9ca3af">{ordinal(v)}</text>
         ))}
       </g>
-      {days.map((d, k) => (
+      {[...Array(7).keys()].map((wd) => (
         <g>
-          <line x1={x(k)} x2={x(k)} y1={T} y2={H - B} stroke="#f3f4f6" />
-          <text x={x(k)} y={H - 4} text-anchor="middle" font-size="10" fill={k <= day ? "#6b7280" : "#d1d5db"}>
-            {"MTWRFSU"[(new Date(d).getUTCDay() + 6) % 7]}
+          <line x1={xDay(wd)} x2={xDay(wd)} y1={T} y2={H - B} stroke="#f3f4f6" />
+          <text x={xDay(wd)} y={H - 4} text-anchor="middle" font-size="10" fill={wd <= weekday(days[day]) ? "#6b7280" : "#d1d5db"}>
+            {"MTWRFSU"[wd]}
           </text>
         </g>
       ))}
@@ -175,7 +189,7 @@ function Chart({ players, me, standing, additive }: { players: WeekOutput; me: s
               stroke-linejoin="round" stroke-linecap="round">
               <title>{l.name}: {fmt(l.good[D - 1], additive)}{additive ? " pts" : ""}, {ordinal(l.ranks[D - 1])}</title>
             </path>
-            {loud(l) && <circle cx={hx} cy={hy} r={l.name === me ? 3.5 : 3} fill={color(l)} stroke="#fff" stroke-width="1.5" />}
+            <circle cx={hx} cy={hy} r={l.name === me ? 3.5 : loud(l) ? 3 : 2} fill={color(l)} stroke="#fff" stroke-width={loud(l) ? 1.5 : 0.75} />
           </g>
         );
       })}

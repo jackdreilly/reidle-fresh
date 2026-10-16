@@ -1,3 +1,4 @@
+import { useEffect, useState } from "preact/hooks";
 import type { PageProps } from "@/router";
 import { DailyTable } from "@/components/DailyTable";
 import StatsTabs, { prettyDay } from "@/components/StatsTabs";
@@ -37,15 +38,18 @@ export default function Daily({ params, data: { submissions, is_today, winner } 
 }
 
 function TimeRemaining() {
-  const tomorrow = new Date();
-  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
-  tomorrow.setUTCHours(0, 0, 0, 0);
-  const hours = Math.floor((tomorrow.getTime() - Date.now()) / 3_600_000);
+  // ticks each minute while open; the app also reloads the page when it comes back to the foreground
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => { const t = setInterval(() => setNow(Date.now()), 30_000); return () => clearInterval(t); }, []);
+  const tomorrow = new Date(now);
+  tomorrow.setUTCHours(24, 0, 0, 0);
+  const mins = Math.max(0, Math.ceil((tomorrow.getTime() - now) / 60_000));
+  const h = Math.floor(mins / 60), m = mins % 60;
   return (
     <div class="rounded-2xl border border-sky-200 bg-gradient-to-br from-sky-50 to-blue-100 p-3">
       <div class="text-[11px] font-semibold uppercase tracking-wider text-sky-700">⏳ Today's game</div>
       <div class="mt-1 text-sky-950">
-        <span class="text-lg font-bold tabular-nums">{hours < 1 ? "<1" : hours}h</span>{" "}
+        <span class="text-lg font-bold tabular-nums">{h ? `${h}h ${m}m` : `${m}m`}</span>{" "}
         <span class="text-xs">left</span>
       </div>
       <div class="text-xs text-sky-800">New word at {resetClock()}</div>

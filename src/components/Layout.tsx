@@ -14,6 +14,20 @@ function AllNotification() {
   );
 }
 
+// "New" dot pointing at Settings (notifications) until the player has opened it once on this device.
+const SEEN = "reidle:seen-settings";
+function useSettingsDot(route: string) {
+  let seen = true;
+  try {
+    if (route === "/account") localStorage.setItem(SEEN, "1");
+    seen = !!localStorage.getItem(SEEN);
+  } catch { /* storage unavailable: no dot */ }
+  return !seen;
+}
+const newDot = (style?: Record<string, string>) => (
+  <span aria-hidden="true" class="relative inline-flex rounded-full h-3 w-3 bg-[#0ea5e9]" style={{ backgroundColor: "#f59e0b", ...style }} />
+);
+
 export default function Layout(
   { children, route, fullPage }: {
     route: string;
@@ -23,6 +37,7 @@ export default function Layout(
 ) {
   const { played_today: playedToday, name, unread } = useSession();
   const [open, setOpen] = useState(false);
+  const dot = useSettingsDot(route);
   const install = useInstall();
   return (
     <div class={fullPage ? "h-dvh overflow-hidden" : ""} onClick={(e) => {
@@ -43,9 +58,10 @@ export default function Layout(
                 aria-expanded={open}
                 onClick={() => setOpen((o) => !o)}
                 type="button"
-                class="inline-flex items-center p-2 text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 "
+                class="relative inline-flex items-center p-2 text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 "
               >
                 <span class="sr-only">Open sidebar</span>
+                {dot && newDot({ position: "absolute", top: "4px", right: "4px", width: "9px", height: "9px" })}
                 <svg
                   class="w-6 h-6"
                   aria-hidden="true"
@@ -251,19 +267,13 @@ export default function Layout(
                   href="/account"
                   class="flex items-center p-2 text-base font-normal text-gray-900 rounded-lg hover:bg-gray-100"
                 >
-                  <svg
-                    aria-hidden="true"
-                    class="flex-shrink-0 w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 "
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
+                  {/* bell: Settings is where notifications are switched on */}
+                  <svg aria-hidden="true" class="flex-shrink-0 w-6 h-6 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
                     <path
                       fill-rule="evenodd"
-                      d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
                       clip-rule="evenodd"
-                    >
-                    </path>
+                      d="M10 2a6 6 0 0 0-6 6c0 1.887-.454 3.665-1.257 5.234a.75.75 0 0 0 .515 1.076 32.91 32.91 0 0 0 3.256.508 3.5 3.5 0 0 0 6.972 0 32.903 32.903 0 0 0 3.256-.508.75.75 0 0 0 .515-1.076A11.448 11.448 0 0 1 16 8a6 6 0 0 0-6-6ZM8.05 14.943a33.54 33.54 0 0 0 3.9 0 2 2 0 0 1-3.9 0Z"
+                    />
                   </svg>
                   <span
                     class={"flex-1 min-w-0 ml-3 truncate " +
@@ -272,6 +282,7 @@ export default function Layout(
                   >
                     {name ?? "Account"}
                   </span>
+                  {dot && newDot({ marginLeft: "6px", flexShrink: "0" })}
                 </a>
               </li>
             </ul>
