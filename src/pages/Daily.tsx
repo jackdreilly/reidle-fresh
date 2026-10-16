@@ -3,6 +3,7 @@ import { DailyTable } from "@/components/DailyTable";
 import StatsTabs, { prettyDay } from "@/components/StatsTabs";
 import { useSession } from "@/lib/session";
 import type { DailySubmission } from "@/lib/types";
+import { resetClock } from "@/lib/time";
 
 type Data = { submissions: DailySubmission[]; is_today: boolean; winner?: string };
 
@@ -44,9 +45,10 @@ function TimeRemaining() {
     <div class="rounded-2xl border border-sky-200 bg-gradient-to-br from-sky-50 to-blue-100 p-3">
       <div class="text-[11px] font-semibold uppercase tracking-wider text-sky-700">⏳ Today's game</div>
       <div class="mt-1 text-sky-950">
-        <span class="text-lg font-bold tabular-nums">{hours.toString().padStart(2, "0")}</span>{" "}
-        <span class="text-xs">hours remaining</span>
+        <span class="text-lg font-bold tabular-nums">{hours < 1 ? "<1" : hours}h</span>{" "}
+        <span class="text-xs">left</span>
       </div>
+      <div class="text-xs text-sky-800">New word at {resetClock()}</div>
     </div>
   );
 }

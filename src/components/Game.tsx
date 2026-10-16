@@ -9,6 +9,7 @@ import {
   PartyChatToast,
 } from "@/components/PartyChat";
 import { rpc } from "@/lib/supabase";
+import { flushPush } from "@/lib/push";
 import { clearProgress, saveProgress } from "@/lib/checkpoint";
 import { patchSession } from "@/lib/session";
 import { clearPrefetch } from "@/router";
@@ -373,6 +374,7 @@ export default function Game(
           patchSession({ played_today: true });
         }
         if (res?.pending_challenges) setPendingChallenges(res.pending_challenges);
+        flushPush();
       })
       .catch((e: Error) =>
         addError(/already played|duplicate/i.test(e.message) ? "You already played today" : "An error occurred, play again", 0)

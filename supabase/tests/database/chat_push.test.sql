@@ -23,7 +23,7 @@ select is((select subscription from push_subscriptions where endpoint = 'https:/
 insert into messages (name, message) values ('pusha', 'hello');
 insert into messages (name, message, created_at) values ('pushb', 'old news', now() - interval '1 hour');
 set local role service_role;
-select is(push_claim(), '[{"message_id":1,"name":"pusha","message":"hello","subscriptions":[{"endpoint":"https://push.example/b","keys":{"p256dh":"k","auth":"a"}}]}]'::jsonb,
+select is(push_claim(), '[{"title":"pusha","body":"hello","url":"/messages","tag":"chat-1","subscriptions":[{"endpoint":"https://push.example/b","keys":{"p256dh":"k","auth":"a"}}]}]'::jsonb,
   'recent message goes to everyone else''s browsers (not the author''s, not old messages)');
 select is(push_claim(), '[]'::jsonb, 'each message is pushed once');
 select push_gone(array['https://push.example/b']);

@@ -137,7 +137,12 @@ export const routes: Route[] = [
     layout: { route: "/rankings", title: "Rankings" },
     load: () => read("rankings"),
   },
-  { path: "/account", page: () => import("./pages/Account"), layout: { route: "/account", title: "Account" } },
+  {
+    path: "/account", page: () => import("./pages/Account"),
+    layout: { route: "/account", title: "Settings" },
+    load: () => read("settings_page"),
+  },
+  { path: "/settings", redirect: () => "/account" },
   { path: "/sign-in", page: () => import("./pages/SignIn"), public: true },
   {
     path: "/sign-out",

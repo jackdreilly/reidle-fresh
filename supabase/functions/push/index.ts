@@ -1,8 +1,9 @@
-// Chat push notifications (see supabase/migrations/*_chat_push.sql).
+// Push notifications (see supabase/migrations/*_chat_push.sql and *_notifications.sql).
 //   GET  -> { key }: the VAPID public key browsers subscribe with
-//   POST -> pushes every recent message nobody pushed yet to the other players' subscribed browsers.
-// The Messages page POSTs after each message it sends. Each message is claimed once in the database, so
-// repeated or stray calls are harmless; that is why this function needs no auth (verify_jwt = false).
+//   POST -> sends everything waiting in the database's push outbox (chat, results, reminders, ...).
+// Pages POST after sending a message or finishing a game; the hourly push_tick job POSTs via pg_net. The outbox
+// is claimed once in the database, so repeated or stray calls are harmless; that is why this function needs no
+// auth (verify_jwt = false). Every call records this function's URL so push_tick knows where to find it.
 import * as webpush from "jsr:@negrel/webpush@0.5.0";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -40,13 +41,13 @@ function appServer() {
   })().catch((e) => { server = null; throw e; });
 }
 
-type Claimed = { message_id: number; name: string; message: string; subscriptions: webpush.PushSubscription[] };
+type Claimed = { title: string; body: string; url: string; tag: string | null; subscriptions: webpush.PushSubscription[] };
 
-function preview(message: string) {
-  if (/^\/gif\b/i.test(message)) return "sent a GIF";
-  const text = message.replace(/\s+/g, " ").trim();
-  return text.length > 160 ? text.slice(0, 159) + "…" : text;
-}
+let registered: Promise<unknown> | null = null;
+const register = () => registered ??= rpc("push_endpoint", { p_url: `${SUPABASE_URL}/functions/v1/push` }).catch((e) => {
+  registered = null;
+  console.error("push_endpoint", e);
+});
 
 async function pushAll(): Promise<{ sent: number; gone: number; failed: number }> {
   const claimed = await rpc<Claimed[]>("push_claim");
@@ -55,7 +56,7 @@ async function pushAll(): Promise<{ sent: number; gone: number; failed: number }
   const gone = new Set<string>();
   let sent = 0, failed = 0;
   await Promise.all(claimed.flatMap((m) => {
-    const payload = JSON.stringify({ title: m.name, body: preview(m.message), url: "/messages", tag: `chat-${m.message_id}` });
+    const payload = JSON.stringify({ title: m.title, body: m.body, url: m.url, tag: m.tag ?? undefined });
     return m.subscriptions.map(async (sub) => {
       try {
         await app.subscribe(sub).pushTextMessage(payload, { ttl: 24 * 3600 });
@@ -74,6 +75,7 @@ async function pushAll(): Promise<{ sent: number; gone: number; failed: number }
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: CORS });
   try {
+    await register();
     const body = req.method === "GET" ? { key: (await appServer()).key } : await pushAll();
     return Response.json(body, { headers: CORS });
   } catch (e) {

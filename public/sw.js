@@ -64,13 +64,14 @@ self.addEventListener("fetch", (e) => {
   }
 });
 
-// Chat push notifications (opt-in on the Messages page; sent by supabase/functions/push).
+// Push notifications (opt-in on the Settings page or the Messages bell; sent by supabase/functions/push).
 self.addEventListener("push", (e) => {
   let d = {};
   try { d = e.data?.json() ?? {}; } catch { /* not JSON: show a generic notification */ }
   e.waitUntil(self.registration.showNotification(d.title ?? "Reidle", {
     body: d.body ?? "New message",
     tag: d.tag,
+    renotify: !!d.tag, // same tag (e.g. today's results) replaces the old one but still alerts
     icon: "/android-chrome-192x192.png",
     data: { url: d.url ?? "/messages" },
   }));

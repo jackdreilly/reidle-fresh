@@ -16,3 +16,10 @@ export function fromNow(iso: string): string {
   const unit = STEPS[i][0];
   return `${v === 1 ? (unit === "hour" ? "an" : "a") : v} ${unit}${v === 1 ? "" : "s"} ago`;
 }
+
+/** The next daily reset (UTC midnight), optionally `hoursBefore` it, as a local clock time like "5:00 PM". */
+export function resetClock(hoursBefore = 0): string {
+  const d = new Date();
+  d.setUTCHours(24 - hoursBefore, 0, 0, 0);
+  return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+}

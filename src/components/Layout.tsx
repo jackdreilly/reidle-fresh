@@ -248,7 +248,7 @@ export default function Layout(
               )}
               <li>
                 <a
-                  href={name ? `/players/${name}` : "/account"}
+                  href="/account"
                   class="flex items-center p-2 text-base font-normal text-gray-900 rounded-lg hover:bg-gray-100"
                 >
                   <svg
@@ -267,8 +267,8 @@ export default function Layout(
                   </svg>
                   <span
                     class={"flex-1 min-w-0 ml-3 truncate " +
-                      (route === "/account" || (name && location.pathname === `/players/${encodeURIComponent(name)}`) ? "font-bold" : "")}
-                    title={name ? `Your stats (${name})` : undefined}
+                      (route === "/account" ? "font-bold" : "")}
+                    title={name ? `Settings (${name})` : undefined}
                   >
                     {name ?? "Account"}
                   </span>

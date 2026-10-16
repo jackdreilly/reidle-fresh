@@ -5,7 +5,7 @@ import { Name } from "@/components/DailyTable";
 import MessageText, { resolveGif } from "@/components/MessageText";
 import { rpc } from "@/lib/supabase";
 import { patchSession, useSession } from "@/lib/session";
-import { disablePush, enablePush, notifyNewMessages, pushState, type PushState } from "@/lib/push";
+import { enablePush, flushPush, pushState, type PushState } from "@/lib/push";
 import { fromNow } from "@/lib/time";
 
 type Msg = { message_id: number; name: string; message: string; created_at: string; likes: string[]; confirmed?: boolean };
@@ -119,28 +119,40 @@ function Bell({ on }: { on: boolean }) {
   );
 }
 
-// Opt-in browser notifications for new messages from others, as a bell next to Send: always in view,
-// never buried above old messages. Off until the player taps it; tapping again turns it off.
+// Chat notifications as a bell next to Send: always in view, never buried above old messages. The first tap
+// turns on notifications for this browser (and chat); later taps only mute or unmute chat, so other
+// notifications picked on the Settings page keep coming.
 function PushToggle() {
   const [state, setState] = useState<PushState | "busy" | null>(null);
+  const [chat, setChat] = useState(true);
   const [note, setNote] = useState<string | null>(null);
-  useEffect(() => { pushState().then(setState, () => setState("unsupported")); }, []);
+  useEffect(() => {
+    pushState().then((s) => {
+      setState(s);
+      if (s === "on") rpc<{ prefs: { chat: boolean } }>("settings_page").then((d) => setChat(d.prefs.chat), () => {});
+    }, () => setState("unsupported"));
+  }, []);
   if (state === null || state === "unsupported") return null;
   const tap = async () => {
     if (state === "install") return setNote(note ? null : "To get notifications on iPhone, add Reidle to your Home Screen (Share, then Add to Home Screen) and open it from there.");
     if (state === "denied") return setNote(note ? null : "Notifications are blocked for this site. Allow them in your browser's site settings, then tap the bell again.");
-    const was = state;
+    const was = state, wasOn = state === "on" && chat;
     setState("busy");
     setNote(null);
     try {
-      setState(await (was === "on" ? disablePush() : enablePush()));
+      const device = was === "on" ? was : await enablePush();
+      setState(device);
+      if (device !== "on") return;
+      await rpc("set_notify_prefs", { p: { chat: !wasOn } });
+      setChat(!wasOn);
+      if (wasOn) setNote("Chat muted. Other notifications are on the Settings page.");
     } catch (e) {
       setState(was);
       setNote((e as Error).message || "Couldn't turn on notifications");
     }
   };
-  const on = state === "on";
-  const label = on ? "Notifications on (tap to turn off)" : "Notify me of new messages";
+  const on = state === "on" && chat;
+  const label = on ? "Chat notifications on (tap to mute)" : "Notify me of new messages";
   return (
     <span class="relative">
       {note && (
@@ -214,7 +226,7 @@ export default function Messages({ data }: PageProps<Msg[]>) {
     const gif = /^\/gif\b/i.test(text) ? resolveGif(text.slice(4)) : Promise.resolve(undefined);
     return sync(
       gif.then((url) => rpc("post_message", { p_message: url ? `${text} ${url}` : text }))
-        .then(() => { temp.confirmed = true; notifyNewMessages(); }),
+        .then(() => { temp.confirmed = true; flushPush(); }),
       () => setPending((p) => p.filter((m) => m !== temp)),
     );
   };

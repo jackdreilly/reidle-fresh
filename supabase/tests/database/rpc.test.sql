@@ -29,7 +29,7 @@ select is(
   array['battle_get','battle_home','battle_restart','bootstrap','challenge_next','challenge_page',
         'challenge_play','challenges_page','daily_page','delete_message','get_playback','like_message',
         'messages_page','new_battle','past_page','past_winners','play_state','player_stats','post_message',
-        'push_subscribe','push_unsubscribe','rankings','save_checkpoint','start_play','submit_challenge','submit_daily','weekly_page']::text[],
+        'push_subscribe','push_unsubscribe','rankings','save_checkpoint','set_notify_prefs','settings_page','start_play','submit_challenge','submit_daily','weekly_page']::text[],
   'authenticated can execute exactly the RPC allowlist');
 select is((select count(*)::int from pg_proc p where p.pronamespace = 'public'::regnamespace
             and p.proname not in ('act_as', 'reset_role', 'uid_of')

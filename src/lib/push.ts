@@ -1,4 +1,5 @@
-// Chat push notifications: opt-in per browser from the Messages page. The browser's push subscription
+// Push notifications: this browser opts in from the Settings page (or the Messages bell); what gets pushed
+// (chat, results, reminders, ...) is a per-player choice saved with set_notify_prefs. The browser's push subscription
 // is stored with push_subscribe; the `push` edge function (supabase/functions/push) sends the pushes and
 // public/sw.js shows them.
 import { config, rpc } from "@/lib/supabase";
@@ -57,7 +58,7 @@ export async function disablePush(): Promise<PushState> {
   return "off";
 }
 
-/** After posting: have the server push the new message to everyone else who opted in. Fire and forget. */
-export function notifyNewMessages() {
+/** After posting a message or finishing a game: have the server send whatever it queued. Fire and forget. */
+export function flushPush() {
   void fetch(FN, { method: "POST", headers, keepalive: true }).catch(() => {});
 }
