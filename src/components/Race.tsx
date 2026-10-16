@@ -7,7 +7,7 @@ import type { WeekOutput } from "@/lib/types";
 //   Standing — the leaderboard as positions (election night), but continuous: on each day the leader sits at 1st,
 //              the last player at the bottom, and everyone else in between in proportion to their points gap, so a
 //              runaway leader opens a visible gap and a tight pack bunches together.
-// Switching views morphs the lines; Replay re-runs the week from Monday. Inline styles only (CSS budget).
+// Switching views (or Replay) re-runs the week from Monday in the chosen view. Inline styles only (CSS budget).
 
 const PODIUM = ["#16a34a", "#ca8a04", "#ea580c"]; // 1st, 2nd, 3rd (the chip colours)
 const ME = "#d97706";
@@ -102,7 +102,7 @@ export default function Race({ players, me, additive }: { players: WeekOutput; m
             <button
               type="button"
               aria-pressed={standing === v}
-              onClick={() => setStanding(v)}
+              onClick={() => { if (standing !== v) { setStanding(v); setRun((r) => r + 1); } }}
               class={"rounded-full px-2 py-0.5 font-medium " + (standing === v ? "bg-gray-900 text-white" : "text-gray-500 hover:bg-gray-100")}
             >
               {label}
