@@ -198,6 +198,37 @@ export default function Game(
         )
       );
   }, [currentWord, wordle, candidates]);
+  // Practice hint: the first fill picks from answers matching what was typed; tapping again while
+  // that fill is still on the board cycles through the other matches (shuffled, wraps around).
+  const hintCycle = useRef<
+    { list: string[]; i: number; inserted: string; guesses: number } | null
+  >(null);
+  function nextHint(): string {
+    const c = hintCycle.current;
+    if (
+      c && c.inserted === currentWord && c.guesses === previousWords.length &&
+      c.list.length
+    ) {
+      c.i = (c.i + 1) % c.list.length;
+      c.inserted = c.list[c.i];
+      return c.inserted;
+    }
+    let list = doubleCandidates.filter((w) => w !== currentWord);
+    if (!list.length) list = candidates.filter((w) => w !== currentWord);
+    if (!list.length) list = [...candidates];
+    list = [...list];
+    for (let i = list.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [list[i], list[j]] = [list[j], list[i]];
+    }
+    hintCycle.current = {
+      list,
+      i: 0,
+      inserted: list[0] ?? currentWord,
+      guesses: previousWords.length,
+    };
+    return hintCycle.current.inserted;
+  }
   function setPreviousWords(
     input: ScoringHistory | ((word: ScoringHistory) => ScoringHistory),
   ) {
@@ -584,24 +615,29 @@ export default function Game(
             ? (
               <button
                 type="button"
-                class="text-blue-700 border border-blue-700 hover:bg-blue-700 hover:text-white focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center dark:border-blue-500 dark:text-blue-500 dark:hover:text-white dark:focus:ring-blue-800 dark:hover:bg-blue-500"
+                aria-label={enableHelp ? "Insert a possible answer" : "Show hint"}
+                title={enableHelp
+                  ? "Tap to fill in a possible answer; tap again for the next one"
+                  : "How many answers are still possible?"}
+                class={"inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold shadow-sm ring-1 transition active:scale-95 select-none " +
+                  (enableHelp
+                    ? "bg-amber-100 text-amber-900 ring-amber-300 hover:bg-amber-200"
+                    : "bg-white text-gray-700 ring-gray-300 hover:bg-gray-50")}
                 onClick={() => {
                   if (!enableHelp) {
                     setEnableHelp(true);
                     return;
                   }
-                  const cand =
-                    currentWord.length === 5 && doubleCandidates.length === 1
-                      ? candidates
-                      : doubleCandidates;
-                  setCurrentWord(
-                    cand[
-                      Math.floor(Math.random() * cand.length)
-                    ],
-                  );
+                  setCurrentWord(nextHint());
                 }}
               >
-                {enableHelp ? doubleCandidates.length : "?"}
+                <LightbulbIcon />
+                {!enableHelp
+                  ? "Hint"
+                  : hintCycle.current &&
+                      hintCycle.current.inserted === currentWord
+                  ? `${hintCycle.current.i + 1}/${hintCycle.current.list.length}`
+                  : `${doubleCandidates.length} left`}
               </button>
             )
             : undefined}
@@ -917,5 +953,24 @@ export default function Game(
         )}
       </div>
     </>
+  );
+}
+
+function LightbulbIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      class="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M9 18h6" />
+      <path d="M10 22h4" />
+      <path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1V17h6v-.2c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z" />
+    </svg>
   );
 }
