@@ -46,7 +46,7 @@ export function prefetch(href: string) {
   }
 }
 
-type NavOpts = { replace?: boolean; pop?: boolean; refresh?: boolean };
+type NavOpts = { replace?: boolean; pop?: boolean; refresh?: boolean; keepScroll?: boolean };
 
 export async function navigate(href: string, opts: NavOpts = {}): Promise<void> {
   const id = ++navId;
@@ -100,7 +100,7 @@ function finish(id: number, opts: NavOpts, url: URL, next: Current) {
   current = next;
   progress = false;
   document.title = next.route.layout ? next.route.layout.title : "Reidle";
-  if (!opts.pop) window.scrollTo(0, 0);
+  if (!opts.pop && !opts.keepScroll) window.scrollTo(0, 0);
   emit();
 }
 

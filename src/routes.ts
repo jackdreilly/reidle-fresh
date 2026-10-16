@@ -4,6 +4,7 @@ import { clearSession } from "./lib/session";
 import { setSignedIn } from "./boot";
 import { loadWordle } from "./lib/wordle";
 import { utcToday } from "./lib/time";
+import { normalizeName } from "./lib/credentials";
 import { Redirect, type Params } from "./router";
 
 type Page = () => Promise<{ default: ComponentType<any> }>;
@@ -18,6 +19,10 @@ export type Route = {
   redirect?: (p: Params, q: URLSearchParams) => string | Promise<string>;
   public?: boolean;
 };
+
+/** Names from ?vs=, normalised, without duplicates or the page's own player. */
+export const compareNames = (name: string, q: URLSearchParams) =>
+  [...new Set((q.get("vs") ?? "").split(",").map(normalizeName).filter((n) => n && n !== name))].slice(0, 3);
 
 const read = <T>(fn: string, args?: Record<string, unknown>) => rpc<T>(fn, args);
 const alreadyPlayed = (e: unknown, to: string) => {
@@ -115,7 +120,12 @@ export const routes: Route[] = [
   {
     path: "/players/:name", page: () => import("./pages/Player"), prefetchData: true,
     layout: { route: "/players", title: "Player" },
-    load: (p) => read("player_stats", { p_name: p.name }),
+    // ?vs=bob,carol overlays up to 3 other players on the comparable charts (one RPC each, in parallel).
+    load: async (p, q) => {
+      const vs = compareNames(p.name, q);
+      const [main, ...others] = await Promise.all([p.name, ...vs].map((n) => read<object>("player_stats", { p_name: n })));
+      return { ...main, compare: others.map((d, i) => ({ name: vs[i], d })) };
+    },
   },
   {
     path: "/messages", page: () => import("./pages/Messages"),

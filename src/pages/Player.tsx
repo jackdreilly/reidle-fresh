@@ -4,6 +4,9 @@ import { Name } from "@/components/DailyTable";
 import { prettyDay } from "@/components/StatsTabs";
 import { useSession } from "@/lib/session";
 import { isoDay, timerTime, utcToday } from "@/lib/time";
+import { normalizeName } from "@/lib/credentials";
+import { navigate } from "@/router";
+import { compareNames } from "@/routes";
 
 type Run = { len: number; from: string; to: string } | null;
 type Data = {
@@ -42,6 +45,7 @@ type Data = {
     word: string | null; guesses: number | null; submission_id: number | null;
   }[];
 };
+type Compared = { name: string; d: Data };
 
 const pct = (v: number | null | undefined) => v == null ? "–" : `${Math.round(v * 100)}%`;
 const ordinal = (n: number) => {
@@ -55,6 +59,8 @@ const monthYear = (iso: string) => prettyDay(iso, { month: "short", year: "numer
 const PLACE = ["#22c55e", "#facc15", "#fb923c", "#cbd5e1"];
 const placeColor = (p: number) => PLACE[Math.min(p, 4) - 1];
 const ACCENT = "#0ea5e9";
+/** Line colours for compared players (rose, violet, amber), after the page's own sky blue. */
+const VS = ["#f43f5e", "#8b5cf6", "#f59e0b"];
 
 function Card({ title, aside, children, class: cls }: { title?: string; aside?: ComponentChildren; children: ComponentChildren; class?: string }) {
   return (
@@ -199,13 +205,19 @@ function Legend() {
 }
 
 type Point = { x: string; y: number; lo?: number; hi?: number; tip: string };
+type Series = { name: string; color: string; points: Point[] };
 
-/** Smoothed weekly trend: a line, an optional shaded band, gridlines and a hover strip per point. */
-function Trend({ points, format, domain, refLine, label }: {
-  points: Point[]; format: (v: number) => string; domain?: [number, number]; refLine?: number; label: string;
+/**
+ * Smoothed weekly trend: one line per series (the first one may carry a shaded band), gridlines and a
+ * hover strip per week. Series are aligned on their week dates, so players with different histories line up.
+ */
+function Trend({ series, format, domain, refLine, label }: {
+  series: Series[]; format: (v: number) => string; domain?: [number, number]; refLine?: number; label: string;
 }) {
   const W = 440, H = 150, L = 38, R = 8, T = 8, B = 20;
-  const ys = points.flatMap((p) => [p.y, p.lo ?? p.y, p.hi ?? p.y]);
+  const weeks = [...new Set(series.flatMap((s) => s.points.map((p) => p.x)))].sort();
+  const at = new Map(weeks.map((w, i) => [w, i]));
+  const ys = series.flatMap((s) => s.points.flatMap((p) => [p.y, p.lo ?? p.y, p.hi ?? p.y]));
   let [lo, hi] = domain ?? [Math.min(...ys), Math.max(...ys)];
   let step = (hi - lo) / 4;
   if (!domain) {
@@ -215,15 +227,21 @@ function Trend({ points, format, domain, refLine, label }: {
     hi = Math.ceil((hi + pad) / step) * step;
   }
   const ticks = Array.from({ length: Math.round((hi - lo) / step) + 1 }, (_, i) => lo + i * step);
-  const n = points.length;
+  const n = weeks.length;
   const x = (i: number) => L + (n === 1 ? (W - L - R) / 2 : (i * (W - L - R)) / (n - 1));
+  const xw = (w: string) => x(at.get(w)!);
   const y = (v: number) => T + (H - T - B) * (1 - (v - lo) / (hi - lo || 1));
-  const line = points.map((p, i) => `${x(i)},${y(p.y)}`).join(" ");
-  const band = points[0]?.lo != null
-    ? `M${points.map((p, i) => `${x(i)},${y(p.hi!)}`).join(" L")} L${points.map((p, i) => `${x(i)},${y(p.lo!)}`).reverse().join(" L")} Z`
+  const main = series[0].points;
+  const band = main[0]?.lo != null
+    ? `M${main.map((p) => `${xw(p.x)},${y(p.hi!)}`).join(" L")} L${main.map((p) => `${xw(p.x)},${y(p.lo!)}`).reverse().join(" L")} Z`
     : null;
-  // Month labels at the first point of each month, thinned to ~6.
-  const marks = points.map((p, i) => ({ i, m: p.x.slice(0, 7) })).filter((p, k, a) => k === 0 || p.m !== a[k - 1].m);
+  const multi = series.length > 1;
+  const byWeek = series.map((s) => new Map(s.points.map((p) => [p.x, p])));
+  const tip = (w: string) => multi
+    ? [`4 weeks to ${short(w)}`, ...series.map((s, k) => { const p = byWeek[k].get(w); return `${s.name}: ${p ? format(p.y) : "–"}`; })].join("\n")
+    : byWeek[0].get(w)?.tip;
+  // Month labels at the first week of each month, thinned to ~6.
+  const marks = weeks.map((w, i) => ({ i, m: w.slice(0, 7) })).filter((p, k, a) => k === 0 || p.m !== a[k - 1].m);
   const every = Math.ceil(marks.length / 6);
   const strip = (W - L - R) / Math.max(1, n - 1);
   return (
@@ -235,11 +253,19 @@ function Trend({ points, format, domain, refLine, label }: {
         </g>
       ))}
       {refLine != null && <line x1={L} x2={W - R} y1={y(refLine)} y2={y(refLine)} stroke="#cbd5e1" stroke-dasharray="3 3" />}
-      {band && <path d={band} fill={ACCENT} fill-opacity=".15" />}
-      <polyline fill="none" stroke={ACCENT} stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points={line} />
-      {n > 0 && <circle cx={x(n - 1)} cy={y(points[n - 1].y)} r={4} fill={ACCENT} stroke="white" stroke-width="2" />}
-      {points.map((p, i) => (
-        <rect x={x(i) - strip / 2} y={T} width={strip} height={H - T - B} fill="transparent"><title>{p.tip}</title></rect>
+      {band && <path d={band} fill={series[0].color} fill-opacity={multi ? ".08" : ".15"} />}
+      {[...series].reverse().map((s) => {
+        const last = s.points[s.points.length - 1];
+        return (
+          <g>
+            <polyline fill="none" stroke={s.color} stroke-width="2" stroke-linejoin="round" stroke-linecap="round"
+              points={s.points.map((p) => `${xw(p.x)},${y(p.y)}`).join(" ")} />
+            {last && <circle cx={xw(last.x)} cy={y(last.y)} r={4} fill={s.color} stroke="white" stroke-width="2" />}
+          </g>
+        );
+      })}
+      {weeks.map((w, i) => (
+        <rect x={x(i) - strip / 2} y={T} width={strip} height={H - T - B} fill="transparent"><title>{tip(w)}</title></rect>
       ))}
       {marks.filter((_, k) => k % every === 0).map(({ i, m }) => (
         <text x={Math.min(Math.max(x(i), L + 12), W - R - 12)} y={H - 5} text-anchor="middle" font-size="10" fill="#9ca3af">
@@ -247,6 +273,18 @@ function Trend({ points, format, domain, refLine, label }: {
         </text>
       ))}
     </svg>
+  );
+}
+
+/** Colour key for charts that overlay compared players. */
+function Key({ series }: { series: { name: string; color: string }[] }) {
+  if (series.length < 2) return null;
+  return (
+    <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-gray-500">
+      {series.map((s) => (
+        <span class="flex items-center gap-1"><span class="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: s.color }} />{s.name}</span>
+      ))}
+    </div>
   );
 }
 
@@ -387,9 +425,125 @@ function Recent({ games, hide }: { games: Data["recent"]; hide: boolean }) {
   );
 }
 
-export default function Player({ params, data: d }: PageProps<Data>) {
+const vsHref = (name: string, vs: string[]) => `/players/${name}` + (vs.length ? `?vs=${vs.join(",")}` : "");
+const goVs = (name: string, vs: string[]) => void navigate(vsHref(name, vs), { replace: true, keepScroll: true });
+
+/** Pick up to 3 players to overlay: one-tap chips for frequent opponents, or any name. */
+function ComparePicker({ name, vs, rivals }: { name: string; vs: string[]; rivals: string[] }) {
+  const suggest = rivals.filter((r) => !vs.includes(r)).slice(0, 5);
+  const full = vs.length >= 3;
+  const chip = "flex items-center gap-1.5 rounded-lg border px-2 py-1 text-xs";
+  return (
+    <div class="flex flex-wrap items-center gap-2">
+      {vs.map((v, i) => (
+        <button type="button" class={chip + " border-gray-200 bg-white font-semibold text-gray-900 hover:bg-gray-100"}
+          onClick={() => goVs(name, vs.filter((x) => x !== v))} aria-label={`Stop comparing with ${v}`}>
+          <span class="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: VS[i] }} />{v}<span class="text-gray-400">×</span>
+        </button>
+      ))}
+      {!full && suggest.map((r) => (
+        <button type="button" class={chip + " border-dashed border-gray-300 text-gray-600 hover:bg-gray-100"}
+          onClick={() => goVs(name, [...vs, r])}>+ {r}</button>
+      ))}
+      {!full && (
+        <form class="flex" onSubmit={(e) => {
+          e.preventDefault();
+          const input = (e.currentTarget as HTMLFormElement).elements.namedItem("vs") as HTMLInputElement;
+          const n = normalizeName(input.value);
+          if (n && n !== name && !vs.includes(n)) goVs(name, [...vs, n]);
+          input.value = "";
+        }}>
+          <input name="vs" placeholder="Any player…" aria-label="Compare with player" autocapitalize="off" autocomplete="off"
+            class="w-28 rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs" />
+        </form>
+      )}
+    </div>
+  );
+}
+
+/** Headline numbers side by side, best in each row bold. */
+function CompareTable({ name, d, others }: { name: string; d: Data; others: Compared[] }) {
+  const cols = [{ name, d, color: ACCENT }, ...others.map((o, i) => ({ ...o, color: VS[i] }))];
+  type Row = [string, (d: Data) => number | null, (v: number) => string, "high" | "low"];
+  const rows: Row[] = [
+    ["Games", (d) => d.total || null, (v) => v.toLocaleString(), "high"],
+    ["Win rate", (d) => d.total ? d.wins / d.total : null, pct, "high"],
+    ["Podium", (d) => d.total ? d.podiums / d.total : null, pct, "high"],
+    ["Beats the field", (d) => d.beat, pct, "high"],
+    ["… last 30d", (d) => d.beat_30, pct, "high"],
+    ["Median time", (d) => d.median, timerTime, "low"],
+    ["… last 30d", (d) => d.median_30, timerTime, "low"],
+    ["Fastest", (d) => d.fastest?.time ?? null, timerTime, "low"],
+    ["Rows to solve", (d) => d.avg_guesses, (v) => v.toFixed(1), "low"],
+    ["Penalty-free", (d) => d.clean, pct, "high"],
+    ["Longest streak", (d) => d.streak.longest?.len ?? null, String, "high"],
+    ["Weeks won", (d) => d.weeks_won, String, "high"],
+  ];
+  return (
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm tabular-nums">
+        <thead>
+          <tr class="text-xs text-gray-500">
+            <th />
+            {cols.map((c) => (
+              <th class="px-1 pb-1 text-right font-semibold">
+                <span class="inline-flex items-center gap-1"><span class="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: c.color }} />{c.name}</span>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {rows.map(([label, get, fmt, better]) => {
+            const vals = cols.map((c) => get(c.d));
+            const known = vals.filter((v): v is number => v != null);
+            const best = known.length > 1 ? (better === "high" ? Math.max(...known) : Math.min(...known)) : null;
+            return (
+              <tr>
+                <td class="whitespace-nowrap py-1 pr-2 text-xs text-gray-500">{label}</td>
+                {vals.map((v) => (
+                  <td class={"px-1 py-1 text-right " + (v != null && v === best ? "font-bold text-gray-900" : "text-gray-600")}>
+                    {v == null ? "–" : fmt(v)}
+                  </td>
+                ))}
+              </tr>
+            );
+          })}
+          {others.map((o) => {
+            const h = d.rivals.find((r) => r.name === o.name);
+            return h && (
+              <tr>
+                <td class="whitespace-nowrap py-1 pr-2 text-xs text-gray-500">vs {o.name}</td>
+                <td colSpan={cols.length} class="py-1 text-right text-xs text-gray-600">
+                  {name} faster <span class="font-bold text-green-700">{h.wins}</span>
+                  <span class="text-gray-400"> – </span><span class="font-bold text-rose-700">{h.losses}</span> over {h.games} shared days
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+export default function Player({ params, query, data }: PageProps<Data & { compare: Compared[] }>) {
   const { name: myName, played_today } = useSession();
   const me = params.name === myName;
+  const { compare, ...d } = data;
+  const vs = compareNames(params.name, query);
+  const others = compare.filter((c) => c.d.total);
+  const series = (pick: (d: Data) => Point[]) => [
+    { name: params.name, color: ACCENT, points: pick(d) },
+    ...compare.map((c, i) => ({ name: c.name, color: VS[i], points: c.d.total ? pick(c.d) : [] })),
+  ];
+  const speed = series((d) => d.trend.map((t) => ({
+    x: t.week, y: t.median, lo: t.p25, hi: t.p75,
+    tip: `4 weeks to ${short(t.week)}: median ${timerTime(t.median)}, middle half ${timerTime(t.p25)}–${timerTime(t.p75)} (${t.games} games)`,
+  })));
+  const form = series((d) => d.trend.filter((t) => t.beat != null).map((t) => ({
+    x: t.week, y: t.beat!,
+    tip: `4 weeks to ${short(t.week)}: beat ${pct(t.beat)} of the field (${t.games} games)`,
+  })));
   if (!d.total) {
     return (
       <div class="mx-auto w-full max-w-xl space-y-4">
@@ -446,30 +600,25 @@ export default function Player({ params, data: d }: PageProps<Data>) {
         <Legend />
       </Card>
 
+      <Card title="Compare" aside={vs.length ? undefined : "overlay other players on the charts"}>
+        <ComparePicker name={params.name} vs={vs} rivals={d.rivals.map((r) => r.name)} />
+        {compare.filter((c) => !c.d.total).map((c) => (
+          <p class="mt-2 text-xs text-gray-500">{c.name} has no daily games.</p>
+        ))}
+        {others.length > 0 && <div class="mt-3"><CompareTable name={params.name} d={d} others={others} /></div>}
+      </Card>
+
       {d.trend.length > 1 && (
         <>
-          <Card title="Speed" aside="median of the last 4 weeks · band = middle half">
-            <Trend
-              label="Rolling median solve time"
-              format={timerTime}
-              points={d.trend.map((t) => ({
-                x: t.week, y: t.median, lo: t.p25, hi: t.p75,
-                tip: `4 weeks to ${short(t.week)}: median ${timerTime(t.median)}, middle half ${timerTime(t.p25)}–${timerTime(t.p75)} (${t.games} games)`,
-              }))}
-            />
+          <Card title="Speed" aside={`median of the last 4 weeks${vs.length ? "" : " · band = middle half"}`}>
+            <Trend label="Rolling median solve time" format={timerTime} series={speed} />
+            <Key series={speed.filter((s) => s.points.length)} />
           </Card>
-          {d.trend.some((t) => t.beat != null) && (
+          {form.some((s) => s.points.length) && (
             <Card title="Form" aside="share of the field beaten, last 4 weeks">
-              <Trend
-                label="Rolling share of the field beaten"
-                format={(v) => `${Math.round(v * 100)}%`}
-                domain={[0, 1]}
-                refLine={0.5}
-                points={d.trend.filter((t) => t.beat != null).map((t) => ({
-                  x: t.week, y: t.beat!,
-                  tip: `4 weeks to ${short(t.week)}: beat ${pct(t.beat)} of the field (${t.games} games)`,
-                }))}
-              />
+              <Trend label="Rolling share of the field beaten" format={(v) => `${Math.round(v * 100)}%`}
+                domain={[0, 1]} refLine={0.5} series={form} />
+              <Key series={form.filter((s) => s.points.length)} />
             </Card>
           )}
         </>

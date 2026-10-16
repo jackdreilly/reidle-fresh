@@ -44,6 +44,21 @@ test("player page and rankings render charts", async ({ page }) => {
   await expect(page.locator("svg path[stroke-width='12']").first()).toBeAttached();
 });
 
+test("player page compares other players on the charts", async ({ page }) => {
+  await page.goto("/players/alice");
+  await page.getByRole("button", { name: "+ bob" }).click();
+  await expect(page).toHaveURL(/\/players\/alice\?vs=bob$/);
+  await expect(page.getByRole("columnheader", { name: "bob" })).toBeVisible();
+  await expect(page.getByRole("img", { name: "Rolling median solve time" }).locator("polyline")).toHaveCount(2);
+  await page.getByLabel("Compare with player").fill("Carol");
+  await page.getByLabel("Compare with player").press("Enter");
+  await expect(page).toHaveURL(/\?vs=bob,carol$/);
+  await expect(page.getByRole("columnheader", { name: "carol" })).toBeVisible();
+  await page.getByRole("button", { name: "Stop comparing with bob" }).click();
+  await expect(page).toHaveURL(/\?vs=carol$/);
+  await expect(page.getByRole("columnheader", { name: "bob" })).toHaveCount(0);
+});
+
 test("playback of a past submission animates", async ({ page }) => {
   const id = sql("select submission_id from submissions where name='bob' and day < current_date and challenge_id is null limit 1");
   await page.goto(`/submissions/${id}/playback`);
