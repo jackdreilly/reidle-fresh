@@ -44,12 +44,12 @@ function TimeRemaining() {
   const tomorrow = new Date(now);
   tomorrow.setUTCHours(24, 0, 0, 0);
   const mins = Math.max(0, Math.ceil((tomorrow.getTime() - now) / 60_000));
-  const h = Math.floor(mins / 60), m = mins % 60;
+  const h = Math.floor(mins / 60), m = mins % 60; // hours only; minutes in the last hour
   return (
     <div class="rounded-2xl border border-sky-200 bg-gradient-to-br from-sky-50 to-blue-100 p-3">
       <div class="text-[11px] font-semibold uppercase tracking-wider text-sky-700">⏳ Today's game</div>
       <div class="mt-1 text-sky-950">
-        <span class="text-lg font-bold tabular-nums">{h ? `${h}h ${m}m` : `${m}m`}</span>{" "}
+        <span class="text-lg font-bold tabular-nums">{h ? `${h}h` : `${m}m`}</span>{" "}
         <span class="text-xs">left</span>
       </div>
       <div class="text-xs text-sky-800">New word at {resetClock()}</div>
