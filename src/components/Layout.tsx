@@ -21,7 +21,7 @@ export default function Layout(
     fullPage?: boolean;
   },
 ) {
-  const { played_today: playedToday, name } = useSession();
+  const { played_today: playedToday, name, unread } = useSession();
   const [open, setOpen] = useState(false);
   const install = useInstall();
   return (
@@ -37,62 +37,69 @@ export default function Layout(
               "lg:pl-3",
             ].join(" ")}
           >
-            <div class="flex items-center justify-between">
-              <div class="flex items-center justify-start">
-                <button
-                  aria-controls="logo-sidebar"
-                  aria-expanded={open}
-                  onClick={() => setOpen((o) => !o)}
-                  type="button"
-                  class="relative inline-flex items-center p-2 text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 "
+            <div class="flex items-center gap-1.5">
+              <button
+                aria-controls="logo-sidebar"
+                aria-expanded={open}
+                onClick={() => setOpen((o) => !o)}
+                type="button"
+                class="inline-flex items-center p-2 text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 "
+              >
+                <span class="sr-only">Open sidebar</span>
+                <svg
+                  class="w-6 h-6"
+                  aria-hidden="true"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                  xmlns="http://www.w3.org/2000/svg"
                 >
-                  <div class="absolute top-[-.5em] right-[-.5em]">
-                    <AllNotification />
-                  </div>
-                  <span class="sr-only">Open sidebar</span>
-                  <svg
-                    class="w-6 h-6"
-                    aria-hidden="true"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                    xmlns="http://www.w3.org/2000/svg"
+                  <path
+                    clip-rule="evenodd"
+                    fill-rule="evenodd"
+                    d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"
                   >
-                    <path
-                      clip-rule="evenodd"
-                      fill-rule="evenodd"
-                      d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"
-                    >
-                    </path>
-                  </svg>
-                </button>
-                <a href="/" class="flex ml-2 md:mr-24">
-                  <img
-                    height="48px"
-                    width="48px"
-                    src="/android-chrome-96x96.webp"
-                    class="mr-3"
-                    alt="Reidle Logo"
-                  />
-                  <span class="self-center text-xl font-semibold md:text-2xl whitespace-nowrap hidden md:contents">
-                    Reidle
-                  </span>
-                </a>
-                <span class="flex self-center text-xl font-semibold md:text-2xl whitespace-nowrap md:hidden">
-                  <a
-                    href="/play"
-                    class="text-white bg-gradient-to-r from-pink-400 via-pink-500 to-pink-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-pink-300 dark:focus:ring-pink-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2"
-                    style={{ display: playedToday ? "none" : null }}
-                  >
-                    <PlaySVG fill="#ffffff" />
-                  </a>
-                  <a
-                    href="/challenges"
-                    class="text-white bg-gradient-to-r from-green-400 via-green-500 to-green-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2"
-                  >
-                    <ChallengeSVG fill="#ffffff" />
-                  </a>
+                  </path>
+                </svg>
+              </button>
+              <a href="/" class="flex shrink-0 items-center md:mr-24">
+                <img
+                  height="44px"
+                  width="44px"
+                  src="/android-chrome-96x96.webp"
+                  class="h-11 w-11 md:mr-3"
+                  alt="Reidle Logo"
+                />
+                <span class="self-center text-xl font-semibold md:text-2xl whitespace-nowrap hidden md:contents">
+                  Reidle
                 </span>
+              </a>
+              <div class="flex min-w-0 items-center gap-1.5 md:hidden">
+                {playedToday
+                  ? (
+                    <TopPill href="/practice" active={route === "/practice"} color="from-cyan-500 to-teal-600 focus:ring-cyan-300" label="Practice">
+                      <PracticeSVG fill="#ffffff" />
+                    </TopPill>
+                  )
+                  : (
+                    <TopPill href="/play" active={route === "/play"} color="from-pink-500 to-pink-600 focus:ring-pink-300" label="Play">
+                      <PlaySVG fill="#ffffff" />
+                    </TopPill>
+                  )}
+                <TopPill href="/challenges" active={route === "/challenges"} color="from-green-500 to-green-600 focus:ring-green-300" label="Challenges" narrowIconOnly>
+                  <ChallengeSVG fill="#ffffff" />
+                </TopPill>
               </div>
+              <a
+                href="/messages"
+                aria-label={unread ? "Messages (unread)" : "Messages"}
+                class={"relative ml-auto inline-flex shrink-0 items-center justify-center rounded-full p-2 md:hidden hover:bg-gray-100 " +
+                  (route === "/messages" ? "bg-gray-100" : "")}
+              >
+                <Messages />
+                <span class="absolute top-0.5 right-0.5">
+                  <AllNotification />
+                </span>
+              </a>
             </div>
           </div>
         </nav>
@@ -301,6 +308,30 @@ export default function Layout(
           {children}
         </div>
     </div>
+  );
+}
+
+function TopPill(
+  { href, active, color, label, narrowIconOnly, children }: {
+    href: string;
+    active: boolean;
+    color: string;
+    label: string;
+    narrowIconOnly?: boolean;
+    children: ComponentChildren;
+  },
+) {
+  return (
+    <a
+      href={href}
+      aria-current={active ? "page" : undefined}
+      aria-label={label}
+      class={"inline-flex h-10 min-w-0 items-center gap-1.5 rounded-full bg-gradient-to-r px-3 text-sm font-semibold text-white shadow-sm transition active:scale-95 focus:outline-none focus:ring-4 " +
+        color + (active ? " ring-2 ring-offset-2 ring-gray-300" : "")}
+    >
+      <span class="shrink-0 [&>svg]:h-5 [&>svg]:w-5">{children}</span>
+      <span class={narrowIconOnly ? "hidden min-[375px]:inline" : ""}>{label}</span>
+    </a>
   );
 }
 
