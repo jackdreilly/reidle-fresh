@@ -4,6 +4,7 @@ import { Name } from "@/components/DailyTable";
 import { useSession } from "@/lib/session";
 import { isoDay, timerTime, utcToday } from "@/lib/time";
 import type { WeekOutput } from "@/lib/types";
+import Race from "@/components/Race";
 
 type Chip = [bg: string, fg: string];
 const GRAY: Chip = ["#f3f4f6", "#c4c8cf"];
@@ -130,50 +131,3 @@ export default function Weekly({ params, data: { players, additive } }: PageProp
   );
 }
 
-// Running points through the week, one line per player. Small and quiet: the table above is the main event.
-const RACE_COLORS = ["#16a34a", "#ca8a04", "#ea580c"]; // 1st, 2nd, 3rd (matches the chips)
-function Race({ players, me }: { players: WeekOutput; me: string | null }) {
-  const days = players[0]?.results.days ?? [];
-  if (days.length < 2) return null;
-  const W = 320, H = 130, L = 8, R = 64, T = 8, B = 18;
-  const lines = players.map(({ name, results }) => {
-    let sum = 0;
-    return { name, pts: results.days.map((d) => (sum += d.score)) };
-  });
-  const max = Math.max(1, ...lines.map((l) => l.pts[l.pts.length - 1]));
-  const x = (i: number) => L + (i * (W - L - R)) / (days.length - 1);
-  const y = (v: number) => T + (H - T - B) * (1 - v / max);
-  // draw the highlighted lines last so they sit on top
-  const order = lines.map((l, i) => ({ ...l, i })).sort((a, b) => weight(a) - weight(b));
-  function weight(l: { name: string; i: number }) { return l.name === me ? 9 : l.i < 3 ? 5 - l.i : 0; }
-  const color = (l: { name: string; i: number }) => (l.i < 3 ? RACE_COLORS[l.i] : l.name === me ? "#d97706" : "#d1d5db");
-  // end labels, nudged apart so they don't overlap
-  const labels = order.filter((l) => l.i < 3 || l.name === me)
-    .map((l) => ({ ...l, ly: y(l.pts[l.pts.length - 1]) }))
-    .sort((a, b) => a.ly - b.ly);
-  for (let k = 1; k < labels.length; k++) labels[k].ly = Math.max(labels[k].ly, labels[k - 1].ly + 11);
-  return (
-    <section class="mt-6 w-fit max-w-full rounded-2xl border border-gray-200 bg-white p-3 shadow-sm">
-      <h2 class="mb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400">The race</h2>
-      <svg viewBox={`0 0 ${W} ${H}`} width={W} class="block h-auto max-w-full" role="img" aria-label="Running points through the week">
-        {days.map((d, i) => (
-          <text x={x(i)} y={H - 4} text-anchor="middle" font-size="10" fill="#9ca3af">{"MTWRFSU"[(new Date(d.day).getUTCDay() + 6) % 7]}</text>
-        ))}
-        <line x1={L} x2={W - R} y1={y(0)} y2={y(0)} stroke="#f3f4f6" />
-        {order.map((l) => (
-          <polyline
-            points={l.pts.map((v, i) => `${x(i)},${y(v)}`).join(" ")}
-            fill="none" stroke={color(l)} stroke-width={weight(l) ? 2 : 1.25} stroke-linejoin="round" stroke-linecap="round"
-          >
-            <title>{l.name}: {l.pts[l.pts.length - 1]}</title>
-          </polyline>
-        ))}
-        {labels.map((l) => (
-          <text x={W - R + 4} y={l.ly + 3} font-size="10" fill={color(l)} font-weight={l.name === me ? 700 : 500}>
-            {l.name.length > 8 ? l.name.slice(0, 7) + "…" : l.name} {l.pts[l.pts.length - 1]}
-          </text>
-        ))}
-      </svg>
-    </section>
-  );
-}
