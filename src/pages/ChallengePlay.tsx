@@ -16,7 +16,7 @@ export default function ChallengePlay({ data: { challenge_id, starting_word, ans
   const [started, setStarted] = useState(false);
   if (!started) {
     return (
-      <div class="flex h-full flex-col items-center justify-center gap-4 p-6 text-center">
+      <div class="flex h-full flex-col items-center justify-start gap-4 p-6 pt-8 text-center">
         <h1 class="text-2xl font-bold">Challenge</h1>
         {leader ? <div>Time to beat: <b>{leader.name}</b> <TimerText seconds={leader.time} /></div> : null}
         <button

@@ -48,7 +48,7 @@ export default function Play({ data }: PageProps<Data>) {
 
   if (!game) {
     return (
-      <div class="flex h-full flex-col items-center justify-center gap-4 p-6 text-center">
+      <div class="flex h-full flex-col items-center justify-start gap-4 p-6 pt-8 text-center">
         <h1 class="text-2xl font-bold">Today's Reidle</h1>
         {data.winner && data.winnersTime
           ? <div>Time to beat: <b>{data.winner}</b> <TimerText seconds={data.winnersTime} /></div>
