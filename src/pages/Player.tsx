@@ -95,6 +95,12 @@ function Delta({ now, before }: { now: number | null; before: number | null }) {
 
 function Hero({ name, d, me }: { name: string; d: Data; me: boolean }) {
   return (
+    <>
+    {me && (
+      <div class="flex justify-end">
+        <a href="/sign-out" class="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100">Log Out</a>
+      </div>
+    )}
     <div class="rounded-2xl border border-sky-200 bg-gradient-to-br from-sky-50 to-blue-100 p-4">
       <div class="flex items-start justify-between gap-3">
         <div class="min-w-0">
@@ -117,6 +123,7 @@ function Hero({ name, d, me }: { name: string; d: Data; me: boolean }) {
         </p>
       )}
     </div>
+    </>
   );
 }
 

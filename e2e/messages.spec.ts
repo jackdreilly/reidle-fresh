@@ -52,6 +52,9 @@ test("others' messages have no delete control", async ({ page }) => {
 
 test("sign out returns to sign-in and protects routes", async ({ page }) => {
   await signIn(page, "dave");
+  // Your name in the sidebar opens your own stats page, which carries the log out button.
+  await page.locator("aside").getByRole("link", { name: "dave", exact: true }).click();
+  await expect(page).toHaveURL(/\/players\/dave$/);
   await page.getByRole("link", { name: "Log Out" }).click();
   await expect(page).toHaveURL(/sign-in/);
   await page.goto("/stats/today");
