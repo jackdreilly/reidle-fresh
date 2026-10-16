@@ -61,12 +61,12 @@ function HallOfFame({ hall, me }: { hall: Champ[]; me: string }) {
   const mine = hall.findIndex((c) => c.name === me);
   const total = hall.reduce((a, c) => a + c.wins, 0);
   const medal = [
-    "border-amber-300 bg-gradient-to-b from-amber-50 to-yellow-100 text-amber-950",
-    "border-gray-300 bg-gradient-to-b from-gray-50 to-gray-100 text-gray-900",
-    "border-orange-200 bg-gradient-to-b from-orange-50 to-orange-100 text-orange-950",
+    "border-amber-200 bg-gradient-to-br from-amber-50 to-yellow-100 text-amber-950",
+    "border-gray-300 bg-gray-100 text-gray-900",
+    "border-gray-200 bg-orange-200 text-orange-900",
   ];
   return (
-    <section class="mb-5">
+    <section class="mb-4">
       <header class="mb-2 flex items-baseline justify-between px-1">
         <h2 class="text-lg font-semibold text-gray-900">Hall of fame</h2>
         <span class="text-xs text-gray-400">{total} weekly titles</span>
@@ -74,7 +74,7 @@ function HallOfFame({ hall, me }: { hall: Champ[]; me: string }) {
       {champ && (
         <a
           href={`/players/${champ.name}`}
-          class="mb-2 flex items-center gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900 hover:shadow-sm"
+          class="mb-2 flex items-center gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900 hover:shadow-md"
         >
           <span class="text-lg" aria-hidden>👑</span>
           <span>
@@ -89,7 +89,7 @@ function HallOfFame({ hall, me }: { hall: Champ[]; me: string }) {
             <a
               href={`/players/${c.name}`}
               class={"flex h-full flex-col items-center rounded-2xl border px-2 py-3 text-center transition-shadow hover:shadow-md " +
-                medal[i] + (c.name === me ? " ring-2 ring-amber-400" : "")}
+                medal[i] + (c.name === me ? " ring-2 ring-amber-300" : "")}
             >
               <span class="text-2xl leading-none" aria-hidden>{["🥇", "🥈", "🥉"][i]}</span>
               <span class="mt-1 w-full truncate text-sm font-bold">{c.name}</span>
@@ -106,13 +106,13 @@ function HallOfFame({ hall, me }: { hall: Champ[]; me: string }) {
             <a
               href={`/players/${c.name}`}
               class={"rounded-full border px-2 py-0.5 hover:bg-gray-50 " +
-                (c.name === me ? "border-amber-300 bg-amber-50 text-amber-900" : "border-gray-200 bg-white text-gray-700")}
+                (c.name === me ? "border-amber-200 bg-amber-50 text-amber-900" : "border-gray-200 bg-white text-gray-700")}
             >
               {c.name} <b class="tabular-nums">{c.wins}</b>
             </a>
           ))}
           {rest.length > shown.length && (
-            <button type="button" class="px-1 text-gray-400 hover:text-gray-700" onClick={() => setOpen(true)}>
+            <button type="button" class="px-1 text-gray-400 hover:text-gray-800" onClick={() => setOpen(true)}>
               +{rest.length - shown.length} more
             </button>
           )}
@@ -130,15 +130,15 @@ function HallOfFame({ hall, me }: { hall: Champ[]; me: string }) {
 function MonthNav({ month, first, last }: { month: string; first: string; last: string }) {
   const prev = month > first ? shiftMonth(month, -1) : null;
   const next = month < last ? shiftMonth(month, 1) : null;
-  const arrow = "flex h-9 w-9 items-center justify-center rounded-full text-lg text-gray-600 hover:bg-gray-100";
+  const arrow = "flex h-8 w-8 items-center justify-center rounded-full text-lg text-gray-600 hover:bg-gray-100";
   return (
     <nav class="mb-3 flex items-center justify-between gap-2" aria-label="Month">
       {prev
         ? <a class={arrow} href={pastHref(prev)} aria-label="Previous month">‹</a>
-        : <span class={arrow + " opacity-20"} aria-hidden>‹</span>}
+        : <span class={arrow + " opacity-0"} aria-hidden>‹</span>}
       <select
         aria-label="Jump to month"
-        class="rounded-lg border-0 bg-transparent py-1 text-center text-lg font-semibold text-gray-900 hover:bg-gray-100 focus:ring-2 focus:ring-gray-300"
+        class="rounded-lg border-0 bg-transparent py-1 text-center text-lg font-semibold text-gray-900 hover:bg-gray-100"
         value={month}
         onChange={(e) => void navigate(pastHref((e.target as HTMLSelectElement).value))}
       >
@@ -146,7 +146,7 @@ function MonthNav({ month, first, last }: { month: string; first: string; last: 
       </select>
       {next
         ? <a class={arrow} href={pastHref(next)} aria-label="Next month">›</a>
-        : <span class={arrow + " opacity-20"} aria-hidden>›</span>}
+        : <span class={arrow + " opacity-0"} aria-hidden>›</span>}
     </nav>
   );
 }
@@ -168,8 +168,8 @@ function MonthHighlights({ days, me }: { days: Day[]; me: string }) {
   const tile = "rounded-2xl border p-3 min-w-0";
   const label = "text-[11px] font-semibold uppercase tracking-wider";
   return (
-    <section class="mb-5 grid grid-cols-2 gap-2 sm:grid-cols-3" aria-label="Month highlights">
-      <div class={tile + " col-span-2 sm:col-span-1 border-sky-200 bg-gradient-to-br from-sky-50 to-blue-100 text-sky-950"}>
+    <section class="mb-4" aria-label="Month highlights">
+      <div class={tile + " mb-2 border-sky-200 bg-gradient-to-br from-sky-50 to-blue-100 text-sky-950"}>
         <div class={label + " text-sky-700"}>Your month</div>
         {played.length
           ? (
@@ -177,32 +177,34 @@ function MonthHighlights({ days, me }: { days: Day[]; me: string }) {
               <span class="text-lg font-bold tabular-nums">{played.length}</span>
               <span class="text-xs"> / {days.length} days</span>
               {myWins > 0 && <span class="ml-2 font-semibold">🥇×{myWins}</span>}
-              <div class="text-xs opacity-80">
+              <div class="text-xs opacity-70">
                 avg place {avgRank!.toFixed(1)} · best {timerTime(myBest!)}
               </div>
             </div>
           )
           : <div class="mt-1 text-sm opacity-70">No games this month</div>}
       </div>
-      <div class={tile + " border-amber-200 bg-gradient-to-br from-amber-50 to-yellow-100 text-amber-950"}>
-        <div class={label + " text-amber-700"}>Most daily wins</div>
-        <ol class="mt-1 space-y-0.5 text-sm">
-          {topWins.map(([n, c], i) => (
-            <li class={"flex items-center justify-between gap-1 " + (n === me ? "font-bold" : "")}>
-              <span class="truncate">{i === 0 ? "🥇 " : ""}{n}</span>
-              <span class="tabular-nums font-semibold">{c}</span>
-            </li>
-          ))}
-        </ol>
+      <div class="grid grid-cols-2 gap-2">
+        <div class={tile + " border-amber-200 bg-gradient-to-br from-amber-50 to-yellow-100 text-amber-950"}>
+          <div class={label + " text-amber-700"}>Most daily wins</div>
+          <ol class="mt-1 text-sm">
+            {topWins.map(([n, c], i) => (
+              <li class={"flex items-center justify-between gap-1 " + (n === me ? "font-bold" : "")}>
+                <span class="truncate">{i === 0 ? "🥇 " : ""}{n}</span>
+                <span class="tabular-nums font-semibold">{c}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+        <a
+          class={tile + " block border-green-300 bg-green-50 text-green-800 hover:shadow-md"}
+          href={`/stats/daily/${fastest.day}`}
+        >
+          <div class={label + " text-green-700"}>⚡ Fastest win</div>
+          <div class="mt-1 text-lg font-bold tabular-nums">{timerTime(fastest.winner_time)}</div>
+          <div class="truncate text-xs opacity-70">{fastest.winner} · {prettyDay(fastest.day, { month: "short", day: "numeric" })}</div>
+        </a>
       </div>
-      <a
-        class={tile + " block border-emerald-200 bg-gradient-to-br from-emerald-50 to-green-100 text-emerald-950 hover:shadow-md"}
-        href={`/stats/daily/${fastest.day}`}
-      >
-        <div class={label + " text-emerald-700"}>⚡ Fastest win</div>
-        <div class="mt-1 text-lg font-bold tabular-nums">{timerTime(fastest.winner_time)}</div>
-        <div class="truncate text-xs opacity-80">{fastest.winner} · {prettyDay(fastest.day, { month: "short", day: "numeric" })}</div>
-      </a>
     </section>
   );
 }
@@ -235,12 +237,12 @@ function Archive({ days, weeks }: { days: Day[]; weeks: Week[] }) {
               {w.live
                 ? (
                   <span class="flex items-center gap-1.5 text-xs text-gray-500">
-                    <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-green-500" />
+                    <span class="h-2.5 w-2.5 animate-pulse rounded-full bg-green-500" />
                     {w.leader ? <>leading: <b class="text-gray-800">{w.leader}</b></> : "in progress"}
                   </span>
                 )
                 : w.winner
-                ? <span class="truncate text-xs font-semibold text-amber-800">🏆 {w.winner}</span>
+                ? <span class="truncate text-xs font-semibold text-amber-700">🏆 {w.winner}</span>
                 : null}
             </a>
             <ul class="divide-y divide-gray-100">
@@ -276,7 +278,7 @@ function DayRow({ d }: { d: Day }) {
             {timerTime(d.winner_time)} · {d.players} played
           </span>
         </span>
-        <span class="flex w-10 shrink-0 flex-col items-center leading-tight" title={d.my_rank ? "Your place" : "You didn't play"}>
+        <span class="flex w-9 shrink-0 flex-col items-center leading-tight" title={d.my_rank ? "Your place" : "You didn't play"}>
           {d.my_rank
             ? (
               <>
@@ -297,7 +299,7 @@ function Tiles({ word, hidden }: { word: string; hidden: boolean }) {
       {[...word.toUpperCase()].map((ch) => (
         <span
           class={"flex h-5 w-5 items-center justify-center rounded text-[11px] font-bold " +
-            (hidden ? "bg-gray-200 text-gray-400" : "bg-green-600 text-white")}
+            (hidden ? "bg-gray-200 text-gray-400" : "bg-green-500 text-white")}
           aria-hidden
         >
           {ch}
