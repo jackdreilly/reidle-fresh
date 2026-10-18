@@ -12,6 +12,9 @@ test("crawl every route at phone and desktop sizes", async ({ page }) => {
   const issues: Issue[] = [];
   let where = "setup";
   watch(page, issues, () => where);
+  // Chat GIFs are Giphy iframes (100+ requests each visit); they stalled the CI browser on /messages.
+  // The crawl checks our pages, so stub Giphy out.
+  await page.route(/^https:\/\/([a-z0-9-]+\.)*giphy\.com\//, (r) => r.fulfill({ status: 204, body: "" }));
   await signIn(page, qaName("c"));
 
   // discover real ids from the app itself
@@ -38,7 +41,7 @@ test("crawl every route at phone and desktop sizes", async ({ page }) => {
     for (const route of routes) {
       where = `${vp.name} ${route}`;
       await page.goto(route);
-      await page.waitForLoadState("networkidle").catch(() => {});
+      await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => {});
       await page.waitForTimeout(500);
       for (const p of await layoutProblems(page)) issues.push({ where, kind: "layout", detail: p });
       await page.screenshot({ path: `${OUT}/${vp.name}-${route.replace(/[^a-z0-9]+/gi, "_").slice(0, 60)}.png` });
