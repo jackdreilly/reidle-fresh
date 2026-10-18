@@ -42,4 +42,4 @@ export type BattleState = {
   battle_history?: BattleRoundHistory[];
 };
 
-export type Bootstrap = { name: string | null; played_today: boolean; unread: boolean };
+export type Bootstrap = { name: string | null; played_today: boolean; unread: boolean; pending_challenges?: number };

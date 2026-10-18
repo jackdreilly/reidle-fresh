@@ -19,7 +19,8 @@ let state: Bootstrap = readCache();
 const listeners = new Set<() => void>();
 
 function set(next: Bootstrap) {
-  if (next.name === state.name && next.played_today === state.played_today && next.unread === state.unread) return;
+  if (next.name === state.name && next.played_today === state.played_today && next.unread === state.unread &&
+    next.pending_challenges === state.pending_challenges) return;
   if (next.unread !== state.unread) setBadge(next.unread);
   state = next;
   try {
@@ -34,7 +35,7 @@ let rev = 0; // bumps on local patches so a slower bootstrap can't clobber fresh
 export const patchSession = (p: Partial<Bootstrap>) => { rev++; set({ ...state, ...p }); };
 export const clearSession = () => set(anon);
 
-/** One cheap RPC for the app shell (name, played-today, unread dot). */
+/** One cheap RPC for the app shell (name, played-today, unread dot, open challenges). */
 export async function refreshSession(): Promise<Bootstrap> {
   const startedAt = rev;
   const b = await rpc<Bootstrap>("bootstrap");

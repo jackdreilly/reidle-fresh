@@ -1,5 +1,5 @@
 begin;
-select plan(44);
+select plan(51);
 
 -- Fixture: isolated players, no seed dependence.
 truncate submissions, checkpoints, messages, message_reads, winners, week_snapshots, challenges, players restart identity cascade;
@@ -151,6 +151,23 @@ select act_as('cat');
 select challenge_next() from generate_series(1, 60);
 select reset_role();
 select is((select count(*)::int from challenges where starting_word = answer), 0, 'generated challenges never start on the answer');
+
+-- Challenges: open list, answer hidden until played, shell badge count
+select act_as('ann');
+select submit_challenge(challenge_next(), 30, 0, '{"events":[]}', 'x', '');
+select act_as('ben');
+select is(challenges_page() -> 'open' -> 0 ->> 'set_by', 'ann', 'open challenges say who set them');
+select is((bootstrap() ->> 'pending_challenges')::int, jsonb_array_length(challenges_page() -> 'open'),
+  'bootstrap badge count matches the open list');
+select ok(challenge_page((challenges_page() -> 'open' -> 0 ->> 'challenge_id')::int) ->> 'answer' is null,
+  'a challenge answer stays hidden until you play it');
+select submit_challenge((challenges_page() -> 'open' -> 0 ->> 'challenge_id')::int, 40, 0, '{"events":[]}', 'x', '');
+select ok(challenge_page((challenges_page() -> 'history' -> 0 ->> 'challenge_id')::int) ->> 'answer' is not null,
+  'the answer is shown once played');
+select is(challenges_page() -> 'history' -> 0 ->> 'rank', '2', 'history has your place');
+select is(challenges_page() -> 'history' -> 0 ->> 'player_count', '2', 'history has the player count');
+select is((bootstrap() ->> 'pending_challenges')::int, 0, 'nothing left open after playing it');
+select reset_role();
 
 -- Messages: only the author can delete
 select act_as('ann');

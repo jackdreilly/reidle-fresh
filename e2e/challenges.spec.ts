@@ -1,18 +1,30 @@
 import { expect, test } from "@playwright/test";
 import { signIn, sql, typeWord } from "./helpers";
 
-test("challenges page shows leaderboards, history and pending count", async ({ page }) => {
+test("challenges page shows leaderboards, history and open challenges", async ({ page }) => {
   await signIn(page, "alice", "/challenges");
-  await expect(page.getByRole("heading", { name: "Today" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Your Challenges" })).toBeVisible();
-  await expect(page.getByRole("link", { name: /Pending Challenge|Start New Challenge/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Leaderboard" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Your challenges today" })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Next challenge|Start a new challenge/ })).toBeVisible();
   const board = page.getByRole("table").first();
   await expect(board.getByRole("row").filter({ hasText: "alice" })).toBeVisible();
+  await page.getByRole("tab", { name: "yesterday" }).click();
+  await expect(page.getByRole("table").first().getByRole("row").filter({ hasText: "bob" })).toBeVisible();
+});
+
+test("open challenges are listed with a badge in the top bar", async ({ page }) => {
+  // heidi has played no challenge: every challenge someone played today is open for her.
+  const open = sql("select count(*) from challenges c where c.created_at >= current_date and exists (select 1 from submissions s where s.challenge_id = c.challenge_id)");
+  await page.setViewportSize({ width: 390, height: 844 }); // phone: the top-bar pills show
+  await signIn(page, "heidi", "/challenges");
+  await expect(page.getByRole("heading", { name: new RegExp(`^${open} challenges? waiting for you`) })).toBeVisible();
+  await expect(page.getByRole("link", { name: /'s challenge/ })).toHaveCount(Number(open));
+  await expect(page.getByRole("link", { name: `Challenges (${open} open)` })).toBeVisible();
 });
 
 test("play a pending challenge, win, and see it on the challenge page", async ({ page }) => {
   await signIn(page, "heidi", "/challenges");
-  await page.getByRole("link", { name: /Pending Challenge|Start New Challenge/ }).click();
+  await page.getByRole("link", { name: /Next challenge|Start a new challenge/ }).click();
   await expect(page).toHaveURL(/\/challenges\/challenge\/\d+\/play$/);
   const id = page.url().match(/challenge\/(\d+)\/play/)![1];
   const answer = sql(`select upper(answer) from challenges where challenge_id = ${id}`);
@@ -21,8 +33,10 @@ test("play a pending challenge, win, and see it on the challenge page", async ({
   await typeWord(page, answer);
   await expect.poll(() => sql(`select count(*) from submissions where challenge_id=${id} and name='heidi'`)).toBe("1");
 
-  await page.goto(`/challenges/challenge/${id}`);
+  await page.getByRole("link", { name: "Results" }).click();
+  await expect(page).toHaveURL(new RegExp(`/challenges/challenge/${id}$`));
   await expect(page.getByRole("row").filter({ hasText: "heidi" })).toBeVisible();
+  await expect(page.getByLabel(answer)).toBeVisible(); // answer revealed once played
   await page.goto(`/challenges/challenge/${id}/play`);
   await expect(page).toHaveURL(new RegExp(`/challenges/challenge/${id}$`)); // already played
 });

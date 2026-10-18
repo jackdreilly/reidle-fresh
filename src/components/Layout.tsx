@@ -24,6 +24,19 @@ function useSettingsDot(route: string) {
   } catch { /* storage unavailable: no dot */ }
   return !seen;
 }
+/** Small red count bubble (open challenges). Inline colours keep it out of the first-load CSS budget. */
+function CountBadge({ n, style }: { n: number; style?: Record<string, string> }) {
+  return (
+    <span
+      aria-hidden="true"
+      class="inline-flex items-center justify-center rounded-full text-[11px] font-bold text-white tabular-nums"
+      style={{ minWidth: "18px", height: "18px", padding: "0 5px", backgroundColor: "#e11d48", boxShadow: "0 0 0 2px #fff", ...style }}
+    >
+      {n > 9 ? "9+" : n}
+    </span>
+  );
+}
+
 const newDot = (style?: Record<string, string>) => (
   <span aria-hidden="true" class="relative inline-flex rounded-full h-3 w-3 bg-[#0ea5e9]" style={{ backgroundColor: "#f59e0b", ...style }} />
 );
@@ -35,7 +48,7 @@ export default function Layout(
     fullPage?: boolean;
   },
 ) {
-  const { played_today: playedToday, name, unread } = useSession();
+  const { played_today: playedToday, name, unread, pending_challenges: pending = 0 } = useSession();
   const [open, setOpen] = useState(false);
   const dot = useSettingsDot(route);
   const install = useInstall();
@@ -101,7 +114,7 @@ export default function Layout(
                       <PlaySVG fill="#ffffff" />
                     </TopPill>
                   )}
-                <TopPill href="/challenges" active={route === "/challenges"} color="from-green-500 to-green-600 focus:ring-green-300" label="Challenges" narrowIconOnly>
+                <TopPill href="/challenges" active={route === "/challenges"} color="from-green-500 to-green-600 focus:ring-green-300" label="Challenges" narrowIconOnly badge={pending}>
                   <ChallengeSVG fill="#ffffff" />
                 </TopPill>
               </div>
@@ -183,11 +196,12 @@ export default function Layout(
                 >
                   <ChallengeSVG fill="#059669" />
                   <span
-                    class={"ml-3 " +
+                    class={"flex-1 ml-3 " +
                       (route === "/challenges" ? "font-bold" : "")}
                   >
                     Challenges
                   </span>
+                  {pending ? <CountBadge n={pending} /> : null}
                 </a>
               </li>
               <li class="rounded-lg bg-[#5b73ff21] hover:bg-[#5b73ff60] ">
@@ -303,8 +317,9 @@ export default function Layout(
 }
 
 function TopPill(
-  { href, active, color, label, narrowIconOnly, children }: {
+  { href, active, color, label, narrowIconOnly, badge, children }: {
     href: string;
+    badge?: number;
     active: boolean;
     color: string;
     label: string;
@@ -316,12 +331,13 @@ function TopPill(
     <a
       href={href}
       aria-current={active ? "page" : undefined}
-      aria-label={label}
-      class={"inline-flex h-10 min-w-0 items-center gap-1.5 rounded-full bg-gradient-to-r px-3 text-sm font-semibold text-white shadow-sm transition active:scale-95 focus:outline-none focus:ring-4 " +
+      aria-label={badge ? `${label} (${badge} open)` : label}
+      class={"relative inline-flex h-10 min-w-0 items-center gap-1.5 rounded-full bg-gradient-to-r px-3 text-sm font-semibold text-white shadow-sm transition active:scale-95 focus:outline-none focus:ring-4 " +
         color + (active ? " ring-2 ring-offset-2 ring-gray-300" : "")}
     >
       <span class="shrink-0 [&>svg]:h-5 [&>svg]:w-5">{children}</span>
       <span class={narrowIconOnly ? "hidden min-[375px]:inline" : ""}>{label}</span>
+      {badge ? <CountBadge n={badge} style={{ position: "absolute", top: "-4px", right: "-4px" }} /> : null}
     </a>
   );
 }

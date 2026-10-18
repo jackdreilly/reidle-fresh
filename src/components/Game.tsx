@@ -62,7 +62,6 @@ export default function Game(
       ? new Date(new Date(checkpoint.created_at).getTime() - clockOffset)
       : new Date();
   const isPlaying = !isPractice && !challenge_id && !battle && !!checkpoint;
-  const [pendingChallenges, setPendingChallenges] = useState(0);
   const [playback, setPlayback] = useState<Playback>({ events: [] });
   const [penalties, setPenalties] = useState(checkpoint?.penalty ?? 0);
   const [startTime, setStartTime] = useState(checkpointDate());
@@ -373,7 +372,7 @@ export default function Game(
           clearProgress();
           patchSession({ played_today: true });
         }
-        if (res?.pending_challenges) setPendingChallenges(res.pending_challenges);
+        if (res) patchSession({ pending_challenges: res.pending_challenges });
         flushPush();
       })
       .catch((e: Error) =>
@@ -653,7 +652,6 @@ export default function Game(
                 }).catch(() => {});
             }
             : undefined}
-          pendingChallenges={pendingChallenges}
           wordle={wordle}
           penalty={penalties}
           winTime={won ? totalSeconds : null}

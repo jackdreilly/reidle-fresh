@@ -88,7 +88,7 @@ export const routes: Route[] = [
   },
   {
     path: "/challenges/challenge/:id/play", page: () => import("./pages/ChallengePlay"),
-    layout: { route: "/play", title: "Challenge", fullPage: true },
+    layout: { route: "/challenges", title: "Challenge", fullPage: true },
     load: async (p) => {
       const [d] = await Promise.all([read<{ already_played: boolean }>("challenge_play", { p_id: Number(p.id) }), loadWordle()]);
       if (!d) throw new Redirect("/challenges");
