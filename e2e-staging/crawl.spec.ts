@@ -7,6 +7,7 @@ const VIEWPORTS = [{ name: "phone", width: 375, height: 667 }, { name: "desktop"
 const OUT = "/tmp/qa-shots";
 
 test("crawl every route at phone and desktop sizes", async ({ page }) => {
+  test.setTimeout(300_000); // ~32 page loads against the live site; the 2 min default ran out mid-crawl
   mkdirSync(OUT, { recursive: true });
   const issues: Issue[] = [];
   let where = "setup";
