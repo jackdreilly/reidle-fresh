@@ -14,6 +14,11 @@ export default function ErrorBar(
     isPractice,
     challenge_id,
     lost,
+    leader,
+    revealed,
+    onReveal,
+    keepPlaying,
+    onKeepPlaying,
   }: {
     isPractice: boolean;
     winTime: number | null;
@@ -22,6 +27,12 @@ export default function ErrorBar(
     wordle: Wordle | undefined;
     challenge_id?: number;
     lost?: boolean;
+    leader?: string;
+    revealed?: boolean;
+    /** Set while a challenge is behind the time to beat: fills in and scores the answer. */
+    onReveal?(): void;
+    keepPlaying?: boolean;
+    onKeepPlaying?(): void;
     battleCallback?(): void | undefined;
   },
 ) {
@@ -52,7 +63,7 @@ export default function ErrorBar(
               : (
                 <span class="font-semibold">
                   <TimerText seconds={winTime} />
-                  {challenge_id !== undefined ? (lost ? <span class="ml-1 font-normal text-gray-600">· not the fastest</span> : " · you lead!") : "!"}
+                  {challenge_id !== undefined ? (lost ? <span class="ml-1 font-normal text-gray-600">{revealed ? "· answer shown" : "· not the fastest"}</span> : " · you lead!") : "!"}
                 </span>
               )}
             {battleCallback
@@ -81,8 +92,20 @@ export default function ErrorBar(
               )}
           </div>
         )
-        : lost
-        ? <div class="text-sm text-gray-600">Time to beat has passed. Finish to log your time.</div>
+        : onReveal
+        ? (
+          <div class="flex items-center justify-center gap-2 text-sm text-gray-700">
+            <span>{keepPlaying ? "Your time still counts" : `${leader ? leader.toLowerCase() : "The leader"} wins this one`}</span>
+            <button type="button" class={pill + " bg-white text-gray-700 ring-1 ring-gray-300"} onClick={onReveal}>
+              Show answer
+            </button>
+            {!keepPlaying && (
+              <button type="button" class={pill + " bg-green-500 text-white"} onClick={onKeepPlaying}>
+                Keep playing
+              </button>
+            )}
+          </div>
+        )
         : null}
       {error && !winTime && (
         <div

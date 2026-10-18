@@ -427,21 +427,17 @@ export default function Game(
   const totalSeconds = penalties +
     ((won ?? new Date()).getTime() - startTime.getTime()) / 1000;
   const numRows = Math.max(6, previousWords.length + (won ? 0 : 1));
+  // Challenge: once the time to beat has passed, the player chooses to see the answer (it is
+  // filled in and scored, logging their time) or to keep playing and solve it themselves.
+  const behind = !won && !!challenge_id && !!winnersTime && totalSeconds > winnersTime;
+  const [revealed, setRevealed] = useState(false);
+  const [keepPlaying, setKeepPlaying] = useState(false);
   useEffect(() => {
-    if (
-      !won && challenge_id && winnersTime && totalSeconds > winnersTime
-    ) {
-      setCurrentWord(word);
-    }
-  }, [totalSeconds]);
+    if (revealed && !won) setCurrentWord(word);
+  }, [revealed]);
   useEffect(() => {
-    if (
-      !won && challenge_id && winnersTime && totalSeconds > winnersTime &&
-      currentWord === word
-    ) {
-      scoreWord();
-    }
-  }, [currentWord]);
+    if (revealed && !won && currentWord === word) scoreWord();
+  }, [currentWord, revealed]);
   return (
     <>
       <div
@@ -658,6 +654,11 @@ export default function Game(
           error={battle && won ? (battle.state.message || (battle.state.last_player ? `${battle.state.last_player} Won` : "Game Over")) : error}
           challenge_id={challenge_id}
           lost={!!challenge_id && !!winnersTime && (totalSeconds > winnersTime)}
+          leader={winner}
+          revealed={revealed}
+          onReveal={behind ? () => setRevealed(true) : undefined}
+          keepPlaying={keepPlaying}
+          onKeepPlaying={() => setKeepPlaying(true)}
         />
         {/* The board area is a size container between the status bar and the keyboard: the grid is
             always sized to FIT it (6 rows reserved from the start; 7..10+ rows shrink the cells),
