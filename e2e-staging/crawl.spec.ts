@@ -21,9 +21,9 @@ test("crawl every route at phone and desktop sizes", async ({ page }) => {
   const pb = page.locator('a[href*="/playback"]').first();
   const playbackHref = (await pb.count()) ? await pb.getAttribute("href") : null;
   await page.goto("/challenges");
-  await page.waitForSelector("text=Your Challenges");
+  await page.waitForSelector("text=Your challenges today");
   // a brand-new player has no history rows, so fall back to a fixture challenge id
-  const link = page.locator('a[href^="/challenges/challenge/"]').first();
+  const link = page.locator('a[href^="/challenges/challenge/"]:not([href$="/play"])').first();
   const challengeHref = (await link.count()) ? ((await link.getAttribute("href")) ?? "/challenges/challenge/1") : "/challenges/challenge/1";
   const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
 
