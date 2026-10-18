@@ -1,10 +1,10 @@
 import type { PageProps } from "@/router";
 import { DailyTable } from "@/components/DailyTable";
 import TimerText from "@/components/TimerText";
-import { ChallengeButton, NextChallenge, ordinal, plural, Tiles } from "@/components/ChallengeParts";
+import { ChallengeButton, ChallengeLeaderboard, NextChallenge, ordinal, plural, Tiles } from "@/components/ChallengeParts";
 import { useSession } from "@/lib/session";
 import { fromNow } from "@/lib/time";
-import type { DailySubmission } from "@/lib/types";
+import type { DailySubmission, Leaderboard } from "@/lib/types";
 
 type Data = {
   challenge_id: number;
@@ -14,10 +14,17 @@ type Data = {
   answer?: string | null;
   created_at?: string | null;
   pending_challenges?: number;
+  today_leaderboard?: Leaderboard;
+  yesterday_leaderboard?: Leaderboard;
 };
 
 export default function Challenge(
-  { data: { challenge_id, played, submissions, starting_word, answer, created_at, pending_challenges = 0 } }: PageProps<Data>,
+  {
+    data: {
+      challenge_id, played, submissions, starting_word, answer, created_at, pending_challenges = 0,
+      today_leaderboard = [], yesterday_leaderboard = [],
+    },
+  }: PageProps<Data>,
 ) {
   const { name } = useSession();
   const leader = submissions[0];
@@ -67,6 +74,9 @@ export default function Challenge(
           )}
       </section>
       <DailyTable hide={!played} name={name ?? ""} submissions={submissions} />
+      <div class="pt-2">
+        <ChallengeLeaderboard today={today_leaderboard} yesterday={yesterday_leaderboard} />
+      </div>
     </div>
   );
 }

@@ -35,8 +35,11 @@ test("play a pending challenge, win, and see it on the challenge page", async ({
 
   await page.getByRole("link", { name: "Results" }).click();
   await expect(page).toHaveURL(new RegExp(`/challenges/challenge/${id}$`));
-  await expect(page.getByRole("row").filter({ hasText: "heidi" })).toBeVisible();
+  await expect(page.getByRole("table").first().getByRole("row").filter({ hasText: "heidi" })).toBeVisible();
   await expect(page.getByLabel(answer)).toBeVisible(); // answer revealed once played
+  // the challenges leaderboard sits on the same page
+  await expect(page.getByRole("heading", { name: "Leaderboard" })).toBeVisible();
+  await expect(page.getByRole("table").nth(1).getByRole("row").filter({ hasText: "heidi" })).toBeVisible();
   await page.goto(`/challenges/challenge/${id}/play`);
   await expect(page).toHaveURL(new RegExp(`/challenges/challenge/${id}$`)); // already played
 });

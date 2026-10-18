@@ -84,7 +84,14 @@ export const routes: Route[] = [
   {
     path: "/challenges/challenge/:id", page: () => import("./pages/Challenge"), prefetchData: true,
     layout: { route: "/challenges", title: "Challenge" },
-    load: async (p) => ({ challenge_id: Number(p.id), ...(await read<object>("challenge_page", { p_id: Number(p.id) })) }),
+    // + the challenges leaderboard, so a challenge's results and the standings sit on one page.
+    load: async (p) => {
+      const [c, board] = await Promise.all([
+        read<object>("challenge_page", { p_id: Number(p.id) }),
+        read<{ today_leaderboard: unknown; yesterday_leaderboard: unknown }>("challenges_page"),
+      ]);
+      return { challenge_id: Number(p.id), ...c, today_leaderboard: board.today_leaderboard, yesterday_leaderboard: board.yesterday_leaderboard };
+    },
   },
   {
     path: "/challenges/challenge/:id/play", page: () => import("./pages/ChallengePlay"),

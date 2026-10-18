@@ -1,10 +1,8 @@
-import { useEffect, useState } from "preact/hooks";
+import { useEffect } from "preact/hooks";
 import type { PageProps } from "@/router";
-import { Name } from "@/components/DailyTable";
-import { RankBadge } from "@/components/StatsTabs";
 import TimerText from "@/components/TimerText";
-import { ChallengeButton, NextChallenge, ordinal, plural, Target, Tiles } from "@/components/ChallengeParts";
-import { patchSession, useSession } from "@/lib/session";
+import { ChallengeButton, ChallengeLeaderboard, NextChallenge, ordinal, plural, Target, Tiles } from "@/components/ChallengeParts";
+import { patchSession } from "@/lib/session";
 import type { Leaderboard } from "@/lib/types";
 
 type Open = { challenge_id: number; set_by: string; leader: { name: string; time: number }; player_count: number };
@@ -27,11 +25,8 @@ type Data = {
 export default function Challenges(
   { data: { open = [], history, today_leaderboard, yesterday_leaderboard, pending_challenges } }: PageProps<Data>,
 ) {
-  const { name: myName } = useSession();
   // This page is the freshest count we have: keep the badge in the top bar in step with it.
   useEffect(() => patchSession({ pending_challenges }), [pending_challenges]);
-  const [day, setDay] = useState<"today" | "yesterday">("today");
-  const board = day === "today" ? today_leaderboard : yesterday_leaderboard;
   return (
     <div class="mx-auto w-full max-w-xl space-y-6">
       <section class="rounded-2xl border border-green-300 bg-green-50 p-4 shadow-sm">
@@ -85,26 +80,7 @@ export default function Challenges(
         </div>
       </section>
 
-      <section>
-        <header class="mb-2 flex items-center justify-between px-1">
-          <h2 class="text-base font-semibold text-gray-900">Leaderboard</h2>
-          <div class="grid grid-cols-2 gap-1 rounded-xl bg-gray-100 p-1 text-xs font-medium" role="tablist">
-            {(["today", "yesterday"] as const).map((d) => (
-              <button
-                type="button"
-                role="tab"
-                aria-selected={day === d}
-                onClick={() => setDay(d)}
-                class={"rounded-lg px-3 py-1 capitalize transition-colors " +
-                  (day === d ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-800")}
-              >
-                {d}
-              </button>
-            ))}
-          </div>
-        </header>
-        <LeaderboardTable board={board} myName={myName ?? ""} empty={day === "today" ? "No scored challenges yet today." : "Nobody scored yesterday."} />
-      </section>
+      <ChallengeLeaderboard today={today_leaderboard} yesterday={yesterday_leaderboard} />
 
       <section>
         <header class="mb-2 px-1">
@@ -145,46 +121,6 @@ export default function Challenges(
             </div>
           )}
       </section>
-    </div>
-  );
-}
-
-function LeaderboardTable({ board, myName, empty }: { board: Leaderboard; myName: string; empty: string }) {
-  if (!board.length) {
-    return (
-      <div class="rounded-2xl border border-dashed border-gray-300 bg-white px-4 py-8 text-center text-sm text-gray-500">{empty}</div>
-    );
-  }
-  return (
-    <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-      <table class="w-full text-left text-sm">
-        <thead class="border-b border-gray-100 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
-          <tr>
-            <th scope="col" class="py-2 pl-3 pr-2">Player</th>
-            <th scope="col" class="px-2 py-2 text-right">W–L</th>
-            <th scope="col" class="py-2 pl-2 pr-3 text-right">Pts</th>
-          </tr>
-        </thead>
-        <tbody>
-          {board.map(({ name, total_points, num_wins, num_losses }, i) => {
-            const me = name === myName;
-            return (
-              <tr class={"border-b border-gray-100 last:border-0 " + (me ? "bg-amber-50" : "")}>
-                <th scope="row" class={"py-2.5 pl-3 pr-2 font-medium " + (me ? "shadow-[inset_3px_0_0_var(--color-amber-400)]" : "")}>
-                  <div class="flex items-center gap-2">
-                    <RankBadge rank={i + 1} />
-                    <Name name={name} class="text-gray-900 hover:text-blue-600" />
-                  </div>
-                </th>
-                <td class="px-2 py-2.5 text-right tabular-nums text-gray-500">{num_wins}–{num_losses}</td>
-                <td class={"py-2.5 pl-2 pr-3 text-right font-semibold tabular-nums " + (total_points < 0 ? "text-rose-600" : "text-gray-900")}>
-                  {total_points > 0 ? `+${total_points}` : total_points}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
     </div>
   );
 }
