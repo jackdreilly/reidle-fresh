@@ -3,7 +3,7 @@ name: Deploy prod
 # (reidle.reillybrothers.net) on Supabase project reidle-prod, applying pending supabase/migrations and
 # deploying supabase/functions first.
 # Needs repo secrets: CLOUDFLARE_API_TOKEN (Workers Scripts: Edit), CLOUDFLARE_ACCOUNT_ID, SUPABASE_ACCESS_TOKEN,
-# GIPHY_API_KEY.
+# GIPHY_API_KEY, GOOGLE_CLIENT_ID/SECRET, RESEND_API_KEY.
 # Each successful deploy tags the deployed commit prod-YYYY-MM-DD-N (UTC date, N counts that day's deploys),
 # so `git tag -l 'prod-*'` is the prod release history and `git describe --match 'prod-*'` names what's live.
 on:
@@ -40,6 +40,13 @@ jobs:
         run: node tools/db-migrate.mjs prod
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      - name: Auth settings on reidle-prod (guests, account linking, Google, Resend email) from tools/auth-config.mjs
+        run: node tools/auth-config.mjs prod
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
       - name: Deploy edge functions to reidle-prod (chat push sender)
         run: npx supabase functions deploy --project-ref fjnhsrkjdrmpxidjsfzd --use-api
         env:
