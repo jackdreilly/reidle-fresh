@@ -22,7 +22,8 @@ test("several leagues: a dashboard, and playing one leaves the others to play", 
 });
 
 test("create a league, invite by link, join, commissioner scoring", async ({ page, browser }) => {
-  await signIn(page, "nina", "/leagues/new");
+  await signIn(page, "nina", "/league");
+  await page.getByRole("link", { name: "+ Start another league" }).click();
   await page.getByPlaceholder("e.g. The Reillys").fill("Nina Pals");
   await page.getByRole("button", { name: "Create league" }).click();
   await expect(page).toHaveURL(/\/league\?created=1$/);
@@ -91,4 +92,13 @@ test("back from Google or an email link: the tokens in the URL hash sign you in"
   await page.goto(`/auth/callback#access_token=${t.access_token}&refresh_token=${t.refresh_token}&expires_in=3600&token_type=bearer`);
   await expect(page).toHaveURL(/\/nickname/);
   await expect(page.getByLabel("Nickname")).toBeVisible();
+});
+
+test("name-only players are nudged to link Google or email", async ({ page }) => {
+  await signIn(page, "alice");
+  await expect(page.getByText("name-only sign-in is going away")).toBeVisible();
+  await page.getByRole("link", { name: /Lock alice to you/ }).click();
+  await expect(page).toHaveURL(/\/account/);
+  await expect(page.getByRole("heading", { name: "Lock alice to you" })).toBeVisible();
+  await page.screenshot({ path: "test-results/legacy-nudge.png" });
 });

@@ -96,6 +96,7 @@ export default function League({ data: initial, query }: PageProps<Data>) {
         </ul>
       </section>
 
+      <a href="/leagues/new" class={"block w-full text-center " + quiet}>+ Start another league</a>
       <button type="button" class={"w-full " + quiet}
         onClick={async () => {
           if (!confirm(`Leave ${data.name}? Your past games stay in its history.`)) return;
