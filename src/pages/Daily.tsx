@@ -20,6 +20,11 @@ export default function Daily({ params, data: { submissions, is_today, winner } 
           {submissions.length} {submissions.length === 1 ? "player" : "players"}
         </span>
       </header>
+      {!played_today && is_today && (
+        <a href="/play" class="mb-3 flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-br from-pink-500 to-pink-600 px-4 py-4 text-lg font-bold text-white shadow-sm transition-shadow hover:shadow-md">
+          ▶ Play today's word
+        </a>
+      )}
       <DailyTable name={name ?? ""} submissions={submissions} hide={!played_today && is_today} />
       {winner && (
         <div class="mt-4 grid grid-cols-2 gap-3">

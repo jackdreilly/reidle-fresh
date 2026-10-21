@@ -68,6 +68,7 @@ test("guest: try it in Reidle Global, then save the account", async ({ page }) =
   await expect(page).toHaveURL(/\/stats\/daily\//);
   await expect(page.getByRole("link", { name: /League Reidle Global/ })).toBeVisible();
   await expect(page.getByText("You're playing as a guest")).toBeVisible();
+  await expect(page.getByRole("link", { name: "▶ Play today's word" })).toBeVisible();
   // private leagues ask a guest to save their account first
   await page.goto("/join/bookclub");
   await expect(page.getByRole("link", { name: "Save your account to join" })).toBeVisible();
