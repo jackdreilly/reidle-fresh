@@ -3,6 +3,8 @@
 import { leagueId } from "./league";
 const URL = import.meta.env.VITE_SUPABASE_URL as string;
 const KEY = import.meta.env.VITE_SUPABASE_KEY as string;
+/** The URL hash this page was opened with (provider and email-link tokens), kept before the router rewrites the URL. */
+export const landingHash = typeof location === "undefined" ? "" : location.hash;
 const STORE = "reidle:auth";
 
 type Tokens = { access_token: string; refresh_token: string; expires_at: number };

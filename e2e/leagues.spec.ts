@@ -82,3 +82,13 @@ test("guest: try it in Reidle Global, then save the account", async ({ page }) =
   await expect(page.getByText("Nickname: guesty")).toBeVisible();
   await page.screenshot({ path: "test-results/guest-account.png", fullPage: true });
 });
+
+test("back from Google or an email link: the tokens in the URL hash sign you in", async ({ page, request }) => {
+  const res = await request.post("http://127.0.0.1:54321/auth/v1/signup", {
+    headers: { apikey: "sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH" }, data: {},
+  });
+  const t = await res.json();
+  await page.goto(`/auth/callback#access_token=${t.access_token}&refresh_token=${t.refresh_token}&expires_in=3600&token_type=bearer`);
+  await expect(page).toHaveURL(/\/nickname/);
+  await expect(page.getByLabel("Nickname")).toBeVisible();
+});
