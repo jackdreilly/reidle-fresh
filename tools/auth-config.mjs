@@ -5,7 +5,7 @@
 //   - guests: anonymous sign-ins; account linking (a guest or name-only player adds Google/email, same account)
 //   - email must be confirmed; a changed email is confirmed at the new address only (name-only accounts
 //     have a made-up one)
-//   - with a custom SMTP server (SMTP_HOST/PORT/USER/PASS/SENDER secrets, e.g. Resend): send from it, and put
+//   - with a custom SMTP server (RESEND_API_KEY secret, or SMTP_HOST/PORT/USER/PASS/SENDER): send from it, and put
 //     6-digit codes in the emails so the installed iPhone app can type them in (Supabase's built-in mailer
 //     can't change templates and only sends a few emails an hour, to the project's team)
 //   - Google when its client id/secret are in the environment (GitHub secrets GOOGLE_CLIENT_ID/SECRET)
@@ -29,7 +29,15 @@ const code = (what) => `<h2>Reidle</h2>
 <p>Type it into Reidle, or <a href="{{ .ConfirmationURL }}">tap here</a> on this device.</p>
 <p style="color:#888">If you didn't ask for this, ignore this email.</p>`;
 
-const { GOOGLE_CLIENT_ID: gid, GOOGLE_CLIENT_SECRET: gsecret, SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_SENDER } = process.env;
+const { GOOGLE_CLIENT_ID: gid, GOOGLE_CLIENT_SECRET: gsecret, SMTP_PORT, SMTP_USER, SMTP_SENDER, RESEND_API_KEY } = process.env;
+// Resend: host smtp.resend.com, user "resend", password = the API key (sending domain: tools/resend-setup.mjs),
+// once reillybrothers.net is verified there; until then Supabase's built-in mailer keeps email sign-in working.
+const resendReady = !process.env.SMTP_HOST && RESEND_API_KEY && await fetch('https://api.resend.com/domains', {
+  headers: { Authorization: `Bearer ${RESEND_API_KEY}` },
+}).then((r) => r.json()).then((b) => b.data?.some((d) => d.name === 'reillybrothers.net' && d.status === 'verified'), () => false);
+if (RESEND_API_KEY && !process.env.SMTP_HOST) console.log(`Resend domain verified: ${!!resendReady}`);
+const SMTP_PASS = process.env.SMTP_PASS || (resendReady ? RESEND_API_KEY : '');
+const SMTP_HOST = process.env.SMTP_HOST || (resendReady ? 'smtp.resend.com' : '');
 const smtp = SMTP_HOST && SMTP_PASS
   ? {
     smtp_host: SMTP_HOST, smtp_port: SMTP_PORT || '465', smtp_user: SMTP_USER || 'resend', smtp_pass: SMTP_PASS,

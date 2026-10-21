@@ -37,6 +37,7 @@ jobs:
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           SMTP_SENDER: ${{ secrets.SMTP_SENDER }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
       - name: Deploy edge functions (settings such as verify_jwt come from supabase/config.toml)
         run: npx --yes supabase@2.120.0 functions deploy --project-ref noxissvouravthzvoapw --use-api
         env:
