@@ -1,6 +1,6 @@
 import { test } from "@playwright/test";
 import { mkdirSync, writeFileSync } from "node:fs";
-import { layoutProblems, qaName, signIn, watch, type Issue } from "./helpers";
+import { layoutProblems, signIn, watch, type Issue } from "./helpers";
 
 // Visit every route at phone + desktop sizes; report console errors, failed requests, overflow...
 const VIEWPORTS = [{ name: "phone", width: 375, height: 667 }, { name: "desktop", width: 1280, height: 800 }];
@@ -15,7 +15,7 @@ test("crawl every route at phone and desktop sizes", async ({ page }) => {
   // Chat GIFs are Giphy iframes (100+ requests each visit); they stalled the CI browser on /messages.
   // The crawl checks our pages, so stub Giphy out.
   await page.route(/^https:\/\/([a-z0-9-]+\.)*giphy\.com\//, (r) => r.fulfill({ status: 204, body: "" }));
-  await signIn(page, qaName("c"));
+  await signIn(page);
 
   // discover real ids from the app itself
   await page.goto("/stats/this_week");

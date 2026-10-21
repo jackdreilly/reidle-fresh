@@ -7,7 +7,7 @@ name: Database
 # Needs repo secret SUPABASE_ACCESS_TOKEN (supabase.com/dashboard/account/tokens).
 on:
   push:
-    paths: ['supabase/migrations/**', 'supabase/functions/**', 'supabase/config.toml', 'tools/db-migrate.mjs', 'tools/db-fingerprint.sql', '.github/workflows/db.yml']
+    paths: ['supabase/migrations/**', 'supabase/functions/**', 'supabase/config.toml', 'tools/db-migrate.mjs', 'tools/db-fingerprint.sql', 'tools/auth-config.mjs', '.github/workflows/db.yml']
   schedule:
     - cron: '0 13 * * *'
   workflow_dispatch:
@@ -26,6 +26,12 @@ jobs:
       - run: node tools/db-migrate.mjs staging
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      - name: Auth settings (guests, linking, email codes, Google) from tools/auth-config.mjs
+        run: node tools/auth-config.mjs staging
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
       - name: Deploy edge functions (settings such as verify_jwt come from supabase/config.toml)
         run: npx --yes supabase@2.120.0 functions deploy --project-ref noxissvouravthzvoapw --use-api
         env:

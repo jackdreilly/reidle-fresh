@@ -11,6 +11,7 @@ test("a stale deploy (route chunk 404) recovers with one automatic reload", asyn
     return route.continue();
   });
   await page.goto("/sign-in");
+  await page.getByText("Played before leagues?").click();
   await page.getByPlaceholder("Your name").fill("dave");
   await page.locator('input[type="submit"]').click();
   await expect(page.getByRole("row").filter({ hasText: "dave" })).toBeVisible({ timeout: 15_000 });
@@ -22,6 +23,7 @@ test("a network failure during sign-in shows an error and never creates an accou
   page.on("request", (r) => r.url().includes("/auth/v1/signup") && signups.push(r.url()));
   await page.route("**/auth/v1/token*", (route) => route.abort("connectionfailed"));
   await page.goto("/sign-in");
+  await page.getByText("Played before leagues?").click();
   await page.getByPlaceholder("Your name").fill("ghostuser");
   await page.locator('input[type="submit"]').click();
   await expect(page.getByText(/Can't reach the server/)).toBeVisible();

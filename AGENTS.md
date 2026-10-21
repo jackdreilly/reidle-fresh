@@ -112,6 +112,19 @@ npm run sandbox:up      # agent sandbox: (re)start dockerd + local Supabase if t
 Playwright in the Claude web sandbox: `PW_CHROMIUM=/opt/pw-browsers/chromium-1194/chrome-linux/chrome npm run test:e2e`.
 Docker daemon may need `dockerd &` first in the sandbox.
 
+## Logins
+
+Sign-in page: Google, a 6-digit email code, "Try it as a guest" (Supabase anonymous sign-in, starts in Reidle
+Global), and the old name-only form (folded away). Guests and name-only players **link** Google or an email from
+Settings (same auth user, same history); after linking, `finishLink()` replaces the name-derived password so the
+name can't be typed in any more. Hand-rolled in `src/lib/supabase.ts` (`auth.*`) and `src/lib/auth.ts`; OAuth
+uses the implicit flow back to `/auth/callback`. New logins get an auto nickname (`pick_nickname`) and are sent
+to `/nickname` once. Hosted auth settings (guests, linking, confirm email ON, email-code templates, Google) are
+applied by `tools/auth-config.mjs` from CI (db.yml -> staging; GitHub secrets GOOGLE_CLIENT_ID/SECRET).
+Confirm email ON means new name-only sign-ups no longer work on hosted projects; existing name-only accounts are
+already confirmed. Before switching prod over, run `npm run sync-auth` so every legacy player has an account.
+Locally confirmations stay off (config.toml) so E2E can still create name-only players.
+
 ## Auth note ("email")
 
 No email is ever sent or collected. Supabase Auth keys accounts by email, so each player name maps

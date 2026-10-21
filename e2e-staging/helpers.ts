@@ -3,10 +3,10 @@ import { expect, type Page } from "@playwright/test";
 /** A fresh throwaway player per call, e.g. qa482913 (<= 15 chars, lowercase). */
 export const qaName = (tag = "") => `qa${String(Date.now() % 1_000_000).padStart(6, "0")}${tag}`.slice(0, 15);
 
-export async function signIn(page: Page, name: string, to = "/") {
+/** A throwaway guest (staging needs a confirmed email for new name-only players, so QA plays as a guest). */
+export async function signIn(page: Page, to = "/") {
   await page.goto(`/sign-in?redirect=${encodeURIComponent(to)}`);
-  await page.getByPlaceholder("Your name").fill(name);
-  await page.locator('input[type="submit"]').click();
+  await page.getByRole("button", { name: "Try it as a guest" }).click();
   await expect(page).not.toHaveURL(/sign-in/, { timeout: 30_000 });
 }
 

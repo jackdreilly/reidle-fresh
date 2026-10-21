@@ -171,6 +171,8 @@ export const routes: Route[] = [
   // invite links work signed out too (league_preview is open to anon)
   { path: "/join/:code", page: () => import("./pages/Join"), public: true, load: (p) => read("league_preview", { p_code: p.code }) },
   { path: "/sign-in", page: () => import("./pages/SignIn"), public: true },
+  { path: "/auth/callback", page: () => import("./pages/AuthCallback"), public: true },
+  { path: "/nickname", page: () => import("./pages/Nickname"), layout: { route: "/account", title: "Nickname" } },
   {
     path: "/sign-out",
     public: true,

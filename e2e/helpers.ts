@@ -11,6 +11,7 @@ export async function signIn(page: Page, name: string, to = "/", { fresh = false
       insert into league_members (league_id, name) values (1, '${name}') on conflict do nothing`);
   }
   await page.goto(`/sign-in?redirect=${encodeURIComponent(to)}`);
+  await page.getByText("Played before leagues?").click();
   await page.getByPlaceholder("Your name").fill(name);
   await page.locator('input[type="submit"]').click();
   await expect(page).not.toHaveURL(/sign-in/);

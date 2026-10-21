@@ -1,6 +1,9 @@
 import { useEffect, useState } from "preact/hooks";
 import type { PageProps } from "@/router";
-import { useSession } from "@/lib/session";
+import { refreshSession, useSession } from "@/lib/session";
+import { navigate } from "@/router";
+import LoginOptions from "@/components/LoginOptions";
+import { finishLink } from "@/lib/auth";
 import { useInstall } from "@/lib/pwa";
 import { rpc } from "@/lib/supabase";
 import { disablePush, enablePush, pushState, type PushState } from "@/lib/push";
@@ -24,7 +27,7 @@ const REMINDER_HOURS = [1, 2, 3, 4, 6, 8, 12];
 
 const card = "rounded-2xl border border-gray-200 bg-white p-4 shadow-sm";
 
-export default function Account({ data }: PageProps<{ name: string; prefs: Prefs }>) {
+export default function Account({ data, query }: PageProps<{ name: string; prefs: Prefs }>) {
   const install = useInstall();
   const name = useSession().name ?? data.name;
   return (
@@ -38,6 +41,7 @@ export default function Account({ data }: PageProps<{ name: string; prefs: Prefs
           📊 Game Stats
         </a>
       </header>
+      <Login after={(() => { const r = query.get("redirect"); return r && r.startsWith("/") ? r : "/account"; })()} />
       <Notifications initial={data.prefs} />
       {install && (
         <section id="install" class={card}>
@@ -62,6 +66,39 @@ export default function Account({ data }: PageProps<{ name: string; prefs: Prefs
         Log Out
       </a>
     </div>
+  );
+}
+
+/** Nickname, and for guests / name-only players: link a real login (same account, same history). */
+function Login({ after }: { after: string }) {
+  const { name, account } = useSession();
+  return (
+    <section id="login" class={card}>
+      <div class="flex items-center justify-between gap-3">
+        <div class="min-w-0 text-sm">
+          <div class="font-medium text-gray-900">Nickname: {name}</div>
+          <div class="text-xs text-gray-500">
+            {account === "guest" ? "Guest account" : account === "legacy" ? "Name-only login" : "Signed in with Google or email ✓"}
+          </div>
+        </div>
+        <a href="/nickname?redirect=/account" class="shrink-0 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100">Change</a>
+      </div>
+      {account !== "verified" && account && (
+        <div class="mt-4 space-y-2">
+          <h2 class="font-semibold">{account === "guest" ? "Save your account" : `Lock ${name} to you`}</h2>
+          <p class="text-sm text-gray-600">
+            {account === "guest"
+              ? "Keep your games and stats, pick your own nickname and join your friends' leagues."
+              : `Right now anyone who types ${name} can sign in as you. Link Google or an email and only you can.`}
+          </p>
+          <LoginOptions link after={after} onEmailDone={async () => {
+            await finishLink();
+            const s = await refreshSession();
+            await navigate(s.nickname_set === false ? `/nickname?redirect=${encodeURIComponent(after)}` : after);
+          }} />
+        </div>
+      )}
+    </section>
   );
 }
 

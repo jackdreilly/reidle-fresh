@@ -3,7 +3,7 @@ import { signIn, sql } from "./helpers";
 
 test("settings: notification choices save, Game Stats opens your stats", async ({ page }) => {
   await signIn(page, "erin", "/account");
-  await expect(page.getByRole("heading", { name: "erin" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "erin", exact: true })).toBeVisible();
   const beaten = page.getByRole("switch", { name: "Beaten" });
   await expect(beaten).not.toBeChecked();
   await expect(page.getByRole("switch", { name: "Chat messages" })).toBeChecked();

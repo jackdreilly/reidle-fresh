@@ -48,7 +48,7 @@ export default function Layout(
     fullPage?: boolean;
   },
 ) {
-  const { played_today: playedToday, name, unread, pending_challenges: pending = 0, league, leagues } = useSession();
+  const { played_today: playedToday, name, unread, pending_challenges: pending = 0, league, leagues, account } = useSession();
   const [open, setOpen] = useState(false);
   const dot = useSettingsDot(route);
   const install = useInstall();
@@ -328,6 +328,11 @@ export default function Layout(
               : "pt-[calc(6em+env(safe-area-inset-top))] px-4 pb-[max(1rem,env(safe-area-inset-bottom))]",
           ].join(" ")}
         >
+          {account === "guest" && !fullPage && route !== "/account" && (
+            <a href="/account#login" class="mx-auto mb-3 block max-w-xl rounded-xl bg-gray-50 p-3 text-sm text-gray-700">
+              You're playing as a guest (<b>{name}</b>). <span class="underline">Save your account</span> to keep your stats and join friends' leagues.
+            </a>
+          )}
           {children}
         </div>
     </div>

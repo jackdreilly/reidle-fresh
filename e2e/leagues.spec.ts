@@ -41,6 +41,7 @@ test("create a league, invite by link, join, commissioner scoring", async ({ pag
   await friend.goto(new URL(link).pathname);
   await expect(friend.getByRole("heading", { name: "Nina Pals" })).toBeVisible();
   await friend.getByRole("link", { name: "Sign in to join" }).click();
+  await friend.getByText("Played before leagues?").click();
   await friend.getByPlaceholder("Your name").fill("omar");
   await friend.locator('input[type="submit"]').click();
   await friend.getByRole("button", { name: "Join Nina Pals" }).click();
@@ -58,4 +59,26 @@ test("no league yet: pick one", async ({ page }) => {
   await page.getByRole("button", { name: "Join Reidle Global" }).click();
   await expect(page).toHaveURL(/\/stats\/daily\//);
   await expect(page.getByRole("link", { name: /League Reidle Global/ })).toBeVisible();
+});
+
+test("guest: try it in Reidle Global, then save the account", async ({ page }) => {
+  await page.goto("/sign-in");
+  await page.getByRole("button", { name: "Try it as a guest" }).click();
+  await expect(page).toHaveURL(/\/stats\/daily\//);
+  await expect(page.getByRole("link", { name: /League Reidle Global/ })).toBeVisible();
+  await expect(page.getByText("You're playing as a guest")).toBeVisible();
+  // private leagues ask a guest to save their account first
+  await page.goto("/join/bookclub");
+  await expect(page.getByRole("link", { name: "Save your account to join" })).toBeVisible();
+  await page.getByRole("link", { name: "Save your account to join" }).click();
+  await expect(page.getByRole("heading", { name: "Save your account" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Link Google" })).toBeVisible();
+  // nickname: auto-assigned, changeable
+  await page.getByRole("link", { name: "Change" }).click();
+  await page.getByLabel("Nickname").fill("guesty");
+  await expect(page.getByText("guesty is free")).toBeVisible();
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page).toHaveURL(/\/account$/);
+  await expect(page.getByText("Nickname: guesty")).toBeVisible();
+  await page.screenshot({ path: "test-results/guest-account.png", fullPage: true });
 });
