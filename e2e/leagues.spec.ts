@@ -102,3 +102,14 @@ test("name-only players are nudged to link Google or email", async ({ page }) =>
   await expect(page.getByRole("heading", { name: "Lock alice to you" })).toBeVisible();
   await page.screenshot({ path: "test-results/legacy-nudge.png" });
 });
+
+test("a long players list scrolls and can be searched", async ({ page }) => {
+  await signIn(page, "alice", "/league");
+  const list = page.locator("section").filter({ hasText: /^Players/ }).locator("ul");
+  const before = await list.locator("li").count();
+  await page.getByLabel("Find a player").fill("bo");
+  await expect(list.locator("li")).not.toHaveCount(before);
+  await expect(list.getByRole("link", { name: /^bob/ })).toBeVisible();
+  await page.getByLabel("Find a player").fill("zzzz");
+  await expect(list.getByText("No player named")).toBeVisible();
+});

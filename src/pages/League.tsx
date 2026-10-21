@@ -17,6 +17,8 @@ const quiet = "rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font
 /** The current league: invite link, members, and (commissioner) settings. */
 export default function League({ data: initial, query }: PageProps<Data>) {
   const [data, setData] = useState(initial);
+  const [find, setFind] = useState("");
+  const shown = data.members.filter((m) => m.name.includes(find.trim().toLowerCase()));
   const [note, setNote] = useState<string | null>(query.has("created") ? "Your league is ready. Invite your friends with the link below." : null);
   const { name: me, leagues } = useSession();
   const boss = data.role === "commissioner";
@@ -70,8 +72,13 @@ export default function League({ data: initial, query }: PageProps<Data>) {
       <section class={card}>
         <h2 class="font-semibold">Players ({data.members.length})</h2>
         <p class="mt-1 text-xs text-gray-500">Scoring: {describeScoring(data.scoring)}</p>
-        <ul class="mt-2 divide-y divide-gray-100">
-          {data.members.map((m) => (
+        {data.members.length > 8 && (
+          <input type="search" class={"mt-2 w-full " + field} placeholder="Find a player" aria-label="Find a player" value={find}
+            onInput={(e) => setFind((e.target as HTMLInputElement).value)} />
+        )}
+        <ul class="mt-2 max-h-80 divide-y divide-gray-100 overflow-y-auto">
+          {shown.length === 0 && <li class="py-2 text-sm text-gray-500">No player named “{find}”.</li>}
+          {shown.map((m) => (
             <li class="flex items-center justify-between gap-2 py-2">
               <a href={`/players/${m.name}`} class="min-w-0 truncate text-sm font-medium text-gray-900">
                 {m.name}{m.role === "commissioner" && <span class="ml-1 text-xs text-gray-500">· commissioner</span>}
