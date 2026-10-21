@@ -3,7 +3,7 @@ import { signIn, sql, typeWord } from "./helpers";
 
 test("daily game: play, win, appear on the leaderboard, cannot replay", async ({ page }) => {
   await signIn(page, "erin", "/play");
-  const answer = sql("select upper(answer) from daily_words where day = current_date");
+  const answer = sql("select upper(answer) from daily_words where league_id = 1 and day = current_date");
   await expect(page).toHaveURL(/\/play$/);
   await page.getByRole("button", { name: "Start" }).click();
   // starting word is forced and auto-submitted; wait for it to land
@@ -27,7 +27,7 @@ test("after winning, the in-app home link shows today's pastes and playbacks wit
   await expect(page.locator("td.invisible, a.invisible").first()).toBeAttached();
   await page.locator('aside a[href="/play"]').click();
   await expect(page).toHaveURL(/\/play$/);
-  const answer = sql("select upper(answer) from daily_words where day = current_date");
+  const answer = sql("select upper(answer) from daily_words where league_id = 1 and day = current_date");
   await page.getByRole("button", { name: "Start" }).click();
   await expect(page.locator("div.font-bold").first()).toBeVisible();
   await page.waitForTimeout(500);
@@ -59,7 +59,7 @@ test("practice game loads with a stable word via URL params", async ({ page }) =
 test("loading /play never starts the clock or leaks the word; only the Start POST does", async ({ page }) => {
   await signIn(page, "grace");
   const count = () => sql("select count(*) from checkpoints where name='grace' and day=current_date");
-  const word = sql("select upper(answer) from daily_words where day = current_date");
+  const word = sql("select upper(answer) from daily_words where league_id = 1 and day = current_date");
 
   // visit, reload, prefetch-style revisits: none of it may create a checkpoint or expose the answer
   const bodies: string[] = [];

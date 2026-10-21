@@ -2,7 +2,8 @@ import type { PageProps } from "@/router";
 import StatsTabs, { prettyDay, RankBadge } from "@/components/StatsTabs";
 import { Name } from "@/components/DailyTable";
 import { useSession } from "@/lib/session";
-import { isoDay, timerTime, utcToday } from "@/lib/time";
+import { isoDay, timerTime } from "@/lib/time";
+import { today as leagueToday } from "@/lib/session";
 import type { WeekOutput } from "@/lib/types";
 import Race from "@/components/Race";
 import { useEffect, useState } from "preact/hooks";
@@ -45,7 +46,7 @@ export default function Weekly({ params, data: { players, additive } }: PageProp
   const chipSize = wide ? { width: "46px", height: "34px", fontSize: "15px" } : {};
   const isNewWeek = additive; // fixed cutover (server-side): weeks from 2026-10-05 use additive points
   const getColor = isNewWeek ? pointsColor : legacyColor;
-  const today = utcToday();
+  const today = leagueToday();
   const monday = new Date(params.date.slice(0, 10) + "T00:00:00Z");
   monday.setUTCDate(monday.getUTCDate() - (monday.getUTCDay() + 6) % 7);
   return (

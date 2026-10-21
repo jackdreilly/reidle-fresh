@@ -3,7 +3,8 @@ import type { PageProps } from "@/router";
 import { Name } from "@/components/DailyTable";
 import { prettyDay } from "@/components/StatsTabs";
 import { useSession } from "@/lib/session";
-import { isoDay, timerTime, utcToday } from "@/lib/time";
+import { isoDay, timerTime } from "@/lib/time";
+import { today as leagueToday } from "@/lib/session";
 import { normalizeName } from "@/lib/credentials";
 import { navigate } from "@/router";
 import { compareNames } from "@/routes";
@@ -152,7 +153,7 @@ function Rivalry({ rivals }: { rivals: Data["rivals"] }) {
 
 function Calendar({ days, weeks }: { days: Data["calendar"]; weeks: number }) {
   const byDay = new Map(days.map((d) => [d[0], d]));
-  const today = new Date(utcToday() + "T00:00:00Z");
+  const today = new Date(leagueToday() + "T00:00:00Z");
   const start = new Date(today);
   start.setUTCDate(start.getUTCDate() - (today.getUTCDay() + 6) % 7 - (weeks - 1) * 7);
   const C = 12, G = 2, L = 16, T = 14;

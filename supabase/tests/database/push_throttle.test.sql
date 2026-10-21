@@ -5,6 +5,8 @@ truncate messages, push_subscriptions, push_outbox, push_throttle, notify_prefs 
 insert into auth.users (id, instance_id, aud, role, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000000d1', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'ta@t.t', '{"name":"thra"}'),
   ('00000000-0000-0000-0000-0000000000d2', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'tb@t.t', '{"name":"thrb"}');
+-- name-only sign-ups start in Reidle Global; these tests are about the founding league
+update league_members set league_id = 1 where league_id = 2;
 insert into push_subscriptions (endpoint, name, subscription) values
   ('https://push.example/ta', 'thra', '{"endpoint":"https://push.example/ta"}'),
   ('https://push.example/tb', 'thrb', '{"endpoint":"https://push.example/tb"}');
@@ -28,7 +30,7 @@ truncate push_outbox;
 update push_throttle set last_sent = now() - interval '3 minutes';
 insert into messages (name, message) values ('thra', 'five');
 select is((select count(*)::int from push_outbox), 1, 'after the cooldown the next message alerts right away');
-insert into message_reads (name, last_read) values ('thrb', now()) on conflict (name) do update set last_read = now();
+insert into message_reads (name, last_read) values ('thrb', now()) on conflict (league_id, name) do update set last_read = now();
 update push_throttle set held = 1, held_at = now() - interval '1 minute', last_sent = now() - interval '3 minutes';
 select push_flush_held();
 select is((select count(*)::int from push_outbox), 1, 'a held chat summary is dropped once you have read the chat');

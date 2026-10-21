@@ -1,12 +1,17 @@
 import type { ComponentChildren } from "preact";
+import { useSession } from "@/lib/session";
 
 const TABS = [["Today", "today"], ["Week", "this_week"], ["Past", "past_winners"]];
 
 export default function StatsTabs(
   { children, route }: { children?: ComponentChildren; route?: "today" | "this_week" | "past_winners" },
 ) {
+  const { league, leagues } = useSession();
   return (
     <div class="mx-auto w-full max-w-xl">
+      {league && leagues.length > 1 && (
+        <a href="/leagues" class="mb-2 block truncate px-1 text-sm font-semibold text-gray-900">⇄ {league.name}</a>
+      )}
       <nav class="mb-4 grid grid-cols-3 gap-1 rounded-xl bg-gray-100 p-1 text-sm font-medium">
         {TABS.map(([text, link]) => (
           <a

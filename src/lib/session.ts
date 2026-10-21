@@ -1,16 +1,24 @@
 import { useEffect, useState } from "preact/hooks";
 import { hasSession, rpc } from "./supabase";
 import type { Bootstrap } from "./types";
-import { utcToday } from "./time";
+import { dayIn, utcToday } from "./time";
 import { setBadge } from "./pwa";
+import { leagueId, setLeagueId } from "./league";
 
 const KEY = "reidle:boot";
-const anon: Bootstrap = { name: null, played_today: false, unread: false };
+const anon: Bootstrap = { name: null, played_today: false, unread: false, leagues: [] };
 
 function readCache(): Bootstrap {
   try {
     const c = JSON.parse(localStorage.getItem(KEY) ?? "null");
-    if (c?.name) return { name: c.name, played_today: c.day === utcToday() && c.played_today, unread: false };
+    if (c?.name) {
+      const fresh = c.league && c.league.id === leagueId();
+      return {
+        ...anon, name: c.name, account: c.account, nickname_set: c.nickname_set,
+        league: fresh ? c.league : null, leagues: c.leagues ?? [],
+        played_today: fresh && c.day === dayIn(c.league.tz, c.league.reset_hour) && c.played_today,
+      };
+    }
   } catch { /* storage unavailable */ }
   return anon;
 }
@@ -19,12 +27,11 @@ let state: Bootstrap = readCache();
 const listeners = new Set<() => void>();
 
 function set(next: Bootstrap) {
-  if (next.name === state.name && next.played_today === state.played_today && next.unread === state.unread &&
-    next.pending_challenges === state.pending_challenges) return;
+  if (JSON.stringify(next) === JSON.stringify(state)) return;
   if (next.unread !== state.unread) setBadge(next.unread);
   state = next;
   try {
-    if (next.name) localStorage.setItem(KEY, JSON.stringify({ ...next, day: utcToday() }));
+    if (next.name) localStorage.setItem(KEY, JSON.stringify({ ...next, day: today() }));
     else localStorage.removeItem(KEY);
   } catch { /* ignore */ }
   listeners.forEach((l) => l());
@@ -33,14 +40,24 @@ function set(next: Bootstrap) {
 export const getSession = () => state;
 let rev = 0; // bumps on local patches so a slower bootstrap can't clobber fresher state
 export const patchSession = (p: Partial<Bootstrap>) => { rev++; set({ ...state, ...p }); };
-export const clearSession = () => set(anon);
+export const clearSession = () => { setLeagueId(null); set(anon); };
 
-/** One cheap RPC for the app shell (name, played-today, unread dot, open challenges). */
+/** The current league's game day (the server's league_day), UTC before we know the league. */
+export const today = () => state.league ? dayIn(state.league.tz, state.league.reset_hour) : utcToday();
+
+/** One cheap RPC for the app shell (name, league, played-today, unread dot, open challenges). */
 export async function refreshSession(): Promise<Bootstrap> {
   const startedAt = rev;
   const b = await rpc<Bootstrap>("bootstrap");
+  setLeagueId(b.league?.id ?? null); // the server's pick (ours may be a league we've left)
   set(rev === startedAt ? b : { ...b, unread: state.unread });
   return state;
+}
+
+/** Show another league: the shell refetches, pages load with the new header. */
+export async function switchLeague(id: number): Promise<void> {
+  if (setLeagueId(id)) set({ ...state, league: null, played_today: false, unread: false, pending_challenges: 0 });
+  await refreshSession();
 }
 
 export const hasAuthSession = async () => hasSession();

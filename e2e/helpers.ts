@@ -1,7 +1,15 @@
 import { expect, type Page } from "@playwright/test";
 import { execSync } from "node:child_process";
 
-export async function signIn(page: Page, name: string, to = "/") {
+/**
+ * Name-only sign-in. New names are put in the founding league first (like the original crew), unless
+ * `fresh`: then they start where a brand-new name-only player does (Reidle Global).
+ */
+export async function signIn(page: Page, name: string, to = "/", { fresh = false } = {}) {
+  if (!fresh) {
+    sql(`insert into players (name) values ('${name}') on conflict do nothing;
+      insert into league_members (league_id, name) values (1, '${name}') on conflict do nothing`);
+  }
   await page.goto(`/sign-in?redirect=${encodeURIComponent(to)}`);
   await page.getByPlaceholder("Your name").fill(name);
   await page.locator('input[type="submit"]').click();

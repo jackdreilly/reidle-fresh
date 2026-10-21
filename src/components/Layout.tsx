@@ -48,7 +48,7 @@ export default function Layout(
     fullPage?: boolean;
   },
 ) {
-  const { played_today: playedToday, name, unread, pending_challenges: pending = 0 } = useSession();
+  const { played_today: playedToday, name, unread, pending_challenges: pending = 0, league, leagues } = useSession();
   const [open, setOpen] = useState(false);
   const dot = useSettingsDot(route);
   const install = useInstall();
@@ -147,6 +147,16 @@ export default function Layout(
         >
           <div class="h-full px-3 pb-4 overflow-y-auto bg-white ">
             <ul class="space-y-2">
+              {league && (
+                <li>
+                  <a href={leagues.length > 1 ? "/leagues" : "/league"} class="block rounded-lg px-2 py-1 hover:bg-gray-100">
+                    <span class="block text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                      {leagues.length > 1 ? "League · switch" : "League"}
+                    </span>
+                    <span class={"block truncate text-gray-900 " + (route === "/league" || route === "/leagues" ? "font-bold" : "font-semibold")}>{league.name}</span>
+                  </a>
+                </li>
+              )}
               <li class="rounded-lg bg-[#b68c0021] hover:bg-[#b68c0060] ">
                 <a
                   href="/stats/today"
@@ -259,6 +269,14 @@ export default function Layout(
                   <span class="inline-flex items-center justify-center">
                     <AllNotification />
                   </span>
+                </a>
+              </li>
+              <li>
+                <a href="/league" class="flex items-center p-2 text-base font-normal text-gray-900 rounded-lg hover:bg-gray-100">
+                  <svg aria-hidden="true" class="flex-shrink-0 w-6 h-6 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM6 8a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM1.49 15.33a.78.78 0 0 1-.36-.44 3 3 0 0 1 4.31-3.52 6.48 6.48 0 0 0-1.9 3.96c-.03.22-.02.44.02.65a4.97 4.97 0 0 1-2.07-.65ZM16.44 15.98a4.97 4.97 0 0 0 2.07-.65.78.78 0 0 0 .36-.44 3 3 0 0 0-4.31-3.52 6.48 6.48 0 0 1 1.9 3.96c.03.22.02.44-.02.65ZM18 8a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM5.3 16.19a.84.84 0 0 1-.27-.71 5 5 0 0 1 9.94 0 .84.84 0 0 1-.27.71A6.98 6.98 0 0 1 10 18a6.97 6.97 0 0 1-4.7-1.81Z" />
+                  </svg>
+                  <span class={"ml-3 " + (route === "/league" ? "font-bold" : "")}>Invite &amp; league</span>
                 </a>
               </li>
               {install && (

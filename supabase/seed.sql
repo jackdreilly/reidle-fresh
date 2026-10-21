@@ -64,11 +64,12 @@ select date_trunc('week', current_date)::date - 7 * w,
 from generate_series(2, 40) w;
 
 -- Challenges (today + yesterday) with submissions so the leaderboards populate.
-insert into challenges (starting_word, answer, created_at)
+insert into challenges (starting_word, answer, created_at, day)
 select (select word from words order by md5(g::text) limit 1),
        (select answer from answers order by md5(g::text || 'x') limit 1),
        case when g <= 3 then greatest(now() - interval '1 hour' * g, date_trunc('day', now())) -- stays today just after midnight
-            else now() - interval '1 day' end
+            else now() - interval '1 day' end,
+       case when g <= 3 then current_date else current_date - 1 end
 from generate_series(1, 5) g;
 insert into submissions (challenge_id, day, name, "time", penalty, word, paste)
 select c.challenge_id, c.created_at::date, p.n, 20 + p.i * 7 + c.challenge_id,
@@ -81,3 +82,13 @@ insert into messages (name, message, created_at) values
   ('alice', 'good morning reidlers', now() - interval '2 hours'),
   ('bob', '/gif cat', now() - interval '1 hour'),
   ('carol', 'check https://example.com', now() - interval '10 minutes');
+
+-- Leagues: every fixture player is in the founding league (alice runs it);
+-- kim and leo (no daily history) also share a second private league, so the multi-league dashboard has something to show.
+insert into league_members (league_id, name, role)
+select 1, name, case when name = 'alice' then 'commissioner' else 'member' end from players;
+insert into leagues (league_id, name, invite_code, tz, reset_hour, created_by)
+values (3, 'Book Club', 'bookclub', 'America/Los_Angeles', 0, 'kim');
+insert into players (name) values ('kim'), ('leo');
+insert into league_members (league_id, name) values (1, 'kim'), (1, 'leo');
+insert into league_members (league_id, name, role) values (3, 'kim', 'commissioner'), (3, 'leo', 'member');

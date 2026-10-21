@@ -9,6 +9,7 @@ import {
   PartyChatToast,
 } from "@/components/PartyChat";
 import { rpc } from "@/lib/supabase";
+import { leagueId } from "@/lib/league";
 import { flushPush } from "@/lib/push";
 import { clearProgress, saveProgress } from "@/lib/checkpoint";
 import { patchSession } from "@/lib/session";
@@ -62,6 +63,8 @@ export default function Game(
       ? new Date(new Date(checkpoint.created_at).getTime() - clockOffset)
       : new Date();
   const isPlaying = !isPractice && !challenge_id && !battle && !!checkpoint;
+  // the daily game belongs to the league it was started in, even if the app switches league meanwhile
+  const [league] = useState(leagueId);
   const [playback, setPlayback] = useState<Playback>({ events: [] });
   const [penalties, setPenalties] = useState(checkpoint?.penalty ?? 0);
   const [startTime, setStartTime] = useState(checkpointDate());
@@ -90,7 +93,7 @@ export default function Game(
     if (!isPlaying || (!previousWords.length && !penalties)) {
       return;
     }
-    saveProgress(word, startingWord, { penalty: penalties, history: previousWords });
+    saveProgress(word, startingWord, { penalty: penalties, history: previousWords, league });
   }, [isPlaying, penalties, previousWords]);
   useEffect(() => {
     if (!isPlaying || !checkpoint.history?.length) {
@@ -364,7 +367,7 @@ export default function Game(
     };
     (challenge_id !== undefined
       ? rpc<{ pending_challenges: number }>("submit_challenge", { p_challenge_id: challenge_id, ...args })
-      : rpc<void>("submit_daily", args).then(() => undefined))
+      : rpc<void>("submit_daily", args, { league }).then(() => undefined))
       .then((res) => {
         // Pages prefetched before the submit (e.g. today's stats) still hide pastes/playbacks.
         clearPrefetch();

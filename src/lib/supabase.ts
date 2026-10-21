@@ -1,5 +1,6 @@
 // Lean Supabase client: just what Reidle needs (RPC over fetch + password auth with refresh).
 // Realtime lives in ./realtime and is only loaded by the battle page.
+import { leagueId } from "./league";
 const URL = import.meta.env.VITE_SUPABASE_URL as string;
 const KEY = import.meta.env.VITE_SUPABASE_KEY as string;
 const STORE = "reidle:auth";
@@ -94,12 +95,18 @@ export const auth = {
 };
 
 /** Call a Postgres function; throws on error. One round trip per page. */
-export async function rpc<T = unknown>(fn: string, args?: Record<string, unknown>, opts: { keepalive?: boolean } = {}): Promise<T> {
+/** `league` pins the call to a league (a game in progress), otherwise the app's current league is sent. */
+export async function rpc<T = unknown>(fn: string, args?: Record<string, unknown>,
+  opts: { keepalive?: boolean; league?: number | null } = {}): Promise<T> {
   const token = await accessToken();
+  const league = opts.league ?? leagueId();
   const res = await request(`${URL}/rest/v1/rpc/${fn}`, {
     method: "POST",
     keepalive: opts.keepalive,
-    headers: { apikey: KEY, authorization: `Bearer ${token ?? KEY}`, "content-type": "application/json" },
+    headers: {
+      apikey: KEY, authorization: `Bearer ${token ?? KEY}`, "content-type": "application/json",
+      ...(league ? { "x-league": String(league) } : {}),
+    },
     body: JSON.stringify(args ?? {}),
   });
   if (!res.ok) return fail(res);

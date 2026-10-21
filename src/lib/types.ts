@@ -42,4 +42,17 @@ export type BattleState = {
   battle_history?: BattleRoundHistory[];
 };
 
-export type Bootstrap = { name: string | null; played_today: boolean; unread: boolean; pending_challenges?: number };
+export type Scoring = { mode: "table" | "field"; points?: number[]; no_show?: number; best_of?: number | null };
+
+export type LeagueBrief = {
+  id: number; name: string; is_public: boolean; tz: string; reset_hour: number;
+  today: string; reset_at: string; scoring: Scoring; role: "commissioner" | "member" | null;
+};
+
+export type Account = "guest" | "legacy" | "verified";
+
+export type Bootstrap = {
+  name: string | null; played_today: boolean; unread: boolean; pending_challenges?: number;
+  account?: Account; nickname_set?: boolean;
+  league?: LeagueBrief | null; leagues: { id: number; name: string }[];
+};

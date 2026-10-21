@@ -93,6 +93,7 @@ function Notifications({ initial }: { initial: Prefs }) {
     }
   };
   const on = device === "on";
+  const resetAt = useSession().league?.reset_at;
 
   return (
     <section class={card}>
@@ -138,7 +139,7 @@ function Notifications({ initial }: { initial: Prefs }) {
           <label class="flex items-center justify-between gap-3">
             <span class="min-w-0">
               <span class="block text-sm font-medium text-gray-900">Reminder</span>
-              <span class="block text-xs text-gray-500">If you haven't played yet. The word resets at {resetClock()}.</span>
+              <span class="block text-xs text-gray-500">If you haven't played yet. The word resets at {resetClock(0, resetAt)}.</span>
             </span>
             <select
               class="shrink-0 rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm"
@@ -149,7 +150,7 @@ function Notifications({ initial }: { initial: Prefs }) {
               }}
             >
               <option value="">Off</option>
-              {REMINDER_HOURS.map((h) => <option value={h}>{resetClock(h)} ({h}h before)</option>)}
+              {REMINDER_HOURS.map((h) => <option value={h}>{resetClock(h, resetAt)} ({h}h before)</option>)}
             </select>
           </label>
         </li>

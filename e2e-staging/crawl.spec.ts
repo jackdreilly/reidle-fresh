@@ -21,7 +21,8 @@ test("crawl every route at phone and desktop sizes", async ({ page }) => {
   await page.goto("/stats/this_week");
   const lastMonday = new Date(Date.now() - ((new Date().getUTCDay() + 6) % 7 + 7) * 86400000).toISOString().slice(0, 10);
   await page.goto(`/stats/weekly/${lastMonday}`);
-  await page.waitForSelector("tbody tr");
+  // a new name-only player starts in Reidle Global, which may have no games yet
+  await page.waitForSelector("tbody tr", { timeout: 10_000 }).catch(() => {});
   const pb = page.locator('a[href*="/playback"]').first();
   const playbackHref = (await pb.count()) ? await pb.getAttribute("href") : null;
   await page.goto("/challenges");
@@ -34,6 +35,7 @@ test("crawl every route at phone and desktop sizes", async ({ page }) => {
   const routes = [
     "/stats/today", "/stats/this_week", "/stats/past_winners", `/stats/weekly/${lastMonday}`, `/stats/daily/${yesterday}`,
     "/challenges", challengeHref, "/battles", "/rankings", "/players/alice", "/messages", "/account", "/practice", "/play",
+    "/league", "/leagues", "/leagues/new", "/welcome", "/join/global",
     playbackHref ?? "/stats/today", "/this/route/does/not/exist",
   ];
   for (const vp of VIEWPORTS) {

@@ -7,7 +7,7 @@ import { rpc } from "@/lib/supabase";
 import type { Checkpoint } from "@/lib/types";
 import type { ScoringHistory } from "@/lib/wordle";
 
-type Progress = { penalty: number; history: ScoringHistory };
+type Progress = { penalty: number; history: ScoringHistory; league?: number | null };
 type Local = Progress & { word: string; startingWord: string; at: number };
 
 const STORE = "reidle:checkpoint";
@@ -53,7 +53,7 @@ async function pump(keepalive = false) {
   inFlight = true;
   let ok = true;
   try {
-    await rpc("save_checkpoint", { p_penalty: p.penalty, p_history: p.history }, { keepalive });
+    await rpc("save_checkpoint", { p_penalty: p.penalty, p_history: p.history }, { keepalive, league: p.league });
     delay = 1000;
   } catch {
     ok = false;

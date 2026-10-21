@@ -41,8 +41,12 @@ function TimeRemaining() {
   // ticks each minute while open; the app also reloads the page when it comes back to the foreground
   const [now, setNow] = useState(Date.now());
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 30_000); return () => clearInterval(t); }, []);
+  const { league } = useSession();
   const tomorrow = new Date(now);
-  tomorrow.setUTCHours(24, 0, 0, 0);
+  if (league) {
+    tomorrow.setTime(new Date(league.reset_at).getTime());
+    while (tomorrow.getTime() <= now) tomorrow.setTime(tomorrow.getTime() + 86_400_000); // stale shell state
+  } else tomorrow.setUTCHours(24, 0, 0, 0);
   const mins = Math.max(0, Math.ceil((tomorrow.getTime() - now) / 60_000));
   const h = Math.floor(mins / 60), m = mins % 60; // hours only; minutes in the last hour
   return (
@@ -52,7 +56,7 @@ function TimeRemaining() {
         <span class="text-lg font-bold tabular-nums">{h ? `${h}h` : `${m}m`}</span>{" "}
         <span class="text-xs">left</span>
       </div>
-      <div class="text-xs text-sky-800">New word at {resetClock()}</div>
+      <div class="text-xs text-sky-800">New word at {resetClock(0, league?.reset_at)}</div>
     </div>
   );
 }

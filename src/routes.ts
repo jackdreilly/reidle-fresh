@@ -1,9 +1,8 @@
 import type { ComponentType } from "preact";
 import { auth, rpc } from "./lib/supabase";
-import { clearSession } from "./lib/session";
+import { clearSession, getSession, refreshSession, today } from "./lib/session";
 import { setSignedIn } from "./boot";
 import { loadWordle } from "./lib/wordle";
-import { utcToday } from "./lib/time";
 import { normalizeName } from "./lib/credentials";
 import { Redirect, type Params } from "./router";
 
@@ -31,10 +30,17 @@ const alreadyPlayed = (e: unknown, to: string) => {
 };
 
 export const routes: Route[] = [
-  { path: "/", redirect: () => "/stats/today" },
+  // One league: straight to it. Several: the dashboard. None yet: pick one.
+  {
+    path: "/",
+    redirect: async () => {
+      const s = getSession().league ? getSession() : await refreshSession();
+      return !s.leagues.length ? "/welcome" : s.leagues.length > 1 ? "/leagues" : "/stats/today";
+    },
+  },
   { path: "/stats", redirect: () => "/stats/today" },
-  { path: "/stats/today", redirect: () => `/stats/daily/${utcToday()}` },
-  { path: "/stats/this_week", redirect: () => `/stats/weekly/${utcToday()}` },
+  { path: "/stats/today", redirect: () => `/stats/daily/${today()}` },
+  { path: "/stats/this_week", redirect: () => `/stats/weekly/${today()}` },
   {
     path: "/stats/daily/:date", page: () => import("./pages/Daily"), prefetchData: true,
     layout: { route: "/stats", title: "Stats" },
@@ -150,6 +156,20 @@ export const routes: Route[] = [
     load: () => read("settings_page"),
   },
   { path: "/settings", redirect: () => "/account" },
+  {
+    path: "/leagues", page: () => import("./pages/Leagues"), prefetchData: true,
+    layout: { route: "/leagues", title: "Leagues" },
+    load: () => read("leagues_page"),
+  },
+  { path: "/leagues/new", page: () => import("./pages/LeagueNew"), layout: { route: "/leagues", title: "New league" } },
+  {
+    path: "/league", page: () => import("./pages/League"), prefetchData: true,
+    layout: { route: "/league", title: "League" },
+    load: () => read("league_page"),
+  },
+  { path: "/welcome", page: () => import("./pages/Welcome"), layout: { route: "/leagues", title: "Welcome" } },
+  // invite links work signed out too (league_preview is open to anon)
+  { path: "/join/:code", page: () => import("./pages/Join"), public: true, load: (p) => read("league_preview", { p_code: p.code }) },
   { path: "/sign-in", page: () => import("./pages/SignIn"), public: true },
   {
     path: "/sign-out",

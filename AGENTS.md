@@ -57,6 +57,27 @@ tools/                 clone-db.sh, sync-auth-users.ts, gen-words-seed.mjs, chec
   comments ignored): `node tools/db-migrate.mjs prod --dry-run --drift <local db url>`; prod runs it nightly.
 - Word tables are DATA, not migrations (prod has its own, UPPERCASE). Local/staging fixture words come from `supabase/seed/words.sql`, generated from `src/data/*.csv` via `npm run words`.
 
+## Leagues
+
+Every group plays in a league (`leagues`, `league_members`, migration `*_leagues.sql`): its own daily word,
+reset time (`tz` + `reset_hour`), scoring (`scoring` jsonb, set by a commissioner), weekly winners, challenges
+and chat. Battles stay global. League 1 "Reidle OG" holds everyone from before leagues; league 2 "Reidle Global"
+is public (invite code `global`) and is where guests and brand-new name-only players start.
+
+- **Which league**: the client sends `x-league: <id>` on every RPC (`src/lib/league.ts`, `rpc()` in supabase.ts).
+  `lg()` honours it only for a league you're in, else your first league; `bootstrap()` returns the league it
+  used and the client adopts it. RPC signatures did not change. A daily game pins its league at mount (Game.tsx).
+  `?league=N` on any URL switches first (notification links use it).
+- **Day**: `league_day(league)` = date in its tz counted from its reset hour; resets from noon label the next
+  date. Never use `current_date` in league logic; client mirror is `dayIn()` / `today()` (session.ts).
+- **Tables**: per-league tables have `league_id default 1` so legacy inserts land in OG; RPCs always pass it.
+- **Accounts**: `account_kind()` = guest (anonymous) | legacy (name-only) | verified (OAuth or confirmed email).
+  Private leagues need verified, or legacy while `app_flags.legacy_logins` is on (the name-only grace period).
+- **Nicknames**: `players.name` is still the key; renames (`set_nickname`) cascade through `on update cascade`
+  foreign keys plus the plain-text copies (likes, winners, outbox, week_snapshots, leagues.created_by).
+- Pages: `/` (one league -> its stats, several -> `/leagues` dashboard, none -> `/welcome`), `/league`
+  (invite link, members, commissioner settings), `/leagues/new`, `/join/:code` (works signed out).
+
 ## Chat push notifications
 
 Opt-in per browser from the Messages page (`src/lib/push.ts`, bell button). Subscriptions live in the closed

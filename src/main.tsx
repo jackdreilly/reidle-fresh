@@ -3,10 +3,9 @@ import { render } from "preact";
 import App from "./App";
 import { navigate, refresh, startRouter } from "./router";
 import { detectSignedIn, signedIn } from "./boot";
-import { refreshSession } from "./lib/session";
+import { refreshSession, today } from "./lib/session";
 import { loadWordle } from "./lib/wordle";
 import { initPwa } from "./lib/pwa";
-import { utcToday } from "./lib/time";
 
 render(<App />, document.getElementById("app")!);
 
@@ -15,7 +14,7 @@ initPwa((prevDay, today) => {
   if (!signedIn()) return;
   refreshSession().catch(() => {});
   void refresh(prevDay, today);
-}, utcToday);
+}, today);
 
 // No top-level await: lazy route chunks import this entry chunk, which must finish evaluating.
 void (async () => {

@@ -75,8 +75,11 @@ select setval(pg_get_serial_sequence('public.submissions', 'submission_id'), gre
 select setval(pg_get_serial_sequence('public.messages', 'message_id'), greatest(1, (select max(message_id) from public.messages)) + 1000);
 select setval(pg_get_serial_sequence('public.battles', 'battle_id'), greatest(100, (select max(battle_id) from public.battles)));
 
+-- everyone imported plays in the founding league
+insert into public.league_members (league_id, name) select 1, name from public.players on conflict do nothing;
+
 -- Freeze every pre-cutover week now (legacy product scoring, computed once, served read-only forever).
-select public.week_scores(w) from (
+select public.week_scores(1, w) from (
   select distinct date_trunc('week', day)::date as w from public.submissions
   where challenge_id is null and day < public.scoring_cutover()) weeks;
 

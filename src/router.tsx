@@ -2,6 +2,8 @@ import type { ComponentType } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import { notFound, routes, type Route } from "./routes";
 import { signedIn } from "./boot";
+import { leagueId } from "./lib/league";
+import { switchLeague } from "./lib/session";
 
 export class Redirect extends Error {
   constructor(public to: string) { super("redirect " + to); }
@@ -37,7 +39,7 @@ export function prefetch(href: string) {
   const m = match(url.pathname);
   if (!m || m.route.redirect) return;
   void m.route.page?.();
-  const key = url.pathname + url.search;
+  const key = leagueId() + url.pathname + url.search; // page data depends on the league (x-league header)
   const hit = warm.get(key);
   if (m.route.prefetchData && (!hit || Date.now() - hit.at > 10_000)) {
     const data = m.route.load?.(m.params, url.searchParams) ?? Promise.resolve();
@@ -51,6 +53,14 @@ type NavOpts = { replace?: boolean; pop?: boolean; refresh?: boolean; keepScroll
 export async function navigate(href: string, opts: NavOpts = {}): Promise<void> {
   const id = ++navId;
   const url = new URL(href, location.origin);
+  // ?league=N (notification links, shared links) switches league first
+  const lq = Number(url.searchParams.get("league"));
+  if (url.searchParams.has("league")) url.searchParams.delete("league");
+  if (lq && signedIn() && lq !== leagueId()) {
+    warm.clear();
+    await switchLeague(lq).catch(() => {});
+    if (id !== navId) return;
+  }
   const hit = match(url.pathname);
   const timer = setTimeout(() => { if (id === navId) { progress = true; emit(); } }, 120);
   try {
@@ -64,7 +74,7 @@ export async function navigate(href: string, opts: NavOpts = {}): Promise<void> 
     if (route.redirect) {
       return void navigate(await route.redirect(params, url.searchParams), { replace: true });
     }
-    const key = url.pathname + url.search;
+    const key = leagueId() + url.pathname + url.search;
     const cached = warm.get(key);
     warm.delete(key);
     const fresh = cached && Date.now() - cached.at < 10_000 ? cached.data : route.load?.(params, url.searchParams);
@@ -84,6 +94,7 @@ export async function navigate(href: string, opts: NavOpts = {}): Promise<void> 
         return void location.assign(url.pathname + url.search);
       }
     }
+    if ((e as { message?: string }).message === "not in a league") return void navigate("/welcome", { replace: true });
     if ((e as { message?: string }).message === "not signed in") {
       return void navigate(`/sign-in?redirect=${encodeURIComponent(url.pathname + url.search)}`, { replace: true });
     }
