@@ -3,6 +3,8 @@ import { credentials, normalizeName } from "./credentials";
 
 export { normalizeName };
 
+const NEW_PLAYERS = "New players sign in with Google, an email code, or as a guest.";
+
 /** Name-only login (players from before real logins). Existing names only once sign-ups need an email. */
 export async function signIn(rawName: string): Promise<string> {
   const name = normalizeName(rawName);
@@ -13,10 +15,13 @@ export async function signIn(rawName: string): Promise<string> {
     return name;
   } catch (e) {
     // Only a rejected login means "no account yet"; a network failure/timeout must surface instead.
+    if ((e as { code?: string }).code === "email_not_confirmed") throw new Error(NEW_PLAYERS);
     if ((e as { code?: string }).code !== "invalid_credentials") throw e;
   }
   try {
-    if (!(await auth.signUp(creds, { name }))) throw new Error("New players sign in with Google, an email code, or as a guest.");
+    if (await auth.signUp(creds, { name })) return name;
+    // no session: the server confirms only claims of an existing, unclaimed name (legacy_name_claim.sql)
+    await auth.signInWithPassword(creds).catch(() => { throw new Error(NEW_PLAYERS); });
   } catch (e) {
     if ((e as { code?: string }).code === "user_already_exists") {
       throw new Error(`${name} is locked to a Google or email login. Use that instead.`);
