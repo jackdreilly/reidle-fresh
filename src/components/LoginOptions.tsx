@@ -1,6 +1,6 @@
 import { useState } from "preact/hooks";
 import { auth } from "@/lib/supabase";
-import { viaProvider } from "@/lib/auth";
+import { expectAuth, viaProvider } from "@/lib/auth";
 
 const quiet = "rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100";
 const field = "min-w-0 flex-1 rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm";
@@ -13,6 +13,7 @@ export default function LoginOptions({ after, link = false, onEmailDone }: { aft
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [code, setCode] = useState("");
+  const [typing, setTyping] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const run = async (f: () => Promise<void>) => {
@@ -32,13 +33,15 @@ export default function LoginOptions({ after, link = false, onEmailDone }: { aft
           <form class="flex gap-2" onSubmit={(e) => {
             e.preventDefault();
             void run(async () => {
-              await (link ? auth.updateUser({ email: email.trim() }) : auth.sendEmailCode(email.trim()));
+              const back = `${location.origin}/auth/callback`;
+              expectAuth(after, link);
+              await (link ? auth.updateUser({ email: email.trim() }, back) : auth.sendEmailCode(email.trim(), back));
               setSent(true);
             });
           }}>
             <input type="email" required class={field} placeholder="you@example.com" aria-label="Email" value={email}
               onInput={(e) => setEmail((e.target as HTMLInputElement).value)} />
-            <button type="submit" disabled={busy} class={"shrink-0 " + quiet}>Email me a code</button>
+            <button type="submit" disabled={busy} class={"shrink-0 " + quiet}>Email me a link</button>
           </form>
         )
         : (
@@ -49,12 +52,13 @@ export default function LoginOptions({ after, link = false, onEmailDone }: { aft
               await onEmailDone();
             });
           }}>
-            <p class="text-sm text-gray-600">We sent a 6-digit code to <b>{email}</b>.</p>
-            <div class="flex gap-2">
+            <p class="text-sm text-gray-600">Check <b>{email}</b> and tap the link in our email{typing ? ", or type the code from it" : ""}.</p>
+            {!typing && <button type="button" class="text-xs text-gray-500 underline" onClick={() => setTyping(true)}>The email has a code instead?</button>}
+            {typing && <div class="flex gap-2">
               <input inputMode="numeric" autoComplete="one-time-code" required class={field} placeholder="123456" aria-label="Code"
                 value={code} onInput={(e) => setCode((e.target as HTMLInputElement).value)} />
               <button type="submit" disabled={busy} class="shrink-0 rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white">Confirm</button>
-            </div>
+            </div>}
             <button type="button" class="text-xs text-gray-500 underline" onClick={() => { setSent(false); setCode(""); }}>Use another email</button>
           </form>
         )}

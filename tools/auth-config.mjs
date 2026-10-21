@@ -3,8 +3,11 @@
 // through the dashboard:  SUPABASE_ACCESS_TOKEN=... [GOOGLE_CLIENT_ID=... GOOGLE_CLIENT_SECRET=...] node tools/auth-config.mjs staging|prod
 //
 //   - guests: anonymous sign-ins; account linking (a guest or name-only player adds Google/email, same account)
-//   - email must be confirmed (codes in the emails, so the installed iPhone app can type them in);
-//     a changed email is confirmed at the new address only (name-only accounts have a made-up one)
+//   - email must be confirmed; a changed email is confirmed at the new address only (name-only accounts
+//     have a made-up one)
+//   - with a custom SMTP server (SMTP_HOST/PORT/USER/PASS/SENDER secrets, e.g. Resend): send from it, and put
+//     6-digit codes in the emails so the installed iPhone app can type them in (Supabase's built-in mailer
+//     can't change templates and only sends a few emails an hour, to the project's team)
 //   - Google when its client id/secret are in the environment (GitHub secrets GOOGLE_CLIENT_ID/SECRET)
 // Name-only players keep signing in with their password (their accounts are already confirmed).
 const PROJECTS = {
@@ -26,7 +29,19 @@ const code = (what) => `<h2>Reidle</h2>
 <p>Type it into Reidle, or <a href="{{ .ConfirmationURL }}">tap here</a> on this device.</p>
 <p style="color:#888">If you didn't ask for this, ignore this email.</p>`;
 
-const { GOOGLE_CLIENT_ID: gid, GOOGLE_CLIENT_SECRET: gsecret } = process.env;
+const { GOOGLE_CLIENT_ID: gid, GOOGLE_CLIENT_SECRET: gsecret, SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_SENDER } = process.env;
+const smtp = SMTP_HOST && SMTP_PASS
+  ? {
+    smtp_host: SMTP_HOST, smtp_port: SMTP_PORT || '465', smtp_user: SMTP_USER || 'resend', smtp_pass: SMTP_PASS,
+    smtp_admin_email: SMTP_SENDER || 'reidle@reillybrothers.net', smtp_sender_name: 'Reidle', rate_limit_email_sent: 100,
+    mailer_subjects_confirmation: 'Your Reidle code',
+    mailer_templates_confirmation_content: code('confirm your email'),
+    mailer_subjects_magic_link: 'Your Reidle sign-in code',
+    mailer_templates_magic_link_content: code('sign in'),
+    mailer_subjects_email_change: 'Your Reidle code',
+    mailer_templates_email_change_content: code('confirm your email'),
+  }
+  : {};
 const body = {
   site_url: target.site,
   uri_allow_list: [`${target.site}/**`, 'http://127.0.0.1:3000/**', 'http://localhost:3000/**'].join(','),
@@ -36,12 +51,7 @@ const body = {
   mailer_autoconfirm: false,
   mailer_secure_email_change_enabled: false,
   mailer_otp_length: 6,
-  mailer_subjects_confirmation: 'Your Reidle code',
-  mailer_templates_confirmation_content: code('confirm your email'),
-  mailer_subjects_magic_link: 'Your Reidle sign-in code',
-  mailer_templates_magic_link_content: code('sign in'),
-  mailer_subjects_email_change: 'Your Reidle code',
-  mailer_templates_email_change_content: code('confirm your email'),
+  ...smtp,
   ...(gid && gsecret
     ? { external_google_enabled: true, external_google_client_id: gid, external_google_secret: gsecret }
     : {}),
@@ -60,4 +70,5 @@ console.log(`${process.argv[2]} auth settings applied:`, {
   linking: live.security_manual_linking_enabled,
   confirm_email: !live.mailer_autoconfirm,
   google: live.external_google_enabled,
+  custom_smtp: !!live.smtp_host,
 });

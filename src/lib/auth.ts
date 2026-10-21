@@ -33,22 +33,27 @@ const LINKING = "reidle:linking";
 
 /** Off to Google (or another provider). `link` adds it to the current account instead of signing in fresh. */
 export async function viaProvider(provider: string, after: string, link = false): Promise<void> {
-  try {
-    sessionStorage.setItem(AFTER, after);
-    link ? sessionStorage.setItem(LINKING, "1") : sessionStorage.removeItem(LINKING);
-  } catch { /* ignore */ }
+  expectAuth(after, link);
   const back = `${location.origin}/auth/callback`;
   location.assign(link ? await auth.linkUrl(provider, back) : auth.providerUrl(provider, back));
+}
+
+/** Remember where to go after an email link or provider round trip (it may come back in another tab). */
+export function expectAuth(after: string, link: boolean) {
+  try {
+    localStorage.setItem(AFTER, after);
+    link ? localStorage.setItem(LINKING, "1") : localStorage.removeItem(LINKING);
+  } catch { /* ignore */ }
 }
 
 /** Where to go once signed in, and whether this was an account link (see finishLink). */
 export function afterAuth(): { to: string; linked: boolean } {
   let to = "/", linked = false;
   try {
-    to = sessionStorage.getItem(AFTER) ?? "/";
-    linked = sessionStorage.getItem(LINKING) === "1";
-    sessionStorage.removeItem(AFTER);
-    sessionStorage.removeItem(LINKING);
+    to = localStorage.getItem(AFTER) ?? "/";
+    linked = localStorage.getItem(LINKING) === "1";
+    localStorage.removeItem(AFTER);
+    localStorage.removeItem(LINKING);
   } catch { /* ignore */ }
   return { to: to.startsWith("/") ? to : "/", linked };
 }

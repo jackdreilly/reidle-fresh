@@ -113,9 +113,9 @@ export const auth = {
       expires_in: Number(p.get("expires_in")) || undefined, expires_at: Number(p.get("expires_at")) || undefined,
     }) ? null : "Sign-in didn't complete. Try again.";
   },
-  /** Emails a 6-digit code (new players are created on first use). */
-  async sendEmailCode(email: string): Promise<void> {
-    const res = await post("/auth/v1/otp", { email, create_user: true });
+  /** Emails a sign-in link (and a 6-digit code once templates carry one); new players are created on first use. */
+  async sendEmailCode(email: string, redirectTo: string): Promise<void> {
+    const res = await post(`/auth/v1/otp?redirect_to=${encodeURIComponent(redirectTo)}`, { email, create_user: true });
     if (!res.ok) return fail(res);
   },
   /** `email` signs in with the code; `email_change` confirms an email added to this account. */
@@ -125,9 +125,9 @@ export const auth = {
     if (!res.ok) return fail(res);
     adopt(await res.json());
   },
-  /** Change the signed-in account: { email } sends a code to it, { password } replaces the password. */
-  async updateUser(attrs: { email?: string; password?: string }): Promise<void> {
-    const res = await request(`${URL}/auth/v1/user`, {
+  /** Change the signed-in account: { email } sends a confirmation to it, { password } replaces the password. */
+  async updateUser(attrs: { email?: string; password?: string }, redirectTo?: string): Promise<void> {
+    const res = await request(`${URL}/auth/v1/user${redirectTo ? `?redirect_to=${encodeURIComponent(redirectTo)}` : ""}`, {
       method: "PUT",
       headers: { apikey: KEY, authorization: `Bearer ${await accessToken()}`, "content-type": "application/json" },
       body: JSON.stringify(attrs),
