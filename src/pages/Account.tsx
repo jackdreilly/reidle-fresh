@@ -4,6 +4,7 @@ import { refreshSession, useSession } from "@/lib/session";
 import { navigate } from "@/router";
 import LoginOptions from "@/components/LoginOptions";
 import { finishLink } from "@/lib/auth";
+import { getTheme, setTheme, type Theme } from "@/lib/theme";
 import { useInstall } from "@/lib/pwa";
 import { rpc } from "@/lib/supabase";
 import { disablePush, enablePush, pushState, type PushState } from "@/lib/push";
@@ -42,6 +43,7 @@ export default function Account({ data, query }: PageProps<{ name: string; prefs
         </a>
       </header>
       <Login after={(() => { const r = query.get("redirect"); return r && r.startsWith("/") ? r : "/account"; })()} />
+      <Appearance />
       <Notifications initial={data.prefs} />
       {install && (
         <section id="install" class={card}>
@@ -98,6 +100,24 @@ function Login({ after }: { after: string }) {
           }} />
         </div>
       )}
+    </section>
+  );
+}
+
+function Appearance() {
+  const [theme, set] = useState<Theme>(getTheme());
+  return (
+    <section class={card}>
+      <h2 class="font-semibold">Appearance</h2>
+      <div role="radiogroup" aria-label="Theme" class="mt-3 grid grid-cols-3 gap-1 rounded-xl bg-gray-100 p-1 text-sm font-medium">
+        {(["system", "light", "dark"] as Theme[]).map((t) => (
+          <button type="button" role="radio" aria-checked={theme === t}
+            class={"rounded-lg py-2 text-center transition-colors " + (theme === t ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-800")}
+            onClick={() => { setTheme(t); set(t); }}>
+            {t === "system" ? "Auto" : t === "light" ? "Light" : "Dark"}
+          </button>
+        ))}
+      </div>
     </section>
   );
 }

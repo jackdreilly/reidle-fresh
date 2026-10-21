@@ -6,7 +6,9 @@ import { detectSignedIn, signedIn } from "./boot";
 import { refreshSession, today } from "./lib/session";
 import { loadWordle } from "./lib/wordle";
 import { initPwa } from "./lib/pwa";
+import { initTheme } from "./lib/theme";
 
+initTheme();
 render(<App />, document.getElementById("app")!);
 
 // Back in the foreground after a while: fresh shell state (played today, unread) and page data.

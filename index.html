@@ -15,6 +15,16 @@
     <meta name="apple-mobile-web-app-title" content="Reidle" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="format-detection" content="telephone=no" />
+    <script>
+      // theme before first paint (src/lib/theme.ts loads the dark palette)
+      try {
+        var t = localStorage.getItem("reidle:theme") || "system";
+        if (t === "dark" || (t === "system" && matchMedia("(prefers-color-scheme: dark)").matches)) {
+          document.documentElement.dataset.theme = "dark";
+          document.documentElement.style.background = "#0d1117";
+        }
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="app"></div>

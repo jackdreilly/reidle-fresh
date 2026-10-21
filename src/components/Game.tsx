@@ -715,8 +715,8 @@ export default function Game(
                           borderColor: row < previousWords.length
                             ? "transparent"
                             : row === activeRow && column < activeCol
-                            ? "#878a8c"
-                            : "#d3d6da",
+                            ? "var(--tile-typed, #878a8c)"
+                            : "var(--tile-empty, #d3d6da)",
                           backgroundColor: row < previousWords.length
                             ? scoreColor(previousWords[row][column].score)
                             : null,
@@ -751,8 +751,9 @@ export default function Game(
                   <button
                     class="key rounded-lg cursor-pointer font-bold"
                     style={{
-                      color: keyColor(c) === "#d3d6da" ? "black" : "white",
-                      backgroundColor: keyColor(c),
+                      // unused keys follow the theme (src/dark.css); scored keys keep their colours
+                      color: keyColor(c) === "#d3d6da" ? "var(--key-text, black)" : "white",
+                      backgroundColor: keyColor(c) === "#d3d6da" ? "var(--key, #d3d6da)" : keyColor(c),
                       webkitTapHighlightColor: "rgba(0,0,0,.3)",
                       outline: "none",
                     }}

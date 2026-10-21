@@ -1,0 +1,111 @@
+/* Dark theme: Tailwind v4 utilities read the palette from CSS variables, so remapping them recolours the
+   whole app without dark: variants (which would not fit the first-load CSS budget). Loaded only when dark
+   (src/lib/theme.ts). Greys flip; colour tints become dim washes and dark text shades become light. */
+html[data-theme=dark] {
+  color-scheme: dark;
+  --key: #3a3f47; --key-text: #fff; --tile-empty: #3a3f47; --tile-typed: #8b949e;
+  --color-white: #161b22;
+  --color-gray-50: #1c222b;
+  --color-gray-100: #232a34;
+  --color-gray-200: #2e3642;
+  --color-gray-300: #3b4553;
+  --color-gray-400: #7d8794;
+  --color-gray-500: #9aa3ae;
+  --color-gray-600: #b2bac4;
+  --color-gray-700: #c9d0d8;
+  --color-gray-800: #dde2e8;
+  --color-gray-900: #eef1f4;
+  --color-black: #ffffff;
+  --color-amber-50: color-mix(in oklab, #f59e0b 12%, #161b22);
+  --color-amber-100: color-mix(in oklab, #f59e0b 20%, #161b22);
+  --color-amber-200: color-mix(in oklab, #f59e0b 35%, #161b22);
+  --color-amber-700: color-mix(in oklab, #f59e0b 55%, #fff);
+  --color-amber-800: color-mix(in oklab, #f59e0b 40%, #fff);
+  --color-amber-900: color-mix(in oklab, #f59e0b 28%, #fff);
+  --color-amber-950: color-mix(in oklab, #f59e0b 20%, #fff);
+  --color-rose-50: color-mix(in oklab, #f43f5e 12%, #161b22);
+  --color-rose-100: color-mix(in oklab, #f43f5e 20%, #161b22);
+  --color-rose-200: color-mix(in oklab, #f43f5e 35%, #161b22);
+  --color-rose-700: color-mix(in oklab, #f43f5e 55%, #fff);
+  --color-rose-800: color-mix(in oklab, #f43f5e 40%, #fff);
+  --color-rose-900: color-mix(in oklab, #f43f5e 28%, #fff);
+  --color-rose-950: color-mix(in oklab, #f43f5e 20%, #fff);
+  --color-yellow-50: color-mix(in oklab, #eab308 12%, #161b22);
+  --color-yellow-100: color-mix(in oklab, #eab308 20%, #161b22);
+  --color-yellow-200: color-mix(in oklab, #eab308 35%, #161b22);
+  --color-yellow-700: color-mix(in oklab, #eab308 55%, #fff);
+  --color-yellow-800: color-mix(in oklab, #eab308 40%, #fff);
+  --color-yellow-900: color-mix(in oklab, #eab308 28%, #fff);
+  --color-yellow-950: color-mix(in oklab, #eab308 20%, #fff);
+  --color-blue-50: color-mix(in oklab, #3b82f6 12%, #161b22);
+  --color-blue-100: color-mix(in oklab, #3b82f6 20%, #161b22);
+  --color-blue-200: color-mix(in oklab, #3b82f6 35%, #161b22);
+  --color-blue-700: color-mix(in oklab, #3b82f6 55%, #fff);
+  --color-blue-800: color-mix(in oklab, #3b82f6 40%, #fff);
+  --color-blue-900: color-mix(in oklab, #3b82f6 28%, #fff);
+  --color-blue-950: color-mix(in oklab, #3b82f6 20%, #fff);
+  --color-red-50: color-mix(in oklab, #ef4444 12%, #161b22);
+  --color-red-100: color-mix(in oklab, #ef4444 20%, #161b22);
+  --color-red-200: color-mix(in oklab, #ef4444 35%, #161b22);
+  --color-red-700: color-mix(in oklab, #ef4444 55%, #fff);
+  --color-red-800: color-mix(in oklab, #ef4444 40%, #fff);
+  --color-red-900: color-mix(in oklab, #ef4444 28%, #fff);
+  --color-red-950: color-mix(in oklab, #ef4444 20%, #fff);
+  --color-orange-50: color-mix(in oklab, #f97316 12%, #161b22);
+  --color-orange-100: color-mix(in oklab, #f97316 20%, #161b22);
+  --color-orange-200: color-mix(in oklab, #f97316 35%, #161b22);
+  --color-orange-700: color-mix(in oklab, #f97316 55%, #fff);
+  --color-orange-800: color-mix(in oklab, #f97316 40%, #fff);
+  --color-orange-900: color-mix(in oklab, #f97316 28%, #fff);
+  --color-orange-950: color-mix(in oklab, #f97316 20%, #fff);
+  --color-sky-50: color-mix(in oklab, #0ea5e9 12%, #161b22);
+  --color-sky-100: color-mix(in oklab, #0ea5e9 20%, #161b22);
+  --color-sky-200: color-mix(in oklab, #0ea5e9 35%, #161b22);
+  --color-sky-700: color-mix(in oklab, #0ea5e9 55%, #fff);
+  --color-sky-800: color-mix(in oklab, #0ea5e9 40%, #fff);
+  --color-sky-900: color-mix(in oklab, #0ea5e9 28%, #fff);
+  --color-sky-950: color-mix(in oklab, #0ea5e9 20%, #fff);
+  --color-green-50: color-mix(in oklab, #22c55e 12%, #161b22);
+  --color-green-100: color-mix(in oklab, #22c55e 20%, #161b22);
+  --color-green-200: color-mix(in oklab, #22c55e 35%, #161b22);
+  --color-green-700: color-mix(in oklab, #22c55e 55%, #fff);
+  --color-green-800: color-mix(in oklab, #22c55e 40%, #fff);
+  --color-green-900: color-mix(in oklab, #22c55e 28%, #fff);
+  --color-green-950: color-mix(in oklab, #22c55e 20%, #fff);
+  --color-purple-50: color-mix(in oklab, #a855f7 12%, #161b22);
+  --color-purple-100: color-mix(in oklab, #a855f7 20%, #161b22);
+  --color-purple-200: color-mix(in oklab, #a855f7 35%, #161b22);
+  --color-purple-700: color-mix(in oklab, #a855f7 55%, #fff);
+  --color-purple-800: color-mix(in oklab, #a855f7 40%, #fff);
+  --color-purple-900: color-mix(in oklab, #a855f7 28%, #fff);
+  --color-purple-950: color-mix(in oklab, #a855f7 20%, #fff);
+  --color-pink-50: color-mix(in oklab, #ec4899 12%, #161b22);
+  --color-pink-100: color-mix(in oklab, #ec4899 20%, #161b22);
+  --color-pink-200: color-mix(in oklab, #ec4899 35%, #161b22);
+  --color-pink-700: color-mix(in oklab, #ec4899 55%, #fff);
+  --color-pink-800: color-mix(in oklab, #ec4899 40%, #fff);
+  --color-pink-900: color-mix(in oklab, #ec4899 28%, #fff);
+  --color-pink-950: color-mix(in oklab, #ec4899 20%, #fff);
+  --color-cyan-50: color-mix(in oklab, #06b6d4 12%, #161b22);
+  --color-cyan-100: color-mix(in oklab, #06b6d4 20%, #161b22);
+  --color-cyan-200: color-mix(in oklab, #06b6d4 35%, #161b22);
+  --color-cyan-700: color-mix(in oklab, #06b6d4 55%, #fff);
+  --color-cyan-800: color-mix(in oklab, #06b6d4 40%, #fff);
+  --color-cyan-900: color-mix(in oklab, #06b6d4 28%, #fff);
+  --color-cyan-950: color-mix(in oklab, #06b6d4 20%, #fff);
+  --color-teal-50: color-mix(in oklab, #14b8a6 12%, #161b22);
+  --color-teal-100: color-mix(in oklab, #14b8a6 20%, #161b22);
+  --color-teal-200: color-mix(in oklab, #14b8a6 35%, #161b22);
+  --color-teal-700: color-mix(in oklab, #14b8a6 55%, #fff);
+  --color-teal-800: color-mix(in oklab, #14b8a6 40%, #fff);
+  --color-teal-900: color-mix(in oklab, #14b8a6 28%, #fff);
+  --color-teal-950: color-mix(in oklab, #14b8a6 20%, #fff);
+}
+html[data-theme=dark], html[data-theme=dark] body { background: #0d1117; color: #e6edf3; }
+/* white text sits on coloured buttons; dark buttons stay dark */
+html[data-theme=dark] .text-white { color: #fff; }
+html[data-theme=dark] .bg-gray-900, html[data-theme=dark] .bg-gray-800 { background-color: #3a4554; }
+html[data-theme=dark] img[src$='.webp'] { filter: none; }
+/* the one solid light sidebar tile (Rankings) */
+html[data-theme=dark] .bg-\[\#f7f1b5\] { background-color: #3b3712; }
+html[data-theme=dark] .hover\:bg-\[\#bfb865\]:hover { background-color: #57511c; }
