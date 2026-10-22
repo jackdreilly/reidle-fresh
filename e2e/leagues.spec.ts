@@ -114,3 +114,20 @@ test("a long players list scrolls and can be searched", async ({ page }) => {
   await page.getByLabel("Find a player").fill("zzzz");
   await expect(list.getByText("No player named")).toBeVisible();
 });
+
+test("the commissioner bans a player: out, and the invite link won't let them back", async ({ page, browser }) => {
+  await signIn(page, "kim", "/league?league=3");
+  await expect(page.getByRole("heading", { name: "Book Club" })).toBeVisible();
+  page.on("dialog", (d) => void d.accept());
+  await page.getByLabel("Manage leo").selectOption("ban");
+  await expect(page.getByRole("heading", { name: "Banned" })).toBeVisible();
+  await expect(page.getByLabel("Manage leo")).toHaveCount(0);
+
+  const leo = await (await browser.newContext()).newPage();
+  await signIn(leo, "leo", "/join/bookclub");
+  await leo.getByRole("button", { name: "Join Book Club" }).click();
+  await expect(leo.getByText("you can't join Book Club")).toBeVisible();
+
+  await page.getByRole("button", { name: "Unban" }).click();
+  await expect(page.getByText("leo can join again.")).toBeVisible();
+});

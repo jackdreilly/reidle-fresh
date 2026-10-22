@@ -18,7 +18,7 @@
     <script>
       // theme before first paint (src/lib/theme.ts loads the dark palette)
       try {
-        var t = localStorage.getItem("reidle:theme") || "system";
+        var t = localStorage.getItem("reidle:theme") || "light";
         if (t === "dark" || (t === "system" && matchMedia("(prefers-color-scheme: dark)").matches)) {
           document.documentElement.dataset.theme = "dark";
           document.documentElement.style.background = "#0d1117";

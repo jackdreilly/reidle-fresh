@@ -1,9 +1,13 @@
 import { expect, test } from "@playwright/test";
 import { signIn } from "./helpers";
 
-test("dark mode: follows the system, or pick it in Settings", async ({ page }) => {
+test("dark mode: light by default, Auto follows the system, or pick it in Settings", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "dark" });
   await signIn(page, "carol");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await page.goto("/account");
+  await page.getByRole("radio", { name: "Auto" }).click();
+  await page.goto("/");
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await expect(page.locator("#dark-css")).toBeAttached();
   await page.screenshot({ path: "test-results/dark-daily.png" });

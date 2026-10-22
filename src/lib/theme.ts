@@ -1,4 +1,4 @@
-// Light / dark / follow the system. The class is set by the inline script in index.html before first paint;
+// Light (the default) / dark / follow the system. The class is set by the inline script in index.html before first paint;
 // the dark palette (src/dark.css) is a separate stylesheet, fetched only when dark is on.
 import darkCss from "../dark.css?url";
 
@@ -7,7 +7,7 @@ const KEY = "reidle:theme";
 const media = matchMedia("(prefers-color-scheme: dark)");
 
 export function getTheme(): Theme {
-  try { return (localStorage.getItem(KEY) as Theme) || "system"; } catch { return "system"; }
+  try { return (localStorage.getItem(KEY) as Theme) || "light"; } catch { return "light"; }
 }
 
 export function applyTheme(t: Theme = getTheme()) {
@@ -21,7 +21,7 @@ export function applyTheme(t: Theme = getTheme()) {
 }
 
 export function setTheme(t: Theme) {
-  try { t === "system" ? localStorage.removeItem(KEY) : localStorage.setItem(KEY, t); } catch { /* ignore */ }
+  try { t === "light" ? localStorage.removeItem(KEY) : localStorage.setItem(KEY, t); } catch { /* ignore */ }
   applyTheme(t);
 }
 

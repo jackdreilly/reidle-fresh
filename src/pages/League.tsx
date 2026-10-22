@@ -8,7 +8,7 @@ import type { LeagueBrief, Scoring } from "@/lib/types";
 import { describeScoring, inviteUrl, presetOf, PRESETS, shareInvite, tzChoices } from "@/lib/leagues";
 
 type Member = { name: string; role: "commissioner" | "member"; joined_at: string };
-type Data = LeagueBrief & { invite_code: string; created_by: string | null; members: Member[] };
+type Data = LeagueBrief & { invite_code: string; created_by: string | null; members: Member[]; banned?: string[] | null };
 
 const card = "rounded-2xl border border-gray-200 bg-white p-4 shadow-sm";
 const field = "rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm";
@@ -88,7 +88,8 @@ export default function League({ data: initial, query }: PageProps<Data>) {
                   onChange={(e) => {
                     const v = (e.target as HTMLSelectElement).value;
                     (e.target as HTMLSelectElement).value = "";
-                    if (v === "remove" && !confirm(`Remove ${m.name} from ${data.name}?`)) return;
+                    if (v === "remove" && !confirm(`Remove ${m.name} from ${data.name}? They can rejoin with the invite link.`)) return;
+                    if (v === "ban" && !confirm(`Ban ${m.name} from ${data.name}? They're removed and can't rejoin.`)) return;
                     void save("set_member", { p_name: m.name, p_role: v });
                   }}>
                   <option value="">Manage…</option>
@@ -96,11 +97,27 @@ export default function League({ data: initial, query }: PageProps<Data>) {
                     ? <option value="commissioner">Make commissioner</option>
                     : <option value="member">Make regular player</option>}
                   <option value="remove">Remove from league</option>
+                  <option value="ban">Ban from league</option>
                 </select>
               )}
             </li>
           ))}
         </ul>
+        {boss && !!data.banned?.length && (
+          <div class="mt-3 border-t border-gray-100 pt-3">
+            <h3 class="text-sm font-medium text-gray-900">Banned</h3>
+            <ul class="mt-1 space-y-1">
+              {data.banned.map((b) => (
+                <li class="flex items-center justify-between gap-2 text-sm text-gray-600">
+                  <span class="truncate">{b}</span>
+                  <button type="button" class="text-xs text-gray-500 underline" onClick={() => void save("set_member", { p_name: b, p_role: "unban" }, `${b} can join again.`)}>
+                    Unban
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </section>
 
       <a href="/leagues/new" class={"block w-full text-center " + quiet}>+ Start another league</a>

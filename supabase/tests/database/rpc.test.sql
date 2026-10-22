@@ -1,5 +1,5 @@
 begin;
-select plan(86);
+select plan(91);
 
 -- Fixture: isolated players, no seed dependence.
 truncate submissions, checkpoints, messages, message_reads, winners, week_snapshots, challenges, players restart identity cascade;
@@ -283,6 +283,22 @@ select leave_league((select id from pals));
 select reset_role();
 select is((select role from league_members where league_id = (select id from pals) and name = 'benny'), 'commissioner',
   'the last commissioner leaving promotes the next member');
+
+-- bans: out, and the invite link no longer lets them back in
+select reset_role();
+select act_in('benny', (select id from pals));
+select is(set_member('cat', 'ban') -> 'banned', '["cat"]'::jsonb, 'the commissioner bans a player and sees the ban list');
+select act_as('cat');
+select throws_ok(format('select join_league(%L)', (select invite_code from pals_code)), '42501', null,
+  'a banned player can''t rejoin by invite link');
+select reset_role();
+select act_in('benny', (select id from pals));
+select is(set_member('cat', 'unban') -> 'banned', '[]'::jsonb, 'unban');
+select act_as('cat');
+select is(join_league((select invite_code from pals_code)), (select id from pals), 'unbanned: the link works again');
+select reset_role();
+select act_in('cat', (select id from pals));
+select is(league_page() -> 'banned', 'null'::jsonb, 'only commissioners see the ban list');
 
 select * from finish();
 rollback;
