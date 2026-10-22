@@ -13,6 +13,8 @@ export function getTheme(): Theme {
 export function applyTheme(t: Theme = getTheme()) {
   const dark = t === "dark" || (t === "system" && media.matches);
   document.documentElement.dataset.theme = dark ? "dark" : "light";
+  // index.html paints the page dark before the CSS loads; clear that when switching back to light
+  document.documentElement.style.background = dark ? "#0d1117" : "";
   document.querySelector('meta[name="theme-color"]')?.setAttribute("content", dark ? "#161b22" : "#ffffff");
   if (dark && !document.getElementById("dark-css")) {
     const l = Object.assign(document.createElement("link"), { id: "dark-css", rel: "stylesheet", href: darkCss });

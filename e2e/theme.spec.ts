@@ -18,8 +18,10 @@ test("dark mode: light by default, Auto follows the system, or pick it in Settin
   await page.waitForTimeout(500);
   await page.screenshot({ path: "test-results/dark-practice.png" });
   await page.goto("/account");
+  await page.reload(); // the pre-paint dark background (index.html) must go when switching to Light
   await page.getByRole("radio", { name: "Light" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  expect(await page.evaluate(() => getComputedStyle(document.documentElement).backgroundColor)).not.toBe("rgb(13, 17, 23)");
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light"); // remembered over the system setting
   await page.getByRole("radio", { name: "Dark" }).click();
