@@ -3,7 +3,9 @@
    (src/lib/theme.ts). Greys flip; colour tints become dim washes and dark text shades become light. */
 html[data-theme=dark] {
   color-scheme: dark;
-  --key: #3a3f47; --key-text: #fff; --tile-empty: #3a3f47; --tile-typed: #8b949e;
+  /* game colours as in NYT Wordle's dark mode: used-up letters go dark, unused keys stay light */
+  --key: #818384; --key-text: #fff; --tile-empty: #3a3a3c; --tile-typed: #565758;
+  --absent: #3a3a3c; --present: #b59f3b; --correct: #538d4e;
   --color-white: #161b22;
   --color-gray-50: #1c222b;
   --color-gray-100: #232a34;
