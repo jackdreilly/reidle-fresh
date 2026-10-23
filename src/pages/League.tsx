@@ -1,7 +1,7 @@
 import { useState } from "preact/hooks";
 import type { PageProps } from "@/router";
 import { navigate } from "@/router";
-import { refreshSession, useSession } from "@/lib/session";
+import { refreshSession, switchLeague, useSession } from "@/lib/session";
 import { rpc } from "@/lib/supabase";
 import { hourLabel } from "@/lib/time";
 import type { LeagueBrief, Scoring } from "@/lib/types";
@@ -10,6 +10,7 @@ import { describeScoring, inviteUrl, presetOf, PRESETS, shareInvite, tzChoices }
 type Member = { name: string; role: "commissioner" | "member"; joined_at: string };
 type Data = LeagueBrief & { invite_code: string; created_by: string | null; members: Member[]; banned?: string[] | null };
 
+const GLOBAL = 2; // Reidle Global, everyone's public league (leagues migration)
 const card = "rounded-2xl border border-gray-200 bg-white p-4 shadow-sm";
 const field = "rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm";
 const quiet = "rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100";
@@ -120,6 +121,21 @@ export default function League({ data: initial, query }: PageProps<Data>) {
         )}
       </section>
 
+      {!leagues.some((l) => l.id === GLOBAL) && (
+        <section class={card}>
+          <h2 class="font-semibold">🌍 Reidle Global</h2>
+          <p class="mt-1 text-sm text-gray-600">Everyone's league: race the daily word against players everywhere, on top of {data.name}. Leave any time.</p>
+          <button type="button" class={"mt-3 " + quiet} onClick={async () => {
+            try {
+              await switchLeague(await rpc<number>("join_league", { p_code: "global" }));
+              await navigate("/stats/today");
+            }
+            catch (e) { setNote((e as Error).message); }
+          }}>
+            Join Reidle Global
+          </button>
+        </section>
+      )}
       <a href="/leagues/new" class={"block w-full text-center " + quiet}>+ Start another league</a>
       <button type="button" class={"w-full " + quiet}
         onClick={async () => {

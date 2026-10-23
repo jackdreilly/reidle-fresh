@@ -3,16 +3,39 @@ import StagingTag from "@/components/StagingTag";
 import Input from "@/components/Input";
 import LoginOptions from "@/components/LoginOptions";
 import { signIn } from "@/lib/auth";
-import { auth } from "@/lib/supabase";
+import { auth, config } from "@/lib/supabase";
 import { refreshSession } from "@/lib/session";
 import { setSignedIn } from "@/boot";
 import { navigate } from "@/router";
 
 const card = "rounded-2xl border border-gray-200 bg-white p-4 shadow-sm";
 
+/** The guest account a guest left on this device when signing out (auth.signOut). */
+type Kept = { rt: string; name: string };
+function savedGuest(): Kept | null {
+  try {
+    const [rt, name] = JSON.parse(localStorage.getItem("reidle:guest") ?? "null") as [string, string];
+    return { rt, name };
+  } catch { return null; }
+}
+
+/** Back into the kept guest account; false if there is none or it no longer works. */
+async function resumeGuest(kept: Kept | null): Promise<boolean> {
+  if (!kept) return false;
+  try { localStorage.removeItem("reidle:guest"); } catch { /* ignore */ }
+  const res = await fetch(`${config.URL}/auth/v1/token?grant_type=refresh_token`, {
+    method: "POST", headers: { apikey: config.KEY, "content-type": "application/json" },
+    body: JSON.stringify({ refresh_token: kept.rt }),
+  }).catch(() => null);
+  if (!res?.ok) return false;
+  const t = await res.json();
+  return !auth.fromRedirect("#" + new URLSearchParams({ access_token: t.access_token, refresh_token: t.refresh_token, expires_in: String(t.expires_in) }));
+}
+
 export default function SignIn({ query }: { query: URLSearchParams }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [guest] = useState(savedGuest);
   const to = (() => { const r = query.get("redirect"); return r && r.startsWith("/") ? r : "/"; })();
 
   const done = async (askNickname: boolean) => {
@@ -44,8 +67,8 @@ export default function SignIn({ query }: { query: URLSearchParams }) {
           <h2 class="font-semibold">Just looking?</h2>
           <p class="mt-1 text-sm text-gray-600">Play as a guest in Reidle Global. Save your account any time to keep your stats.</p>
           <button type="button" disabled={busy} class="mt-3 rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
-            onClick={() => void attempt(() => auth.signInAnonymously(), false)}>
-            Try it as a guest
+            onClick={() => void attempt(() => resumeGuest(guest).then((ok) => { if (!ok) return auth.signInAnonymously(); }), false)}>
+            {guest ? `Continue as ${guest.name}` : "Try it as a guest"}
           </button>
         </section>
         <details class={card}>

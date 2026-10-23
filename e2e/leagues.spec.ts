@@ -132,3 +132,26 @@ test("the commissioner bans a player: out, and the invite link won't let them ba
   await page.getByRole("button", { name: "Unban" }).click();
   await expect(page.getByText("leo can join again.")).toBeVisible();
 });
+
+test("a guest who logs out gets the same guest back on this device", async ({ page }) => {
+  await page.goto("/sign-in");
+  await page.getByRole("button", { name: "Try it as a guest" }).click();
+  await expect(page).toHaveURL(/\/stats\/daily\//);
+  await page.getByRole("dialog").getByRole("button", { name: "Skip" }).click(); // the new-player tour
+  const name = (await page.getByText(/You're playing as a guest/).innerText()).match(/\((.+)\)/)![1];
+  await page.goto("/account");
+  await page.getByRole("link", { name: "Log Out" }).click();
+  await page.getByRole("button", { name: `Continue as ${name}` }).click();
+  await expect(page.getByText(`You're playing as a guest (${name})`)).toBeVisible();
+});
+
+test("private league players can find Reidle Global, and leave it again", async ({ page }) => {
+  await signIn(page, "alice", "/league");
+  await page.getByRole("button", { name: "Join Reidle Global" }).click();
+  await expect(page.getByRole("link", { name: /League · switch Reidle Global/ })).toBeVisible();
+  await page.goto("/leagues");
+  page.on("dialog", (d) => void d.accept());
+  await page.locator("section").filter({ hasText: "Reidle Global" }).getByRole("button", { name: "Leave" }).click();
+  await expect.poll(() => sql("select count(*) from league_members where name = 'alice' and league_id = 2")).toBe("0");
+  await expect(page.getByRole("link", { name: /League Reidle OG/ })).toBeVisible();
+});

@@ -1,6 +1,6 @@
 import type { PageProps } from "@/router";
 import { navigate } from "@/router";
-import { switchLeague, useSession } from "@/lib/session";
+import { refreshSession, switchLeague, useSession } from "@/lib/session";
 import { rpc } from "@/lib/supabase";
 import { timerTime } from "@/lib/time";
 import { useState } from "preact/hooks";
@@ -57,6 +57,20 @@ export default function Leagues({ data }: PageProps<Row[]>) {
             {!r.played && (
               <button type="button" onClick={() => void openLeague(r.id, "/play")}
                 class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white">▶ Play</button>
+            )}
+            {r.is_public && data.length > 1 && (
+              <button type="button" disabled={busy} class="ml-auto px-2 py-2 text-xs text-gray-500 underline"
+                onClick={async () => {
+                  if (!confirm(`Leave ${r.name}? You can rejoin any time from here.`)) return;
+                  setBusy(true);
+                  try {
+                    await rpc("leave_league", { p_league: r.id });
+                    const s = await refreshSession(); // the server moves you off it if it was current
+                    await navigate(s.leagues.length > 1 ? "/leagues" : "/", { replace: true });
+                  } finally { setBusy(false); }
+                }}>
+                Leave
+              </button>
             )}
             {r.open_challenges > 0 && (
               <button type="button" onClick={() => void openLeague(r.id, "/challenges")}

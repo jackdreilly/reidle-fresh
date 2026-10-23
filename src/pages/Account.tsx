@@ -1,6 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
 import type { PageProps } from "@/router";
-import { refreshSession, useSession } from "@/lib/session";
+import { getSession, refreshSession, useSession } from "@/lib/session";
 import { navigate } from "@/router";
 import LoginOptions from "@/components/LoginOptions";
 import { finishLink } from "@/lib/auth";
@@ -30,7 +30,8 @@ const card = "rounded-2xl border border-gray-200 bg-white p-4 shadow-sm";
 
 export default function Account({ data, query }: PageProps<{ name: string; prefs: Prefs }>) {
   const install = useInstall();
-  const name = useSession().name ?? data.name;
+  const { name: myName, account } = useSession();
+  const name = myName ?? data.name;
   return (
     <div class="mx-auto max-w-md space-y-4">
       <header class="flex items-center justify-between gap-3">
@@ -64,11 +65,26 @@ export default function Account({ data, query }: PageProps<{ name: string; prefs
             )}
         </section>
       )}
-      <a href="/sign-out" class="block rounded-lg border border-gray-200 bg-white px-3 py-2 text-center text-sm font-medium text-gray-700 hover:bg-gray-100">
+      <a href="/sign-out" onClick={account === "guest" ? keepGuest : undefined} class="block rounded-lg border border-gray-200 bg-white px-3 py-2 text-center text-sm font-medium text-gray-700 hover:bg-gray-100">
         Log Out
       </a>
     </div>
   );
+}
+
+/**
+ * A guest logging out keeps their guest account on this device: its tokens are set aside (not revoked by
+ * /sign-out) for "Continue as …" on the sign-in page.
+ */
+function keepGuest(e: Event) {
+  try {
+    const t = JSON.parse(localStorage.getItem("reidle:auth") ?? "null");
+    if (!t) return;
+    e.preventDefault();
+    localStorage.setItem("reidle:guest", JSON.stringify([t.refresh_token, getSession().name]));
+    localStorage.removeItem("reidle:auth");
+    location.assign("/sign-in"); // a fresh start, signed out
+  } catch { /* fall back to a normal sign-out */ }
 }
 
 /** Nickname, and for guests / name-only players: link a real login (same account, same history). */
