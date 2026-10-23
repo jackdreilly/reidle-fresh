@@ -1,5 +1,5 @@
 begin;
-select plan(93);
+select plan(99);
 
 -- Fixture: isolated players, no seed dependence.
 truncate submissions, checkpoints, messages, message_reads, winners, week_snapshots, challenges, players restart identity cascade;
@@ -7,6 +7,9 @@ insert into auth.users (id, instance_id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-00000000000' || i)::uuid, '00000000-0000-0000-0000-000000000000',
        'authenticated', 'authenticated', n || '@t.t', jsonb_build_object('name', n)
 from unnest(array['ann','ben','cat','dan','eve']) with ordinality t(n, i);
+
+-- the name-only grace period stays open for this fixture (its accounts are unconfirmed, i.e. name-only)
+update app_flags set legacy_until = 'infinity';
 
 -- name-only sign-ups start in Reidle Global; this fixture plays in the founding league
 update league_members set league_id = 1 where league_id = 2;
@@ -38,14 +41,14 @@ select is(
   array['battle_get','battle_home','battle_restart','bootstrap','challenge_next','challenge_page',
         'challenge_play','challenges_page','create_league','daily_page','delete_message','dismiss_tour','get_playback',
         'join_league','league_page','league_preview','leagues_page','leave_league','like_message',
-        'messages_page','new_battle','nickname_free','past_page','past_winners','play_state','player_stats',
+        'messages_page','name_sign_in_open','new_battle','nickname_free','past_page','past_winners','play_state','player_stats',
         'post_message','push_subscribe','push_unsubscribe','rankings','save_checkpoint','set_member',
         'set_nickname','set_notify_prefs','settings_page','start_play','submit_challenge','submit_daily',
         'update_league','weekly_page']::text[],
   'authenticated can execute exactly the RPC allowlist');
 select is((select count(*)::int from pg_proc p where p.pronamespace = 'public'::regnamespace
             and p.proname not in ('act_as', 'act_in', 'reset_role', 'uid_of')
-            and has_function_privilege('anon', p.oid, 'execute')), 1, 'anon can execute nothing but league_preview');
+            and has_function_privilege('anon', p.oid, 'execute')), 2, 'anon can execute nothing but league_preview and name_sign_in_open');
 select ok(has_function_privilege('anon', 'public.league_preview(text)', 'execute'), 'anon may preview an invite link');
 select throws_ok($$set local role authenticated; select public.play_payload('x')$$, '42501', null,
   'helpers are not callable (play_payload would leak the answer)');
@@ -302,6 +305,22 @@ select is(join_league((select invite_code from pals_code)), (select id from pals
 select reset_role();
 select act_in('cat', (select id from pals));
 select is(league_page() -> 'banned', 'null'::jsonb, 'only commissioners see the ban list');
+
+-- Name-only sunset: once app_flags.legacy_until passes, name-only accounts are locked until they link a login
+select reset_role();
+update auth.users set email_confirmed_at = now() where id = uid_of('dan');  -- dan has a real, confirmed email
+select act_as('ann');
+select is(name_sign_in_open(), true, 'before the cutoff: name sign-in is open');
+select reset_role();
+update app_flags set legacy_until = now() - interval '1 second';
+select act_as('ann');
+select is(name_sign_in_open(), false, 'after the cutoff: name sign-in is closed');
+select ok((bootstrap() ->> 'legacy_until')::timestamptz <= now(), 'bootstrap still answers a name-only player, with the cutoff');
+select throws_ok('select dismiss_tour()', '28000', null, 'after the cutoff a name-only player can''t use the app');
+select act_as('dan');
+select lives_ok('select dismiss_tour()', 'a verified player is unaffected');
+select is(bootstrap() -> 'legacy_until', 'null'::jsonb, 'verified players get no cutoff');
+select reset_role();
 
 select * from finish();
 rollback;

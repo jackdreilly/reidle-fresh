@@ -42,12 +42,13 @@ const newDot = (style?: Record<string, string>) => (
 );
 
 /** The new-player tour, loaded only for players who haven't dismissed it (keeps it out of the first load). */
-function useTour(show: boolean) {
-  const [Tour, setTour] = useState<ComponentType | null>(null);
+/** A component loaded only once it's needed, so it stays out of the first load. */
+function useLazy<P>(show: boolean, load: () => Promise<{ default: ComponentType<P> }>) {
+  const [C, setC] = useState<ComponentType<P> | null>(null);
   useEffect(() => {
-    if (show && !Tour) void import("@/components/Tour").then((m) => setTour(() => m.default));
+    if (show && !C) void load().then((m) => setC(() => m.default));
   }, [show]);
-  return show ? Tour : null;
+  return show ? C : null;
 }
 
 export default function Layout(
@@ -60,7 +61,9 @@ export default function Layout(
   const { played_today: playedToday, name, unread, pending_challenges: pending = 0, league, leagues, account, tour_seen } = useSession();
   const [open, setOpen] = useState(false);
   // never over a game in progress, nor before they've picked a league
-  const Tour = useTour(tour_seen === false && !fullPage && !!league);
+  const Tour = useLazy(tour_seen === false && !fullPage && !!league, () => import("@/components/Tour"));
+  // guests and name-only players: the "save your account" banners (and the name-only lock)
+  const Banner = useLazy(account === "legacy" || account === "guest", () => import("@/components/AccountBanner"));
   // name-only and guest accounts keep the dot until they link Google or an email
   const dot = useSettingsDot(route) || account === "legacy" || account === "guest";
   const install = useInstall();
@@ -348,17 +351,7 @@ export default function Layout(
               : "pt-[calc(6em+env(safe-area-inset-top))] px-4 pb-[max(1rem,env(safe-area-inset-bottom))]",
           ].join(" ")}
         >
-          {account === "legacy" && !fullPage && route !== "/account" && (
-            <a href="/account#login" class="mx-auto mb-3 block max-w-xl rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-gray-700">
-              <b>Lock {name} to you.</b> Anyone who types {name} can sign in as you, and name-only sign-in is going away soon.{" "}
-              <span class="font-medium underline">Link Google or email</span>
-            </a>
-          )}
-          {account === "guest" && !fullPage && route !== "/account" && (
-            <a href="/account#login" class="mx-auto mb-3 block max-w-xl rounded-xl bg-gray-50 p-3 text-sm text-gray-700">
-              You're playing as a guest (<b>{name}</b>). <span class="underline">Save your account</span> to keep your stats and join friends' leagues.
-            </a>
-          )}
+          {Banner && <Banner route={route} fullPage={fullPage} />}
           {children}
         </div>
         {Tour && <Tour />}

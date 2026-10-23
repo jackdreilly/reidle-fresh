@@ -14,7 +14,7 @@ function readCache(): Bootstrap {
     if (c?.name) {
       const fresh = c.league && c.league.id === leagueId();
       return {
-        ...anon, name: c.name, account: c.account, nickname_set: c.nickname_set, tour_seen: c.tour_seen,
+        ...anon, name: c.name, account: c.account, legacy_until: c.legacy_until, nickname_set: c.nickname_set, tour_seen: c.tour_seen,
         league: fresh ? c.league : null, leagues: c.leagues ?? [],
         played_today: fresh && c.day === dayIn(c.league.tz, c.league.reset_hour) && c.played_today,
       };
@@ -59,6 +59,10 @@ export async function switchLeague(id: number): Promise<void> {
   if (setLeagueId(id)) set({ ...state, league: null, played_today: false, unread: false, pending_challenges: 0 });
   await refreshSession();
 }
+
+/** Name-only sign-in has ended (bootstrap's legacy_until): this account must link a login before playing. */
+export const lockedOut = ({ account, legacy_until: t }: Bootstrap) =>
+  account === "legacy" && !!t && Date.parse(t) <= Date.now(); // "infinity" (never) parses to NaN
 
 export const hasAuthSession = async () => hasSession();
 

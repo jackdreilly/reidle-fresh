@@ -3,6 +3,7 @@ import type { PageProps } from "@/router";
 import { getSession, refreshSession, useSession } from "@/lib/session";
 import { navigate } from "@/router";
 import LoginOptions from "@/components/LoginOptions";
+import { nameOnlyEnds } from "@/components/AccountBanner";
 import { finishLink } from "@/lib/auth";
 import { getTheme, setTheme, type Theme } from "@/lib/theme";
 import { useInstall } from "@/lib/pwa";
@@ -89,7 +90,7 @@ function keepGuest(e: Event) {
 
 /** Nickname, and for guests / name-only players: link a real login (same account, same history). */
 function Login({ after }: { after: string }) {
-  const { name, account } = useSession();
+  const { name, account, legacy_until } = useSession();
   return (
     <section id="login" class={card}>
       <div class="flex items-center justify-between gap-3">
@@ -107,7 +108,7 @@ function Login({ after }: { after: string }) {
           <p class="text-sm text-gray-600">
             {account === "guest"
               ? "Keep your games and stats, pick your own nickname and join your friends' leagues."
-              : `Right now anyone who types ${name} can sign in as you. Link Google or an email and only you can.`}
+              : `Right now anyone who types ${name} can sign in as you. Link Google or an email and only you can. ${nameOnlyEnds(legacy_until)}`}
           </p>
           <LoginOptions link after={after} onEmailDone={async () => {
             await finishLink();

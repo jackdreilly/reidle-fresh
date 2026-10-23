@@ -173,6 +173,7 @@ export const routes: Route[] = [
   { path: "/join/:code", page: () => import("./pages/Join"), public: true, load: (p) => read("league_preview", { p_code: p.code }) },
   { path: "/sign-in", page: () => import("./pages/SignIn"), public: true },
   { path: "/auth/callback", page: () => import("./pages/AuthCallback"), public: true },
+  { path: "/save-account", page: () => import("./pages/SaveAccount"), layout: { route: "/account", title: "Save your account" } },
   { path: "/nickname", page: () => import("./pages/Nickname"), layout: { route: "/account", title: "Nickname" } },
   {
     path: "/sign-out",

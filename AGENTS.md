@@ -131,6 +131,11 @@ applied by `tools/auth-config.mjs` from CI (db.yml -> staging; GitHub secrets GO
 Confirm email ON means new name-only sign-ups no longer work on hosted projects; existing name-only accounts are
 already confirmed. Before switching prod over, run `npm run sync-auth` so every legacy player has an account.
 Locally confirmations stay off (config.toml) so E2E can still create name-only players.
+**Name-only sunset**: `app_flags.legacy_until` (2026-10-28 07:00Z, midnight Pacific) ends name-only sign-in with no
+deploy: `require_me()` refuses name-only accounts (the app sends them to `/save-account` to link Google/email,
+keeping their history), `confirm_legacy_claim` stops confirming name claims, the sign-in page hides the name form
+(`name_sign_in_open()`). Until then the banner (`AccountBanner.tsx`) shows the date. Seed sets it to `infinity`
+so local/CI keep name-only test players; move the date with one `update app_flags`.
 
 ## Auth note ("email")
 

@@ -1,4 +1,6 @@
 -- Fake-data fixture, relative to today so it never goes stale.
+-- Name-only sign-in stays open locally and in CI (hosted projects close it at app_flags.legacy_until).
+update app_flags set legacy_until = 'infinity';
 -- Players are created without auth users; signing in as one links it (auth trigger).
 insert into players (name) values
   ('alice'),('bob'),('carol'),('dave'),('erin'),('frank'),('grace'),('heidi');

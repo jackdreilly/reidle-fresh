@@ -1,9 +1,9 @@
-import { useState } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import StagingTag from "@/components/StagingTag";
 import Input from "@/components/Input";
 import LoginOptions from "@/components/LoginOptions";
 import { signIn } from "@/lib/auth";
-import { auth, config } from "@/lib/supabase";
+import { auth, config, rpc } from "@/lib/supabase";
 import { refreshSession } from "@/lib/session";
 import { setSignedIn } from "@/boot";
 import { navigate } from "@/router";
@@ -36,6 +36,9 @@ export default function SignIn({ query }: { query: URLSearchParams }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [guest] = useState(savedGuest);
+  // the name-only form goes once name-only sign-in has ended (app_flags.legacy_until)
+  const [nameOpen, setNameOpen] = useState(true);
+  useEffect(() => { void rpc<boolean>("name_sign_in_open").then(setNameOpen, () => {}); }, []);
   const to = (() => { const r = query.get("redirect"); return r && r.startsWith("/") ? r : "/"; })();
 
   const done = async (askNickname: boolean) => {
@@ -71,7 +74,7 @@ export default function SignIn({ query }: { query: URLSearchParams }) {
             {guest ? `Continue as ${guest.name}` : "Try it as a guest"}
           </button>
         </section>
-        <details class={card}>
+        {nameOpen && <details class={card}>
           <summary class="cursor-pointer text-sm font-medium text-gray-700">Played before leagues? Sign in with your name</summary>
           <form class="mt-3 flex gap-2" onSubmit={(e) => {
             e.preventDefault();
@@ -81,7 +84,7 @@ export default function SignIn({ query }: { query: URLSearchParams }) {
             <Input class="min-w-0 flex-1" type="text" placeholder="Your name" name="name" required />
             <Input type="submit" disabled={busy} />
           </form>
-        </details>
+        </details>}
         {error && <div class="m-2 text-sm text-rose-600">{error}</div>}
       </main>
     </div>

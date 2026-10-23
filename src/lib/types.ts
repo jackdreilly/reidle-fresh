@@ -54,6 +54,8 @@ export type Account = "guest" | "legacy" | "verified";
 export type Bootstrap = {
   name: string | null; played_today: boolean; unread: boolean; pending_challenges?: number;
   account?: Account; nickname_set?: boolean;
+  /** name-only accounts: when name-only sign-in ends (then they must link a login to play) */
+  legacy_until?: string | null;
   /** false until the player dismisses the new-player tour (stored per player, so it follows them) */
   tour_seen?: boolean;
   league?: LeagueBrief | null; leagues: { id: number; name: string }[];
