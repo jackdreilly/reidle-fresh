@@ -1,5 +1,5 @@
-import type { ComponentChildren } from "preact";
-import { useState } from "preact/hooks";
+import type { ComponentChildren, ComponentType } from "preact";
+import { useEffect, useState } from "preact/hooks";
 import { useSession } from "@/lib/session";
 import { useInstall } from "@/lib/pwa";
 import { STAGING } from "@/components/StagingTag";
@@ -41,6 +41,15 @@ const newDot = (style?: Record<string, string>) => (
   <span aria-hidden="true" class="relative inline-flex rounded-full h-3 w-3 bg-[#0ea5e9]" style={{ backgroundColor: "#f59e0b", ...style }} />
 );
 
+/** The new-player tour, loaded only for players who haven't dismissed it (keeps it out of the first load). */
+function useTour(show: boolean) {
+  const [Tour, setTour] = useState<ComponentType | null>(null);
+  useEffect(() => {
+    if (show && !Tour) void import("@/components/Tour").then((m) => setTour(() => m.default));
+  }, [show]);
+  return show ? Tour : null;
+}
+
 export default function Layout(
   { children, route, fullPage }: {
     route: string;
@@ -48,8 +57,10 @@ export default function Layout(
     fullPage?: boolean;
   },
 ) {
-  const { played_today: playedToday, name, unread, pending_challenges: pending = 0, league, leagues, account } = useSession();
+  const { played_today: playedToday, name, unread, pending_challenges: pending = 0, league, leagues, account, tour_seen } = useSession();
   const [open, setOpen] = useState(false);
+  // never over a game in progress, nor before they've picked a league
+  const Tour = useTour(tour_seen === false && !fullPage && !!league);
   // name-only and guest accounts keep the dot until they link Google or an email
   const dot = useSettingsDot(route) || account === "legacy" || account === "guest";
   const install = useInstall();
@@ -280,6 +291,14 @@ export default function Layout(
                   <span class={"ml-3 " + (route === "/league" ? "font-bold" : "")}>Invite &amp; league</span>
                 </a>
               </li>
+              <li>
+                <a href="/help" class="flex items-center p-2 text-base font-normal text-gray-900 rounded-lg hover:bg-gray-100">
+                  <svg aria-hidden="true" class="flex-shrink-0 w-6 h-6 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0ZM8.94 6.94a.75.75 0 1 1-1.06-1.06 3 3 0 1 1 2.87 5.02c-.2.07-.35.22-.35.4v.2a.75.75 0 0 1-1.5 0v-.2c0-.88.6-1.6 1.38-1.85a1.5 1.5 0 1 0-1.34-2.51ZM10 15a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" />
+                  </svg>
+                  <span class={"ml-3 " + (route === "/help" ? "font-bold" : "")}>Help</span>
+                </a>
+              </li>
               {install && (
                 <li>
                   <a
@@ -342,6 +361,7 @@ export default function Layout(
           )}
           {children}
         </div>
+        {Tour && <Tour />}
     </div>
   );
 }

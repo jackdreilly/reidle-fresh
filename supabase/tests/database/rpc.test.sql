@@ -1,5 +1,5 @@
 begin;
-select plan(91);
+select plan(93);
 
 -- Fixture: isolated players, no seed dependence.
 truncate submissions, checkpoints, messages, message_reads, winners, week_snapshots, challenges, players restart identity cascade;
@@ -36,7 +36,7 @@ select is(
     where p.pronamespace = 'public'::regnamespace and p.proname not in ('act_as', 'act_in', 'reset_role', 'uid_of')
       and has_function_privilege('authenticated', p.oid, 'execute')),
   array['battle_get','battle_home','battle_restart','bootstrap','challenge_next','challenge_page',
-        'challenge_play','challenges_page','create_league','daily_page','delete_message','get_playback',
+        'challenge_play','challenges_page','create_league','daily_page','delete_message','dismiss_tour','get_playback',
         'join_league','league_page','league_preview','leagues_page','leave_league','like_message',
         'messages_page','new_battle','nickname_free','past_page','past_winners','play_state','player_stats',
         'post_message','push_subscribe','push_unsubscribe','rankings','save_checkpoint','set_member',
@@ -263,6 +263,9 @@ select reset_role();
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000f9","role":"authenticated"}', true);
 set local role authenticated;
 select is(bootstrap() ->> 'account', 'guest', 'bootstrap says guest');
+select is(bootstrap() ->> 'tour_seen', 'false', 'new players (guests too) get the tour');
+select dismiss_tour();
+select is(bootstrap() ->> 'tour_seen', 'true', 'dismissing the tour sticks to the player, not the device');
 select throws_ok(format('select join_league(%L)', (select invite_code from pals_code)), '28000', null,
   'guests cannot join private leagues');
 select is(join_league('global'), 2::bigint, 'anyone can join Global');

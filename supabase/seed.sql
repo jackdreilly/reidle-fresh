@@ -92,3 +92,6 @@ values (3, 'Book Club', 'bookclub', 'America/Los_Angeles', 0, 'kim');
 insert into players (name) values ('kim'), ('leo');
 insert into league_members (league_id, name) values (1, 'kim'), (1, 'leo');
 insert into league_members (league_id, name, role) values (3, 'kim', 'commissioner'), (3, 'leo', 'member');
+
+-- the fixture players have been around for a while: no new-player tour (like everyone on prod at launch)
+update players set tour_seen = true;

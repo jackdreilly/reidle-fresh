@@ -66,6 +66,7 @@ test("guest: try it in Reidle Global, then save the account", async ({ page }) =
   await page.goto("/sign-in");
   await page.getByRole("button", { name: "Try it as a guest" }).click();
   await expect(page).toHaveURL(/\/stats\/daily\//);
+  await page.getByRole("dialog").getByRole("button", { name: "Skip" }).click(); // the new-player tour (onboarding.spec)
   await expect(page.getByRole("link", { name: /League Reidle Global/ })).toBeVisible();
   await expect(page.getByText("You're playing as a guest")).toBeVisible();
   await expect(page.getByRole("link", { name: "▶ Play today's word" })).toBeVisible();

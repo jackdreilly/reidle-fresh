@@ -7,7 +7,7 @@ import { execSync } from "node:child_process";
  */
 export async function signIn(page: Page, name: string, to = "/", { fresh = false } = {}) {
   if (!fresh) {
-    sql(`insert into players (name) values ('${name}') on conflict do nothing;
+    sql(`insert into players (name, tour_seen) values ('${name}', true) on conflict do nothing;
       insert into league_members (league_id, name) values (1, '${name}') on conflict do nothing`);
   }
   await page.goto(`/sign-in?redirect=${encodeURIComponent(to)}`);

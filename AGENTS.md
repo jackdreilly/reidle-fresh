@@ -78,6 +78,13 @@ is public (invite code `global`) and is where guests and brand-new name-only pla
 - Pages: `/` (one league -> its stats, several -> `/leagues` dashboard, none -> `/welcome`), `/league`
   (invite link, members, commissioner settings), `/leagues/new`, `/join/:code` (works signed out).
 
+## New-player tour and Help
+
+`src/components/Tour.tsx`: a 5-card walkthrough shown over normal pages (never in a game or before a league is picked)
+while `bootstrap().tour_seen` is false. Closing it any way calls `dismiss_tour()`, which flips `players.tour_seen`,
+so it stays gone on every device (guests are players too). Accounts from before the tour start with it seen.
+`/help` (`src/pages/Help.tsx`) explains the basics and can replay the tour. Keep both in step with features.
+
 ## Chat push notifications
 
 Opt-in per browser from the Messages page (`src/lib/push.ts`, bell button). Subscriptions live in the closed

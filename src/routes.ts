@@ -156,6 +156,7 @@ export const routes: Route[] = [
     load: () => read("settings_page"),
   },
   { path: "/settings", redirect: () => "/account" },
+  { path: "/help", page: () => import("./pages/Help"), layout: { route: "/help", title: "Help" } },
   {
     path: "/leagues", page: () => import("./pages/Leagues"), prefetchData: true,
     layout: { route: "/leagues", title: "Leagues" },
