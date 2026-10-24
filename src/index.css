@@ -1,4 +1,6 @@
 @import "tailwindcss";
+/* the owner dashboard has its own stylesheet (pages/admin.css), so it adds nothing to the first-load CSS */
+@source not "./pages/Admin.tsx";
 @theme {
   --breakpoint-sm: 420px;
   --breakpoint-md: 700px;

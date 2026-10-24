@@ -1,5 +1,5 @@
 begin;
-select plan(13);
+select plan(19);
 
 -- Activity log: triggers record the key moments; log_error takes browser errors; admin_stats is admins only.
 update app_flags set legacy_until = 'infinity';
@@ -58,10 +58,36 @@ select throws_ok($$select admin_stats()$$, '42501', 'admins only', 'admin_stats 
 select throws_ok($$select * from events$$, '42501', null, 'the events table is closed');
 reset role;
 
-insert into admins values ('ev1');
+-- a name-only account is never an admin, even when listed
+insert into auth.users (id, instance_id, aud, role, email, raw_user_meta_data)
+values ('00000000-0000-0000-0000-0000000000e2', '00000000-0000-0000-0000-000000000000',
+        'authenticated', 'authenticated', 'ev2@players.reidle.app', '{"name":"ev2"}');
+insert into admins values ('ev2');
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000e2","role":"authenticated"}', true);
 set local role authenticated;
+select throws_ok($$select admin_stats()$$, '42501', 'admins only', 'a name-only account cannot open the admin page');
+reset role;
+
+-- visits: pages and time on screen; a page sent again later only grows
+create temp table t0 as select (extract(epoch from now()) * 1000)::bigint - 600000 as t;
+grant select on t0 to authenticated;
+select log_visit('11111111-1111-1111-1111-111111111111',
+  format('[{"p":"/stats/daily/:date","t":%s,"ms":5000},{"p":"/play","t":%s,"ms":60000},{"p":"/old","t":1761300000000,"ms":1}]', t, t + 5000)::jsonb,
+  '{"device":"iOS","pwa":true,"theme":"dark","entry":"/stats/daily/:date"}') from t0;
+select log_visit('11111111-1111-1111-1111-111111111111', format('[{"p":"/play","t":%s,"ms":90000},{"p":"x","t":1}]', t + 5000)::jsonb) from t0;
+select is((select (pages, active_ms, device, pwa)::text from visits where sid = '11111111-1111-1111-1111-111111111111'),
+  '(2,95000,iOS,t)', 'a visit adds up its pages and time on screen (resent pages grow; junk and stale pages are dropped)');
+
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000e1","role":"authenticated"}', true);
+insert into admins values ('ev1');  -- ev1 linked Google above: verified
+set local role authenticated;
+select log_visit('22222222-2222-2222-2222-222222222222', format('[{"p":"/admin","t":%s,"ms":1000}]', t)::jsonb) from t0;
+select throws_ok($$select * from visits$$, '42501', null, 'the visits table is closed');
 select is((select jsonb_array_length(admin_stats(7) -> 'days')), 7, 'admin_stats returns one row per day');
-select ok((select (admin_stats() -> 'days' -> 0 ->> 'active')::int >= 1), 'today counts the active player');
+select ok((select (admin_stats() -> 'kpis' ->> 'dau')::int >= 1), 'today counts the active player');
+select ok((select admin_stats() -> 'players' @> '[{"name":"ev1","games_all":1,"visits_7d":1}]'), 'players are listed with their games and visits');
+select is((select admin_player('ev1') -> 'visits' -> 0 ->> 'pages'), '1', 'a player drill-down lists their visits');
+select is((select admin_player('ev1') -> 'games' ->> 'dailies'), '1', 'and their games');
 reset role;
 
 select * from finish();

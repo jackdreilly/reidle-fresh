@@ -24,9 +24,9 @@ void (async () => {
   if (isIn) refreshSession().catch(() => {});
   await startRouter();
   // Warm the (cacheable) word lists while the user reads the first page, so Play is instant,
-  // and load the error reporter (src/lib/errors.ts), off the first load
+  // and load usage + error reporting (src/lib/telemetry.ts), off the first load
   (window.requestIdleCallback ?? setTimeout)(() => {
-    import("./lib/errors");
+    import("./lib/telemetry");
     if (isIn) void loadWordle().catch(() => {});
   });
   // a tapped chat notification asks an already-open tab to go to the chat

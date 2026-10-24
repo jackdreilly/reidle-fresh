@@ -24,7 +24,7 @@
           document.documentElement.style.background = "#0d1117";
         }
       } catch (e) {}
-      // errors queue here until src/lib/errors.ts loads and reports them
+      // errors queue here until src/lib/telemetry.ts loads and reports them
       addEventListener("error", function (e) { (window.__errs = window.__errs || []).push(e.error || e.message); });
       addEventListener("unhandledrejection", function (e) { (window.__errs = window.__errs || []).push(e.reason); });
     </script>

@@ -1,0 +1,76 @@
+/* Owner dashboard (/admin). Plain CSS in its own chunk: Admin.tsx is left out of the Tailwind scan (index.css), so
+   none of this reaches the first-load stylesheet. Colours come from the app palette variables, which dark.css remaps. */
+.ad {
+  --ad-bg: var(--color-white, #fff);
+  --ad-soft: var(--color-gray-50, #f9fafb);
+  --ad-line: var(--color-gray-200, #e5e7eb);
+  --ad-muted: var(--color-gray-500, #6b7280);
+  --ad-text: var(--color-gray-900, #111827);
+  --ad-sub: var(--color-gray-700, #374151);
+  --ad-accent: #0ea5e9;
+  --ad-accent-2: #8b5cf6;
+  --ad-good: #16a34a;
+  --ad-bad: #dc2626;
+  max-width: 64rem; margin: 0 auto; color: var(--ad-text); font-size: 14px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.ad h1 { font-size: 24px; font-weight: 700; }
+.ad h2 { font-size: 16px; font-weight: 600; margin-bottom: 8px; display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.ad h3 { font-size: 13px; font-weight: 600; color: var(--ad-sub); margin: 12px 0 6px; }
+.ad-muted { color: var(--ad-muted); font-size: 12px; font-weight: 400; }
+.ad-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 0 4px; }
+.ad-nav { position: sticky; top: 0; z-index: 5; display: flex; gap: 4px; overflow-x: auto; padding: 6px 4px;
+  background: color-mix(in srgb, var(--ad-soft) 92%, transparent); backdrop-filter: blur(6px); border-radius: 12px; }
+.ad-nav a { white-space: nowrap; padding: 4px 10px; border-radius: 999px; color: var(--ad-sub); font-size: 13px; }
+.ad-nav a:hover { background: var(--ad-line); }
+.ad-seg { display: inline-flex; border: 1px solid var(--ad-line); border-radius: 10px; overflow: hidden; }
+.ad-seg button, .ad-seg a { padding: 4px 10px; font-size: 13px; color: var(--ad-sub); background: var(--ad-bg); }
+.ad-seg .on { background: var(--ad-text); color: var(--ad-bg); font-weight: 600; }
+.ad-card { background: var(--ad-bg); border: 1px solid var(--ad-line); border-radius: 16px; padding: 16px; scroll-margin-top: 56px; }
+.ad-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.ad-kpis { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+.ad-kpi { background: var(--ad-bg); border: 1px solid var(--ad-line); border-radius: 14px; padding: 10px 12px; }
+.ad-kpi b { display: block; font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.ad-kpi span { font-size: 12px; color: var(--ad-muted); }
+.ad-chart svg { width: 100%; height: auto; display: block; overflow: visible; }
+.ad-chart .bar { fill: var(--ad-accent); }
+.ad-chart .bar:hover { fill: var(--ad-accent-2); }
+.ad-chart .axis { fill: var(--ad-muted); font-size: 10px; }
+.ad-chart .grid { stroke: var(--ad-line); stroke-width: 1; }
+.ad-tip { font-size: 12px; color: var(--ad-sub); min-height: 18px; margin-top: 4px; font-variant-numeric: tabular-nums; }
+.ad-heat { display: grid; grid-template-columns: 34px repeat(24, 1fr); gap: 2px; font-size: 10px; color: var(--ad-muted); }
+.ad-heat i { aspect-ratio: 1; border-radius: 3px; background: var(--ad-accent); }
+.ad-heat .lbl { display: flex; align-items: center; }
+.ad-hbar { display: grid; grid-template-columns: minmax(80px, 34%) 1fr auto; gap: 8px; align-items: center; margin: 4px 0; font-size: 13px; }
+.ad-hbar .track { height: 8px; border-radius: 4px; background: var(--ad-soft); overflow: hidden; }
+.ad-hbar .fill { height: 100%; border-radius: 4px; background: var(--ad-accent); }
+.ad-hbar .lab { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ad-sub); }
+.ad-hbar .num { font-variant-numeric: tabular-nums; color: var(--ad-muted); font-size: 12px; }
+.ad-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 13px; }
+.ad-table th { text-align: right; font-weight: 500; font-size: 12px; color: var(--ad-muted); padding: 4px 6px; white-space: nowrap; }
+.ad-table td { text-align: right; padding: 5px 6px; border-top: 1px solid var(--ad-line); white-space: nowrap; }
+.ad-table th:first-child, .ad-table td:first-child { text-align: left; }
+.ad-table th.sort { cursor: pointer; user-select: none; }
+.ad-table th.sort:hover { color: var(--ad-text); }
+.ad-table tr.click { cursor: pointer; }
+.ad-table tr.click:hover td { background: var(--ad-soft); }
+.ad-scroll { overflow-x: auto; margin: 0 -16px; padding: 0 16px; }
+.ad-pill { display: inline-block; padding: 1px 8px; border-radius: 999px; background: var(--ad-soft); border: 1px solid var(--ad-line); font-size: 12px; color: var(--ad-sub); margin: 2px 4px 2px 0; }
+.ad-pill.on { background: var(--ad-text); color: var(--ad-bg); border-color: var(--ad-text); }
+button.ad-pill { cursor: pointer; }
+.ad-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; background: var(--ad-muted); }
+.ad-dot.live { background: var(--ad-good); }
+.ad-err { color: var(--ad-bad); font-family: ui-monospace, monospace; font-size: 12px; word-break: break-word; }
+.ad-feed li { display: flex; gap: 8px; padding: 3px 0; font-size: 13px; color: var(--ad-sub); }
+.ad-feed time { flex: none; width: 92px; color: var(--ad-muted); font-size: 12px; }
+.ad-feed b { color: var(--ad-text); font-weight: 600; }
+.ad-search { border: 1px solid var(--ad-line); background: var(--ad-bg); color: var(--ad-text); border-radius: 8px; padding: 4px 8px; font-size: 13px; width: 160px; }
+.ad-cohort td.c { color: #fff; font-weight: 600; }
+.ad-funnel .step { margin: 6px 0; }
+.ad-funnel .bar { height: 26px; border-radius: 8px; background: var(--ad-accent); color: #fff; display: flex; align-items: center; padding: 0 8px; font-size: 13px; font-weight: 600; min-width: 2.5rem; white-space: nowrap; }
+.ad-sheet { position: fixed; inset: 0; z-index: 50; background: rgb(0 0 0 / .35); display: flex; justify-content: flex-end; }
+.ad-sheet > div { width: min(560px, 100%); height: 100%; overflow-y: auto; background: var(--ad-bg); padding: 16px; box-shadow: -8px 0 24px rgb(0 0 0 / .2); display: flex; flex-direction: column; gap: 12px; }
+.ad-sheet .close { float: right; font-size: 20px; line-height: 1; color: var(--ad-muted); }
+.ad-visit { border-top: 1px solid var(--ad-line); padding-top: 6px; margin-top: 6px; }
+.ad-path { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 4px; }
+.ad-path span { font-size: 11px; padding: 0 6px; border-radius: 6px; background: var(--ad-soft); color: var(--ad-sub); }

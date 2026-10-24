@@ -226,11 +226,20 @@ landed on legacy (append-only, idempotent).
 - **Activity log** (`events`, migration `*_events.sql`): triggers record sign_up / sign_in (auth.sessions) / link
   (auth.identities) / game_start (checkpoints) / game_finish (submissions) / message / league_create / league_join;
   never message text. Browser errors (window errors, unhandled rejections, router load failures, which the router
-  rethrows) queue in `window.__errs` (inline script in index.html) until `src/lib/errors.ts` loads at idle after the
+  rethrows) queue in `window.__errs` (inline script in index.html) until `src/lib/telemetry.ts` loads at idle after the
   first page and sends them to `log_error()` (anon too; capped per hour). Nothing in the first-load bundle. `log_event`
   swallows its own failures so logging can't break a game. A daily cron keeps a year (errors 90 days).
-- **/admin** (owner page, not in the menu): `admin_stats(days)` = per-day counts (Pacific), accounts by login method,
-  devices, recent errors and activity. Only players listed in `admins` (prod: `jack`; local seed: `alice`) can load it.
+- **Visits** (`visits`, `page_views`, migration `*_visits.sql`): `src/lib/telemetry.ts` (same idle chunk as errors) sends
+  each page shown as a route pattern (`/players/:name`, `/stats/daily/:date`) with its time on screen to `log_visit()`
+  (anon too): a few seconds after a page change, every minute and when the tab hides. A visit = one tab until it is
+  hidden 30 min. Views older than a day or in the future are dropped. Help -> Your account tells players.
+- **/admin** (owner page, not in the menu): `admin_stats(days)` (KPIs, daily chart, play-time heatmap, visit lengths,
+  pages, funnel, retention cohorts, leagues, players, grouped errors, activity) and `admin_player(name)` (drill-down).
+  Needs a name in `admins` (prod/staging: `jack`; local seed: `alice`) AND a verified login (`is_admin()`), so the
+  name-only form never opens it. Styled by `src/pages/admin.css` only: Admin.tsx is excluded from the Tailwind scan
+  (`@source not` in index.css), so the dashboard adds nothing to the first-load CSS.
+- **First-load JS budget is full** (staging build ~20.47/20KB): anything new in the entry bundle needs trimming
+  elsewhere or Jack's OK to raise `BUDGET` in tools/check-bundle.mjs.
 
 ## Known gaps / TODO
 

@@ -98,5 +98,5 @@ insert into league_members (league_id, name, role) values (3, 'kim', 'commission
 -- the fixture players have been around for a while: no new-player tour (like everyone on prod at launch)
 update players set tour_seen = true;
 
--- alice can open /admin (admin_stats) locally
+-- alice is listed as an admin locally (the /admin page also needs a verified login; e2e/admin.spec.ts adds one)
 insert into admins (name) values ('alice');
