@@ -6,7 +6,7 @@ export const qaName = (tag = "") => `qa${String(Date.now() % 1_000_000).padStart
 /** A throwaway guest (staging needs a confirmed email for new name-only players, so QA plays as a guest). */
 export async function signIn(page: Page, to = "/") {
   await page.goto(`/sign-in?redirect=${encodeURIComponent(to)}`);
-  await page.getByRole("button", { name: "Try it as a guest" }).click();
+  await page.getByRole("button", { name: "Play now" }).click();
   await expect(page).not.toHaveURL(/sign-in/, { timeout: 30_000 });
 }
 

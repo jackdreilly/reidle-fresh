@@ -121,8 +121,8 @@ Docker daemon may need `dockerd &` first in the sandbox.
 
 ## Logins
 
-Sign-in page: Google, a 6-digit email code, "Try it as a guest" (Supabase anonymous sign-in, starts in Reidle
-Global), and the old name-only form (folded away). Guests and name-only players **link** Google or an email from
+Sign-in page (also the signed-out landing page: dog, what Reidle is, 3 steps): big "Play now" guest button (Supabase anonymous sign-in, starts in Reidle
+Global), then Google, a 6-digit email code, and the old name-only form (folded away). Guests and name-only players **link** Google or an email from
 Settings (same auth user, same history); after linking, `finishLink()` replaces the name-derived password so the
 name can't be typed in any more. Hand-rolled in `src/lib/supabase.ts` (`auth.*`) and `src/lib/auth.ts`; OAuth
 uses the implicit flow back to `/auth/callback`. New logins get an auto nickname (`pick_nickname`) and are sent

@@ -1,5 +1,7 @@
+import type { ComponentChildren } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import StagingTag from "@/components/StagingTag";
+import { DemoTiles } from "@/components/Tour";
 import Input from "@/components/Input";
 import LoginOptions from "@/components/LoginOptions";
 import { signIn } from "@/lib/auth";
@@ -57,22 +59,35 @@ export default function SignIn({ query }: { query: URLSearchParams }) {
       setBusy(false);
     }
   };
+  const playAsGuest = () => void attempt(() => resumeGuest(guest).then((ok) => { if (!ok) return auth.signInAnonymously(); }), false);
   return (
-    <div class="mx-auto max-w-md p-2">
-      <h1 class="m-2 font-bold text-3xl">Reidle <StagingTag /></h1>
-      <p class="mx-2 mb-4 text-sm text-gray-600">One word a day, raced against the clock with your friends.</p>
-      <main class="space-y-3">
-        <section class={card}>
-          <h2 class="mb-3 font-semibold">Sign in</h2>
-          <LoginOptions after={to} onEmailDone={() => done(true)} />
-        </section>
-        <section class={card}>
-          <h2 class="font-semibold">Just looking?</h2>
-          <p class="mt-1 text-sm text-gray-600">Play as a guest in Reidle Global. Save your account any time to keep your stats.</p>
-          <button type="button" disabled={busy} class="mt-3 rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
-            onClick={() => void attempt(() => resumeGuest(guest).then((ok) => { if (!ok) return auth.signInAnonymously(); }), false)}>
-            {guest ? `Continue as ${guest.name}` : "Try it as a guest"}
+    <div class="mx-auto max-w-md px-4 py-8">
+      <header class="text-center">
+        <img src="/dog.webp" alt="" width="112" height="112" class="mx-auto rounded-full"
+          style={{ width: 112, height: 112, objectFit: "contain", padding: 10, background: "#fdf2e9", boxShadow: "0 0 0 4px var(--color-white, #fff), 0 2px 10px rgb(0 0 0 / .12)" }} />
+        <h1 class="mt-3 text-3xl font-bold text-gray-900">Reidle <StagingTag /></h1>
+        <p class="mt-2 text-gray-600">A daily word puzzle you race your friends at.</p>
+        <div class="mt-4 flex flex-col items-center gap-1" aria-hidden="true">
+          <DemoTiles word="CRANE" marks="xyxxg" />
+          <DemoTiles word="ROUTE" marks="ggggg" />
+        </div>
+      </header>
+      <main class="mt-6 space-y-4">
+        <ol class={card + " space-y-3 text-sm text-gray-700"}>
+          <Step n={1} title="Find the word">Everyone gets the same five-letter word each day. Green and yellow tiles tell you how close you are.</Step>
+          <Step n={2} title="Beat the clock">Your time is your score, so the fastest solve wins the day.</Step>
+          <Step n={3} title="Play with friends">Start a league, share the invite link, and see who takes the week.</Step>
+        </ol>
+        <div>
+          <button type="button" disabled={busy} onClick={playAsGuest}
+            class="w-full rounded-xl bg-sky-600 px-4 py-3 text-lg font-semibold text-white shadow-sm hover:bg-sky-500 disabled:opacity-60">
+            {guest ? `Continue as ${guest.name}` : "Play now"}
           </button>
+          <p class="mt-2 text-center text-xs text-gray-500">No sign-up needed. Save your account any time to keep your stats.</p>
+        </div>
+        <section class={card}>
+          <h2 class="mb-3 text-center text-sm font-semibold text-gray-700">Already playing? Sign in</h2>
+          <LoginOptions after={to} onEmailDone={() => done(true)} />
         </section>
         {nameOpen && <details class={card}>
           <summary class="cursor-pointer text-sm font-medium text-gray-700">Played before leagues? Sign in with your name</summary>
@@ -88,5 +103,14 @@ export default function SignIn({ query }: { query: URLSearchParams }) {
         {error && <div class="m-2 text-sm text-rose-600">{error}</div>}
       </main>
     </div>
+  );
+}
+
+function Step({ n, title, children }: { n: number; title: string; children: ComponentChildren }) {
+  return (
+    <li class="flex gap-3">
+      <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-sky-50 text-xs font-bold text-sky-700">{n}</span>
+      <span><b class="text-gray-900">{title}.</b> {children}</span>
+    </li>
   );
 }

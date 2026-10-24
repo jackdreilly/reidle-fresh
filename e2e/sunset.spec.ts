@@ -18,6 +18,6 @@ test("name-only sunset: countdown banner, then a save-your-account screen and no
 
   await page.getByRole("link", { name: "Sign out" }).click();
   await expect(page).toHaveURL(/sign-in/);
-  await expect(page.getByRole("button", { name: /Try it as a guest|Continue as/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Play now|Continue as/ })).toBeVisible();
   await expect(page.getByText("Played before leagues?")).toHaveCount(0);
 });

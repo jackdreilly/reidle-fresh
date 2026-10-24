@@ -64,7 +64,7 @@ test("no league yet: pick one", async ({ page }) => {
 
 test("guest: try it in Reidle Global, then save the account", async ({ page }) => {
   await page.goto("/sign-in");
-  await page.getByRole("button", { name: "Try it as a guest" }).click();
+  await page.getByRole("button", { name: "Play now" }).click();
   await expect(page).toHaveURL(/\/stats\/daily\//);
   await page.getByRole("dialog").getByRole("button", { name: "Skip" }).click(); // the new-player tour (onboarding.spec)
   await expect(page.getByRole("link", { name: /League Reidle Global/ })).toBeVisible();
@@ -135,7 +135,7 @@ test("the commissioner bans a player: out, and the invite link won't let them ba
 
 test("a guest who logs out gets the same guest back on this device", async ({ page }) => {
   await page.goto("/sign-in");
-  await page.getByRole("button", { name: "Try it as a guest" }).click();
+  await page.getByRole("button", { name: "Play now" }).click();
   await expect(page).toHaveURL(/\/stats\/daily\//);
   await page.getByRole("dialog").getByRole("button", { name: "Skip" }).click(); // the new-player tour
   const name = (await page.getByText(/You're playing as a guest/).innerText()).match(/\((.+)\)/)![1];
