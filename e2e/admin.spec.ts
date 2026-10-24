@@ -23,6 +23,11 @@ test("visits, errors and the owner dashboard (admins with a saved login only)", 
   await expect(page.getByText("e2e boom").first()).toBeVisible();
   await expect(page.locator("#pages")).toContainText("/stats/daily/:date");
   await page.screenshot({ path: "test-results/admin.png", fullPage: true });
+  await page.setViewportSize({ width: 1400, height: 900 });
+  await page.locator("#usage").screenshot({ path: "test-results/admin-usage-wide.png" });
+  await page.setViewportSize({ width: 375, height: 800 });
+  await page.locator("#usage").screenshot({ path: "test-results/admin-usage-phone.png" });
+  await page.setViewportSize({ width: 1280, height: 720 });
 
   await page.locator("#players tr", { hasText: "alice" }).first().click();
   const sheet = page.getByRole("dialog", { name: "alice" });

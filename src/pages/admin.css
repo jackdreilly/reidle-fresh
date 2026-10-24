@@ -26,7 +26,10 @@
 .ad-seg { display: inline-flex; border: 1px solid var(--ad-line); border-radius: 10px; overflow: hidden; }
 .ad-seg button, .ad-seg a { padding: 4px 10px; font-size: 13px; color: var(--ad-sub); background: var(--ad-bg); }
 .ad-seg .on { background: var(--ad-text); color: var(--ad-bg); font-weight: 600; }
-.ad-card { background: var(--ad-bg); border: 1px solid var(--ad-line); border-radius: 16px; padding: 16px; scroll-margin-top: 56px; }
+.ad-card { min-width: 0; background: var(--ad-bg); border: 1px solid var(--ad-line); border-radius: 16px; padding: 16px; scroll-margin-top: 56px; }
+/* a card across the whole row of a grid (the heatmap needs the width) */
+.ad-wide { grid-column: 1 / -1; }
+.ad-heat { max-width: 760px; }
 .ad-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
 .ad-kpis { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
 .ad-kpi { background: var(--ad-bg); border: 1px solid var(--ad-line); border-radius: 14px; padding: 10px 12px; }
@@ -38,8 +41,10 @@
 .ad-chart .axis { fill: var(--ad-muted); font-size: 10px; }
 .ad-chart .grid { stroke: var(--ad-line); stroke-width: 1; }
 .ad-tip { font-size: 12px; color: var(--ad-sub); min-height: 18px; margin-top: 4px; font-variant-numeric: tabular-nums; }
-.ad-heat { display: grid; grid-template-columns: 34px repeat(24, 1fr); gap: 2px; font-size: 10px; color: var(--ad-muted); }
-.ad-heat i { aspect-ratio: 1; border-radius: 3px; background: var(--ad-accent); }
+/* minmax(0, 1fr): the hour columns shrink to the card (plain 1fr would grow to fit the "12a" labels and overflow) */
+.ad-heat { display: grid; grid-template-columns: 30px repeat(24, minmax(0, 1fr)); gap: 2px; font-size: 10px; color: var(--ad-muted); min-width: 0; }
+.ad-heat > span { white-space: nowrap; overflow: visible; min-width: 0; }
+.ad-heat i { display: block; min-width: 0; aspect-ratio: 1; border-radius: 2px; background: var(--ad-accent); }
 .ad-heat .lbl { display: flex; align-items: center; }
 .ad-hbar { display: grid; grid-template-columns: minmax(80px, 34%) 1fr auto; gap: 8px; align-items: center; margin: 4px 0; font-size: 13px; }
 .ad-hbar .track { height: 8px; border-radius: 4px; background: var(--ad-soft); overflow: hidden; }

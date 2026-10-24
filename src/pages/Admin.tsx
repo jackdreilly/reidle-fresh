@@ -73,9 +73,9 @@ const dayLabel = (iso: string, opts: Intl.DateTimeFormatOptions = { month: "shor
 
 /* ---------- building blocks ---------- */
 
-function Card({ id, title, note, children }: { id?: string; title: string; note?: ComponentChildren; children: ComponentChildren }) {
+function Card({ id, title, note, wide, children }: { id?: string; title: string; note?: ComponentChildren; wide?: boolean; children: ComponentChildren }) {
   return (
-    <section id={id} class="ad-card">
+    <section id={id} class={"ad-card" + (wide ? " ad-wide" : "")}>
       <h2>{title}{note && <span class="ad-muted">{note}</span>}</h2>
       {children}
     </section>
@@ -356,7 +356,7 @@ export default function Admin({ data }: PageProps<AdminData>) {
       </Card>
 
       <div id="usage" class="ad-grid">
-        <Card title="When people play" note="games by weekday and hour, Pacific">
+        <Card title="When people play" note="games by weekday and hour, Pacific" wide>
           <Heatmap cells={data.heatmap} />
         </Card>
         <Card title="How long a visit lasts" note={`${n(totals.visits)} visits · ${n(totals.minutes)} min`}>
