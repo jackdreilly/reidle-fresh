@@ -7,7 +7,8 @@ const sent = new Set<string>();
 
 function report(e: unknown) {
   const message = String((e as Error)?.message ?? e).slice(0, 500);
-  if (sent.has(message) || sent.size > 20) return;
+  // ResizeObserver loop notices are harmless browser noise
+  if (sent.has(message) || sent.size > 20 || /^ResizeObserver loop/.test(message)) return;
   sent.add(message);
   rpc("log_error", { p_message: message, p_data: { path: location.pathname } }).catch(() => {});
 }
