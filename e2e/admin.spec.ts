@@ -15,7 +15,8 @@ test("visits, errors and the owner dashboard (admins with a saved login only)", 
   await expect.poll(() => sql("select data ->> 'message' from events where kind = 'error' and name = 'alice' order by at desc limit 1"))
     .toContain("e2e boom");
 
-  await page.goto("/admin");
+  await page.goto("/account"); // the owner's Settings page links to the dashboard
+  await page.getByRole("link", { name: "Admin" }).click();
   await expect(page.getByRole("heading", { name: "Admin" })).toBeVisible();
   for (const h of ["Day by day", "When people play", "How long a visit lasts", "Pages", "Players", "Retention", "Browser errors"]) {
     await expect(page.getByRole("heading", { name: h, exact: false }).first()).toBeVisible();
@@ -41,6 +42,9 @@ test("visits, errors and the owner dashboard (admins with a saved login only)", 
   await expect(page.getByRole("heading", { name: "Day by day" })).toHaveCount(0);
   const other = await (await browser.newContext()).newPage();
   await signIn(other, "bob", "/stats/today");
+  await other.goto("/account");
+  await expect(other.getByText("Nickname: bob")).toBeVisible();
+  await expect(other.getByRole("link", { name: "Admin" })).toHaveCount(0);
   await other.goto("/admin");
   await expect(other.getByRole("heading", { name: "Admin" })).toHaveCount(0);
 });

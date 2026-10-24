@@ -29,7 +29,7 @@ const REMINDER_HOURS = [1, 2, 3, 4, 6, 8, 12];
 
 const card = "rounded-2xl border border-gray-200 bg-white p-4 shadow-sm";
 
-export default function Account({ data, query }: PageProps<{ name: string; prefs: Prefs }>) {
+export default function Account({ data, query }: PageProps<{ name: string; admin?: boolean; prefs: Prefs }>) {
   const install = useInstall();
   const { name: myName, account } = useSession();
   const name = myName ?? data.name;
@@ -40,9 +40,16 @@ export default function Account({ data, query }: PageProps<{ name: string; prefs
           <div class="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Settings</div>
           <h1 class="truncate text-2xl font-bold text-gray-900">{name}</h1>
         </div>
-        <a href={`/players/${name}`} class="shrink-0 rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white">
-          📊 Game Stats
-        </a>
+        <div class="flex shrink-0 gap-2">
+          {data.admin && (
+            <a href="/admin" class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
+              🛠️ Admin
+            </a>
+          )}
+          <a href={`/players/${name}`} class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white">
+            📊 Game Stats
+          </a>
+        </div>
       </header>
       <Login after={(() => { const r = query.get("redirect"); return r && r.startsWith("/") ? r : "/account"; })()} />
       <Appearance />
