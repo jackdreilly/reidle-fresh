@@ -7,7 +7,6 @@ import { refreshSession, today } from "./lib/session";
 import { loadWordle } from "./lib/wordle";
 import { initPwa } from "./lib/pwa";
 import { initTheme } from "./lib/theme";
-import "./lib/report";
 
 initTheme();
 render(<App />, document.getElementById("app")!);
@@ -24,8 +23,12 @@ void (async () => {
   const isIn = await detectSignedIn();
   if (isIn) refreshSession().catch(() => {});
   await startRouter();
-  // Warm the (cacheable) word lists while the user reads the first page, so Play is instant.
-  if (isIn) (window.requestIdleCallback ?? setTimeout)(() => void loadWordle().catch(() => {}));
+  // Warm the (cacheable) word lists while the user reads the first page, so Play is instant,
+  // and load the error reporter (src/lib/errors.ts), off the first load
+  (window.requestIdleCallback ?? setTimeout)(() => {
+    import("./lib/errors");
+    if (isIn) void loadWordle().catch(() => {});
+  });
   // a tapped chat notification asks an already-open tab to go to the chat
   navigator.serviceWorker?.addEventListener("message", (e) => {
     if (e.data?.type === "navigate" && typeof e.data.url === "string") void navigate(e.data.url);

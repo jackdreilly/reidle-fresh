@@ -223,8 +223,9 @@ landed on legacy (append-only, idempotent).
 - **Supabase** keeps API, Postgres and Auth logs natively (dashboard -> Logs, or the MCP `get_logs`).
 - **Activity log** (`events`, migration `*_events.sql`): triggers record sign_up / sign_in (auth.sessions) / link
   (auth.identities) / game_start (checkpoints) / game_finish (submissions) / message / league_create / league_join;
-  never message text. Browser errors come from `src/lib/report.ts` (window error, unhandled rejections, router load
-  failures; the reporter chunk loads only on an error) via `log_error()` (anon too; capped per hour). `log_event`
+  never message text. Browser errors (window errors, unhandled rejections, router load failures, which the router
+  rethrows) queue in `window.__errs` (inline script in index.html) until `src/lib/errors.ts` loads at idle after the
+  first page and sends them to `log_error()` (anon too; capped per hour). Nothing in the first-load bundle. `log_event`
   swallows its own failures so logging can't break a game. A daily cron keeps a year (errors 90 days).
 - **/admin** (owner page, not in the menu): `admin_stats(days)` = per-day counts (Pacific), accounts by login method,
   devices, recent errors and activity. Only players listed in `admins` (prod: `jack`; local seed: `alice`) can load it.

@@ -160,7 +160,7 @@ export const routes: Route[] = [
   {
     path: "/admin", page: () => import("./pages/Admin"),
     layout: { route: "/admin", title: "Admin" },
-    load: (_, q) => read("admin_stats", { p_days: Math.min(365, Math.max(1, Number(q.get("days")) || 30)) }),
+    load: (_, q) => read("admin_stats", { p_days: +(q.get("days") ?? 30) }), // the server clamps it
   },
   {
     path: "/leagues", page: () => import("./pages/Leagues"), prefetchData: true,
