@@ -1,4 +1,5 @@
-// reillybrothers.net: a static site (privacy policy + terms for Reidle, linked from Google's sign-in branding).
+// reillybrothers.net: a tiny static home page (Google sign-in branding lists it as the home page); /privacy and
+// /tos redirect to the copies Reidle serves (public/privacy.html, public/tos.html).
 // Deployed by .github/workflows/deploy-reillybrothers.yml; the custom domain makes Cloudflare add the apex DNS record.
 {
   "name": "reillybrothers",

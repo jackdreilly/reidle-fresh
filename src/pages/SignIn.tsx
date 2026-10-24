@@ -102,6 +102,9 @@ export default function SignIn({ query }: { query: URLSearchParams }) {
         </details>}
         {error && <div class="m-2 text-sm text-rose-600">{error}</div>}
       </main>
+      <p class="mt-6 text-center text-xs text-gray-500">
+        <a href="/privacy" target="_blank" class="underline">Privacy</a> · <a href="/tos" target="_blank" class="underline">Terms</a>
+      </p>
     </div>
   );
 }

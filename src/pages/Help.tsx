@@ -94,7 +94,7 @@ export default function Help() {
           ? <p>You're playing as a <b>guest</b>. Your stats live on this device's sign-in only. <A href="/account#login">Save your account</A> with Google or email to keep them on any device and to join private leagues.</p>
           : <p>Sign in with Google or email to keep your stats on every device. Guests can try everything, then save their account later without losing anything.</p>}
         <p>Change your nickname, theme (light or dark) and notifications in <A href="/account">Settings</A>.</p>
-        <p>To keep improving Reidle, the site notes which pages you open, how long they're on screen, and anything that breaks. It never records what you type in chat.</p>
+        <p>To keep improving Reidle, the site notes which pages you open, how long they're on screen, and anything that breaks. It never records what you type in chat. More in our <a href="/privacy" target="_blank" class="underline">privacy policy</a> and <a href="/tos" target="_blank" class="underline">terms</a>.</p>
       </Section>
 
       <Section id="extras" title="Chat, alerts and the app">
