@@ -31,7 +31,7 @@ jobs:
       VITE_GOOGLE_CLIENT_ID: 372463177232-kt3mgeb46b4mtvk5iijq6jnl8c8i0pmo.apps.googleusercontent.com
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with: { node-version: 22, cache: npm }
       - run: npm ci
       - run: npm run typecheck
