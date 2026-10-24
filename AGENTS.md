@@ -220,6 +220,8 @@ landed on legacy (append-only, idempotent).
 - **Cloudflare Web Analytics** (page views, referrers, countries, Core Web Vitals; no cookies): `beacon()` in
   vite.config.ts adds Cloudflare's deferred beacon to index.html when the build has `VITE_CF_BEACON_TOKEN`
   (a public site token from Analytics & Logs -> Web Analytics). Not in the bundle budget. No token -> no beacon.
+  **Prod is already tracked without it**: the reillybrothers.net zone's Web Analytics site auto-injects the beacon on
+  reidle.reillybrothers.net (filter by that host). Don't set the token for prod: it would count every visit twice.
 - **Supabase** keeps API, Postgres and Auth logs natively (dashboard -> Logs, or the MCP `get_logs`).
 - **Activity log** (`events`, migration `*_events.sql`): triggers record sign_up / sign_in (auth.sessions) / link
   (auth.identities) / game_start (checkpoints) / game_finish (submissions) / message / league_create / league_join;
