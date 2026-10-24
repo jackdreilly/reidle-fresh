@@ -14,7 +14,7 @@ export default function SaveAccount() {
         Name-only sign-in has ended. Link Google or an email to this account and carry on: your games, stats and
         leagues all come with you.
       </p>
-      <LoginOptions link after="/" onEmailDone={async () => {
+      <LoginOptions link after="/" onDone={async () => {
         await finishLink();
         const s = await refreshSession();
         await navigate(s.nickname_set === false ? "/nickname?redirect=/" : "/");

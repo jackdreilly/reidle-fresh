@@ -87,7 +87,7 @@ export default function SignIn({ query }: { query: URLSearchParams }) {
         </div>
         <section class={card}>
           <h2 class="mb-3 text-center text-sm font-semibold text-gray-700">Already playing? Sign in</h2>
-          <LoginOptions after={to} onEmailDone={() => done(true)} />
+          <LoginOptions after={to} onDone={() => done(true)} />
         </section>
         {nameOpen && <details class={card}>
           <summary class="cursor-pointer text-sm font-medium text-gray-700">Played before leagues? Sign in with your name</summary>

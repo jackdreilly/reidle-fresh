@@ -1,15 +1,17 @@
-import { useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { auth } from "@/lib/supabase";
 import { expectAuth, viaProvider } from "@/lib/auth";
+import { googleButton, renderGoogleButton, signInWithGoogleToken } from "@/lib/google";
 
 const quiet = "rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100";
 const field = "min-w-0 flex-1 rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm";
 
 /**
  * Google + email code. `link`: add them to the signed-in account (a guest saving their progress, a name-only
- * player locking their name) instead of signing in to another one.
+ * player locking their name) instead of signing in to another one. `onDone` runs once signed in here (an email
+ * code or Google's own button); a redirect to Google lands on /auth/callback instead.
  */
-export default function LoginOptions({ after, link = false, onEmailDone }: { after: string; link?: boolean; onEmailDone: () => void | Promise<void> }) {
+export default function LoginOptions({ after, link = false, onDone }: { after: string; link?: boolean; onDone: () => void | Promise<void> }) {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [code, setCode] = useState("");
@@ -22,12 +24,25 @@ export default function LoginOptions({ after, link = false, onEmailDone }: { aft
     try { await f(); } catch (e) { setError((e as Error).message); }
     setBusy(false);
   };
+  const [gsi, setGsi] = useState(googleButton);
+  const slot = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!gsi || !slot.current) return;
+    renderGoogleButton(slot.current, link ? "continue_with" : "signin_with", (token, nonce) => void run(async () => {
+      await signInWithGoogleToken(token, nonce, link);
+      await onDone();
+    })).catch(() => setGsi(false)); // Google's script didn't load: fall back to the redirect
+  }, [gsi, link]);
   return (
     <div class="space-y-3">
-      <button type="button" disabled={busy} class={"flex w-full items-center justify-center gap-2 " + quiet}
-        onClick={() => void run(() => viaProvider("google", after, link))}>
-        <GoogleG /> {link ? "Link Google" : "Continue with Google"}
-      </button>
+      {gsi
+        ? <div ref={slot} class="flex min-h-[44px] w-full justify-center" aria-label={link ? "Link Google" : "Continue with Google"} />
+        : (
+          <button type="button" disabled={busy} class={"flex w-full items-center justify-center gap-2 " + quiet}
+            onClick={() => void run(() => viaProvider("google", after, link))}>
+            <GoogleG /> {link ? "Link Google" : "Continue with Google"}
+          </button>
+        )}
       {!sent
         ? (
           <form class="flex gap-2" onSubmit={(e) => {
@@ -49,7 +64,7 @@ export default function LoginOptions({ after, link = false, onEmailDone }: { aft
             e.preventDefault();
             void run(async () => {
               await auth.verifyEmailCode(email.trim(), code.trim(), link ? "email_change" : "email");
-              await onEmailDone();
+              await onDone();
             });
           }}>
             <p class="text-sm text-gray-600">Check <b>{email}</b> and tap the link in our email{typing ? ", or type the code from it" : ""}.</p>

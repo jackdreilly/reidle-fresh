@@ -110,7 +110,7 @@ function Login({ after }: { after: string }) {
               ? "Keep your games and stats, pick your own nickname and join your friends' leagues."
               : `Right now anyone who types ${name} can sign in as you. Link Google or an email and only you can. ${nameOnlyEnds(legacy_until)}`}
           </p>
-          <LoginOptions link after={after} onEmailDone={async () => {
+          <LoginOptions link after={after} onDone={async () => {
             await finishLink();
             const s = await refreshSession();
             await navigate(s.nickname_set === false ? `/nickname?redirect=${encodeURIComponent(after)}` : after);
