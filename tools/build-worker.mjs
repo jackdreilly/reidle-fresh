@@ -37,6 +37,8 @@ export default {
   fetch(request) {
     if (request.method !== "GET" && request.method !== "HEAD") return new Response("Method Not Allowed", { status: 405 });
     let path = new URL(request.url).pathname;
+    // static pages (public/privacy.html, public/tos.html) answer at /privacy and /tos
+    if (!FILES[path] && FILES[path + ".html"]) path += ".html";
     let file = FILES[path];
     // unknown paths with no extension are client-side routes -> the app shell
     if (!file && !/\\.[a-z0-9]+$/i.test(path)) { path = "/index.html"; file = FILES[path]; }

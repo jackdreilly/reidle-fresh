@@ -15,7 +15,8 @@ concurrency:
 
 jobs:
   deploy:
-    if: ${{ github.ref == 'refs/heads/main' }}
+    # one-off pages-only release from this branch (Jack, 2026-10-24); main stays the normal source
+    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/claude/project-thread-ex3t01' }}
     name: Build · deploy · verify prod
     runs-on: ubuntu-latest
     timeout-minutes: 10
