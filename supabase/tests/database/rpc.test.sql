@@ -38,9 +38,9 @@ select is(
   (select array_agg(p.proname::text order by p.proname) from pg_proc p
     where p.pronamespace = 'public'::regnamespace and p.proname not in ('act_as', 'act_in', 'reset_role', 'uid_of')
       and has_function_privilege('authenticated', p.oid, 'execute')),
-  array['battle_get','battle_home','battle_restart','bootstrap','challenge_next','challenge_page',
+  array['admin_stats','battle_get','battle_home','battle_restart','bootstrap','challenge_next','challenge_page',
         'challenge_play','challenges_page','create_league','daily_page','delete_message','dismiss_tour','get_playback',
-        'join_league','league_page','league_preview','leagues_page','leave_league','like_message',
+        'join_league','league_page','league_preview','leagues_page','leave_league','like_message','log_error',
         'messages_page','name_sign_in_open','new_battle','nickname_free','past_page','past_winners','play_state','player_stats',
         'post_message','push_subscribe','push_unsubscribe','rankings','save_checkpoint','set_member',
         'set_nickname','set_notify_prefs','settings_page','start_play','submit_challenge','submit_daily',
@@ -48,7 +48,7 @@ select is(
   'authenticated can execute exactly the RPC allowlist');
 select is((select count(*)::int from pg_proc p where p.pronamespace = 'public'::regnamespace
             and p.proname not in ('act_as', 'act_in', 'reset_role', 'uid_of')
-            and has_function_privilege('anon', p.oid, 'execute')), 2, 'anon can execute nothing but league_preview and name_sign_in_open');
+            and has_function_privilege('anon', p.oid, 'execute')), 3, 'anon can execute nothing but league_preview, name_sign_in_open and log_error');
 select ok(has_function_privilege('anon', 'public.league_preview(text)', 'execute'), 'anon may preview an invite link');
 select throws_ok($$set local role authenticated; select public.play_payload('x')$$, '42501', null,
   'helpers are not callable (play_payload would leak the answer)');

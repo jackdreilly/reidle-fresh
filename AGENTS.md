@@ -221,6 +221,13 @@ landed on legacy (append-only, idempotent).
   vite.config.ts adds Cloudflare's deferred beacon to index.html when the build has `VITE_CF_BEACON_TOKEN`
   (a public site token from Analytics & Logs -> Web Analytics). Not in the bundle budget. No token -> no beacon.
 - **Supabase** keeps API, Postgres and Auth logs natively (dashboard -> Logs, or the MCP `get_logs`).
+- **Activity log** (`events`, migration `*_events.sql`): triggers record sign_up / sign_in (auth.sessions) / link
+  (auth.identities) / game_start (checkpoints) / game_finish (submissions) / message / league_create / league_join;
+  never message text. Browser errors come from `src/lib/report.ts` (window error, unhandled rejections, router load
+  failures; the reporter chunk loads only on an error) via `log_error()` (anon too; capped per hour). `log_event`
+  swallows its own failures so logging can't break a game. A daily cron keeps a year (errors 90 days).
+- **/admin** (owner page, not in the menu): `admin_stats(days)` = per-day counts (Pacific), accounts by login method,
+  devices, recent errors and activity. Only players listed in `admins` (prod: `jack`; local seed: `alice`) can load it.
 
 ## Known gaps / TODO
 

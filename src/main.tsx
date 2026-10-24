@@ -7,6 +7,7 @@ import { refreshSession, today } from "./lib/session";
 import { loadWordle } from "./lib/wordle";
 import { initPwa } from "./lib/pwa";
 import { initTheme } from "./lib/theme";
+import "./lib/report";
 
 initTheme();
 render(<App />, document.getElementById("app")!);

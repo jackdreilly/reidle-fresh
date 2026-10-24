@@ -158,6 +158,11 @@ export const routes: Route[] = [
   { path: "/settings", redirect: () => "/account" },
   { path: "/help", page: () => import("./pages/Help"), layout: { route: "/help", title: "Help" } },
   {
+    path: "/admin", page: () => import("./pages/Admin"),
+    layout: { route: "/admin", title: "Admin" },
+    load: (_, q) => read("admin_stats", { p_days: Math.min(365, Math.max(1, Number(q.get("days")) || 30)) }),
+  },
+  {
     path: "/leagues", page: () => import("./pages/Leagues"), prefetchData: true,
     layout: { route: "/leagues", title: "Leagues" },
     load: () => read("leagues_page"),

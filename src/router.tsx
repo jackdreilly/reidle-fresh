@@ -4,6 +4,7 @@ import { notFound, routes, type Route } from "./routes";
 import { signedIn } from "./boot";
 import { leagueId } from "./lib/league";
 import { switchLeague } from "./lib/session";
+import { report } from "./lib/report";
 
 export class Redirect extends Error {
   constructor(public to: string) { super("redirect " + to); }
@@ -99,6 +100,7 @@ export async function navigate(href: string, opts: NavOpts = {}): Promise<void> 
       return void navigate(`/sign-in?redirect=${encodeURIComponent(url.pathname + url.search)}`, { replace: true });
     }
     console.error(e);
+    report(e);
     if (id === navId) { progress = false; emit(); }
   } finally {
     clearTimeout(timer);
