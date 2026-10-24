@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { copyFileSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { resolve } from "node:path";
+import { loadEnv } from "vite";
 import { defineConfig, type Plugin } from "vitest/config";
 
 // Stamps dist/sw.js with this build's hashed assets (precached on install) and a build id
@@ -51,8 +52,26 @@ const staging = (): Plugin => {
   };
 };
 
+// Cloudflare Web Analytics (privacy-friendly page views, no cookies): the beacon loads deferred from Cloudflare,
+// outside the bundle budget, only when the build has a site token (VITE_CF_BEACON_TOKEN; public, like the
+// Supabase key). spa: true counts client-side route changes as page views.
+const beacon = (): Plugin => {
+  let token = "";
+  return {
+    name: "reidle-cf-beacon",
+    apply: "build",
+    configResolved(c) { token = loadEnv(c.mode, c.root, "VITE_").VITE_CF_BEACON_TOKEN ?? ""; },
+    transformIndexHtml(html) {
+      if (!token) return html;
+      const cfg = JSON.stringify({ token, spa: true });
+      return html.replace("</body>",
+        `  <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='${cfg}'></script>\n  </body>`);
+    },
+  };
+};
+
 export default defineConfig({
-  plugins: [preact(), tailwind(), precache(), staging()],
+  plugins: [preact(), tailwind(), precache(), staging(), beacon()],
   resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
   server: { host: "127.0.0.1", port: 3000 },
   preview: { host: "127.0.0.1" },

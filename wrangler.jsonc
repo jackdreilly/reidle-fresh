@@ -3,5 +3,8 @@
 {
   "name": "reidle-staging",
   "main": ".worker/index.js",
-  "compatibility_date": "2026-10-01"
+  "compatibility_date": "2026-10-01",
+  // Workers Logs: every request (and any console output) is kept and searchable in the dashboard
+  // (Workers & Pages -> the worker -> Logs). Applies to staging and prod (deploy --name reidle uses this file).
+  "observability": { "enabled": true, "head_sampling_rate": 1 }
 }

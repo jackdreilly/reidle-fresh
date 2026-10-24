@@ -213,6 +213,15 @@ Owner-only SQL functions (not granted to clients; call from the SQL editor or th
 Both re-rank the day and clear memoised weekly results. After cutover, `tools/legacy/catchup.sql` copies games that still
 landed on legacy (append-only, idempotent).
 
+## Logging and analytics
+
+- **Workers Logs** (`observability` in wrangler.jsonc, both Workers): every request is searchable in the Cloudflare
+  dashboard (Workers & Pages -> reidle / reidle-staging -> Logs). Free plan: 200k events/day, 3 days kept.
+- **Cloudflare Web Analytics** (page views, referrers, countries, Core Web Vitals; no cookies): `beacon()` in
+  vite.config.ts adds Cloudflare's deferred beacon to index.html when the build has `VITE_CF_BEACON_TOKEN`
+  (a public site token from Analytics & Logs -> Web Analytics). Not in the bundle budget. No token -> no beacon.
+- **Supabase** keeps API, Postgres and Auth logs natively (dashboard -> Logs, or the MCP `get_logs`).
+
 ## Known gaps / TODO
 
 - Battles are ported but least tested (E2E coverage pending).
