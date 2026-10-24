@@ -6,7 +6,6 @@
 import { accessToken, auth, config } from "./supabase";
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
-export const googleButton = !!CLIENT_ID;
 
 type Gsi = {
   initialize(o: { client_id: string; nonce: string; callback: (r: { credential: string }) => void; ux_mode: "popup"; itp_support: boolean }): void;
@@ -51,7 +50,7 @@ export async function signInWithGoogleToken(token: string, nonce: string, link: 
   if (err) throw new Error(err);
 }
 
-/** Google refused to link: say what to do instead of its raw message. */
-export const linkError = (err: string) => /already.*linked|identity.*exists/i.test(err)
+/** Google refused to link: say what to do instead of its raw message (as AuthCallback does). */
+const linkError = (err: string) => /already.*linked|identity.*exists/i.test(err)
   ? "That Google account already has its own Reidle login. Sign out, then sign in with Google to use it."
   : err;

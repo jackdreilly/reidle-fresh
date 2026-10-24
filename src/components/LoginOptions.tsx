@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import { auth } from "@/lib/supabase";
 import { expectAuth, viaProvider } from "@/lib/auth";
-import { googleButton, renderGoogleButton, signInWithGoogleToken } from "@/lib/google";
+import { renderGoogleButton, signInWithGoogleToken } from "@/lib/google";
 
 const quiet = "rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100";
 const field = "min-w-0 flex-1 rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm";
@@ -24,7 +24,7 @@ export default function LoginOptions({ after, link = false, onDone }: { after: s
     try { await f(); } catch (e) { setError((e as Error).message); }
     setBusy(false);
   };
-  const [gsi, setGsi] = useState(googleButton);
+  const [gsi, setGsi] = useState(!!import.meta.env.VITE_GOOGLE_CLIENT_ID); // Google's own button (src/lib/google.ts)
   const slot = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!gsi || !slot.current) return;
@@ -36,7 +36,7 @@ export default function LoginOptions({ after, link = false, onDone }: { after: s
   return (
     <div class="space-y-3">
       {gsi
-        ? <div ref={slot} class="flex min-h-[44px] w-full justify-center" aria-label={link ? "Link Google" : "Continue with Google"} />
+        ? <div ref={slot} class="flex w-full justify-center" style={{ minHeight: 44 }} />
         : (
           <button type="button" disabled={busy} class={"flex w-full items-center justify-center gap-2 " + quiet}
             onClick={() => void run(() => viaProvider("google", after, link))}>

@@ -1,7 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
 import { auth, landingHash } from "@/lib/supabase";
 import { afterAuth, finishLink } from "@/lib/auth";
-import { linkError } from "@/lib/google";
 import { refreshSession } from "@/lib/session";
 import { setSignedIn } from "@/boot";
 import { navigate } from "@/router";
@@ -14,7 +13,9 @@ export default function AuthCallback() {
       const err = auth.fromRedirect(landingHash);
       const { to, linked } = afterAuth();
       if (err) {
-        setError(linkError(err));
+        setError(/already.*linked|identity.*exists/i.test(err)
+          ? "That Google account already has its own Reidle login. Sign out, then sign in with Google to use it."
+          : err);
         return;
       }
       setSignedIn(true);
