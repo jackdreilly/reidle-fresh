@@ -1,0 +1,8 @@
+// reillybrothers.net: a static site (privacy policy + terms for Reidle, linked from Google's sign-in branding).
+// Deployed by .github/workflows/deploy-reillybrothers.yml; the custom domain makes Cloudflare add the apex DNS record.
+{
+  "name": "reillybrothers",
+  "compatibility_date": "2026-10-01",
+  "assets": { "directory": "./public", "html_handling": "drop-trailing-slash" },
+  "routes": [{ "pattern": "reillybrothers.net", "custom_domain": true }]
+}

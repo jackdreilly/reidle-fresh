@@ -1,0 +1,32 @@
+name: Deploy reillybrothers.net
+# The static site at sites/reillybrothers (privacy policy + terms for Reidle). Its own Worker, separate from Reidle;
+# the custom domain in its wrangler.jsonc makes Cloudflare create the reillybrothers.net DNS record.
+on:
+  push:
+    branches: [main]
+    paths: [sites/reillybrothers/**, .github/workflows/deploy-reillybrothers.yml]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-reillybrothers
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npx --yes wrangler@4.149.0 deploy
+        working-directory: sites/reillybrothers
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Check the pages are up
+        run: |
+          for p in / /privacy /tos; do
+            for i in 1 2 3 4 5 6; do curl -fsS -o /dev/null "https://reillybrothers.net$p" && break; sleep 10; done
+            curl -fsS -o /dev/null "https://reillybrothers.net$p" && echo "ok $p"
+          done
