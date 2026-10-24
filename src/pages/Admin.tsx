@@ -2,7 +2,10 @@ import type { ComponentChildren } from "preact";
 import { useEffect, useMemo, useState } from "preact/hooks";
 import type { PageProps } from "@/router";
 import { rpc } from "@/lib/supabase";
-import "./admin.css";
+// ?inline: the stylesheet ships inside this chunk (a separate CSS chunk would add its name to the first-load bundle)
+import css from "./admin.css?inline";
+
+if (!document.getElementById("admin-css")) document.head.append(Object.assign(document.createElement("style"), { id: "admin-css", textContent: css }));
 
 // Owner dashboard (admin_stats / admin_player). Styled by admin.css only: this file is outside the Tailwind scan.
 
