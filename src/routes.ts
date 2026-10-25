@@ -54,7 +54,7 @@ export const routes: Route[] = [
   {
     path: "/stats/past_winners", page: () => import("./pages/Past"), prefetchData: true,
     layout: { route: "/stats", title: "Stats" },
-    load: (_, q) => read("past_page", { p_month: /^\d{4}-\d{2}$/.test(q.get("month") ?? "") ? `${q.get("month")}-01` : null }),
+    load: () => read("past_page", { p_month: null }),
   },
   {
     path: "/play", page: () => import("./pages/Play"),

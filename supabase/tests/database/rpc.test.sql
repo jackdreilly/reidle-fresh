@@ -1,5 +1,5 @@
 begin;
-select plan(99);
+select plan(100);
 
 -- Fixture: isolated players, no seed dependence.
 truncate submissions, checkpoints, messages, message_reads, winners, week_snapshots, challenges, players restart identity cascade;
@@ -108,6 +108,8 @@ select is((select name from winners order by week desc limit 1), 'ann', 'winner 
 select act_as('ben');
 select is((select (h ->> 'wins')::int from jsonb_array_elements(past_page(null) -> 'hall') h where h ->> 'name' = 'ann'),
   1, 'past_page hall of fame counts weekly titles');
+select is(past_page(null) #>> '{rankings,0,name}', 'ann', 'power rankings: last week''s winner leads');
+select is((past_page(null) #>> '{rankings,0,form,7}')::int, 1, 'power rankings: form ends with last week''s finish');
 
 -- Daily submit: once per day, ranks recomputed, validation
 select reset_role();
@@ -133,10 +135,8 @@ select is(get_playback((select submission_id from ids where name = 'ben')), null
 select act_as('ben');
 select isnt(get_playback((select submission_id from ids where name = 'cat')), null, 'playback visible after playing');
 select act_as('dan');
-select is(past_page(null) -> 'days' -> 0 ->> 'answer', null, 'past_page hides today''s answer before playing');
-select is(past_page(null) -> 'days' -> 0 ->> 'winner', 'cat', 'past_page still shows today''s leader');
-select act_as('ben');
-select isnt(past_page(null) -> 'days' -> 0 ->> 'answer', null, 'past_page shows today''s answer after playing');
+select is(past_page(null) #>> '{weeks,0,podium,0}', 'cat', 'past_page shows this week''s leader so far');
+select is((past_page(null) #>> '{weeks,0,live}')::boolean, true, 'past_page marks the current week live');
 
 -- Play start is explicit: reads never start the clock or reveal the word
 select reset_role();

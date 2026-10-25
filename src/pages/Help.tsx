@@ -64,6 +64,7 @@ export default function Help() {
       <Section id="scoring" title="Points and the week">
         <p>Your place each day earns points, and the week (Monday to Sunday) adds them up. The highest total wins the week, and ties go to the lower total time.</p>
         {league?.scoring && <p>{league.name} scores: {describeScoring(league.scoring)}. A commissioner can change this on the <A href="/league">league page</A>.</p>}
+        <p>The <A href="/stats/past_winners">Past</A> tab has the power rankings, tennis style: each week's finish earns points (1st 10, 2nd 6, 3rd 4, 4th 3, 5th 2, anyone else who played 1), added up over your last 8 finished weeks, so old weeks drop off as new ones count. Arrows show who moved since last week. Below them is every week's top three, newest first.</p>
         <p><A href="/rankings">Rankings</A> chart everyone's daily places over time, and each player's page has their stats. Tap any name to see it.</p>
       </Section>
 
