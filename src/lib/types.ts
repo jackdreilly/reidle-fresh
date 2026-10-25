@@ -58,5 +58,7 @@ export type Bootstrap = {
   legacy_until?: string | null;
   /** false until the player dismisses the new-player tour (stored per player, so it follows them) */
   tour_seen?: boolean;
+  /** true for a new player who has finished a game and hasn't answered the daily-reminder card (stored per player) */
+  reminder_prompt?: boolean;
   league?: LeagueBrief | null; leagues: { id: number; name: string }[];
 };

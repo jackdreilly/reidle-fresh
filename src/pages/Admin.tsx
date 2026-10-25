@@ -33,13 +33,36 @@ export type AdminData = {
   devices: Record<string, number>;
   app_share: { app: number; browser: number; dark: number; total: number };
   retention: { week: string; size: number; back: number[] }[];
-  funnel: { signed_up: number; played: number; returned: number; verified: number };
   features: Record<string, number>;
   accounts: Record<string, number>;
   leagues: { id: number; name: string; is_public: boolean; members: number; games: number; players: number; messages: number }[];
   players: Player[];
   errors: { message: string; n: number; players: number; last_at: string; path: string | null }[];
   recent: Ev[];
+  growth: Growth;
+};
+type Growth = {
+  today: string; days_span: number;
+  league_kpis: {
+    made: number; new_7d: number; new_prev_7d: number; active_7d: number; active_prev_7d: number; with_friends: number;
+    players_in_made: number; invite_opens_7d: number; invite_joins_7d: number;
+  };
+  weeks: {
+    week: string; new_leagues: number; total_leagues: number; names: string[]; joins: number; members: number;
+    active_leagues: number; games: number; new_players: number; invite_opens: number;
+  }[];
+  leagues: {
+    id: number; name: string; is_public: boolean; created_at: string; created_by: string | null; commissioners: string[];
+    members: number; joined_7d: number; joined_prev_7d: number; players_7d: number; players_prev_7d: number;
+    games_7d: number; games_prev_7d: number; messages_7d: number; last_game: string | null; invite_opens: number; invite_joins: number;
+  }[];
+  new_players: NewPlayer[];
+  arrivals: { signed_out: number; saw_sign_in: number; became_player: number };
+  invites: { league: string; league_id: number; who: string; at: string; signed_in: boolean; joined: boolean; played: boolean; next_day: boolean }[];
+};
+type NewPlayer = {
+  name: string; joined: string; login: string; via: string | null; started: boolean; played: boolean; first_play: string | null;
+  next_day: boolean; week: boolean; days: number; saved: boolean; reminder: boolean; prompt: string | null;
 };
 type PlayerDetail = {
   name: string; joined: string; login: string; leagues: string[];
@@ -280,12 +303,14 @@ function PlayerSheet({ name, close }: { name: string; close: () => void }) {
 const KIND: Record<string, string> = {
   sign_up: "signed up", sign_in: "signed in", link: "linked", game_start: "started a daily", game_finish: "finished",
   message: "posted in chat", league_create: "created a league", league_join: "joined a league", error: "hit an error",
+  invite_open: "opened an invite", reminder_prompt: "answered the reminder prompt",
 };
 function describe(e: Ev) {
   const d = e.data;
   if (e.kind === "game_finish") return `finished a ${d.type}${d.time ? ` in ${Number(d.time).toFixed(1)}s` : ""}`;
   if (e.kind === "sign_up" || e.kind === "sign_in") return `${KIND[e.kind]} (${[d.method, d.device].filter(Boolean).join(", ")})`;
   if (e.kind === "link") return `linked ${d.provider}`;
+  if (e.kind === "reminder_prompt") return d.outcome === "settings" ? "opened reminder settings from the prompt" : "dismissed the reminder prompt";
   if (e.kind === "league_create") return `created league "${d.league}"`;
   if (e.kind === "error") return <>hit an error: <span class="ad-err">{String(d.message)}</span></>;
   return KIND[e.kind] ?? e.kind;
@@ -315,19 +340,260 @@ function Feed({ events, filter = true }: { events: Ev[]; filter?: boolean }) {
   );
 }
 
+/* ---------- growth: leagues ---------- */
+
+/** Pacific calendar day of a timestamp (the server counts days in Pacific too). */
+const pacific = (iso: string) => new Date(iso).toLocaleDateString("en-CA", { timeZone: "America/Los_Angeles" });
+const addDays = (day: string, k: number) => new Date(Date.parse(day + "T12:00:00Z") + k * 864e5).toISOString().slice(0, 10);
+
+/** "12 ▲3" style: this week's number and the change from the week before. */
+function Wow({ now, prev }: { now: number; prev: number }) {
+  const d = now - prev;
+  return (
+    <>
+      {n(now)}
+      {d !== 0 && <span class={"ad-delta " + (d > 0 ? "up" : "down")} title={`${n(prev)} the week before`}>{d > 0 ? "▲" : "▼"}{Math.abs(d)}</span>}
+    </>
+  );
+}
+
+function WeekChart({ weeks }: { weeks: Growth["weeks"] }) {
+  const [hover, setHover] = useState<Growth["weeks"][number] | null>(null);
+  const W = 720, H = 150, pad = 24, bw = (W - pad) / weeks.length;
+  const max = Math.max(1, ...weeks.map((w) => w.total_leagues));
+  const y = (v: number) => H - (v / max) * H;
+  const line = weeks.map((w, i) => `${i ? "L" : "M"}${pad + i * bw + bw / 2},${y(w.total_leagues)}`).join(" ");
+  return (
+    <div class="ad-chart">
+      <svg viewBox={`0 0 ${W} ${H + 18}`} role="img" aria-label="Leagues by week" onMouseLeave={() => setHover(null)}>
+        {[0, Math.round(max / 2), max].map((t) => (
+          <g key={t}>
+            <line class="grid" x1={pad} x2={W} y1={y(t)} y2={y(t)} />
+            <text class="axis" x={0} y={y(t) + 3}>{n(t)}</text>
+          </g>
+        ))}
+        {weeks.map((w, i) => (
+          <g key={w.week} onMouseEnter={() => setHover(w)} onClick={() => setHover(w)}>
+            <rect x={pad + i * bw} y={0} width={bw} height={H} fill="transparent" />
+            <rect class="bar" x={pad + i * bw + bw * 0.2} y={y(w.new_leagues)} width={bw * 0.6} height={H - y(w.new_leagues)} rx={2} />
+            {i % 2 === weeks.length % 2 && <text class="axis" x={pad + i * bw + bw / 2} y={H + 14} text-anchor="middle">{dayLabel(w.week)}</text>}
+          </g>
+        ))}
+        <path class="line" d={line} />
+        {weeks.map((w, i) => <circle key={w.week} class="pt" cx={pad + i * bw + bw / 2} cy={y(w.total_leagues)} r={3} />)}
+      </svg>
+      <div class="ad-tip">
+        {hover
+          ? <>Week of {dayLabel(hover.week)}: <b>{n(hover.new_leagues)}</b> new ({n(hover.total_leagues)} in all) · {n(hover.joins)} joins · {n(hover.active_leagues)} leagues played · {n(hover.games)} games{hover.names.length ? <> · {hover.names.join(", ")}</> : null}</>
+          : <span class="ad-muted"><span class="ad-key bar" /> new leagues each week · <span class="ad-key line" /> leagues in all · tap a week</span>}
+      </div>
+    </div>
+  );
+}
+
+function LeagueGrowth({ g }: { g: Growth }) {
+  const k = g.league_kpis;
+  const weeks = [...g.weeks].reverse();
+  return (
+    <>
+      <div class="ad-kpis">
+        <Kpi label="leagues made by players" value={n(k.made)} />
+        <Kpi label="new this week (vs last)" value={<Wow now={k.new_7d} prev={k.new_prev_7d} />} />
+        <Kpi label="leagues that played this week" value={<Wow now={k.active_7d} prev={k.active_prev_7d} />} />
+        <Kpi label="with 2+ members" value={n(k.with_friends)} />
+        <Kpi label="players in a made league" value={n(k.players_in_made)} />
+        <Kpi label="invite opens → joins (7d)" value={`${n(k.invite_opens_7d)} → ${n(k.invite_joins_7d)}`} />
+      </div>
+      <h3>Week by week</h3>
+      <WeekChart weeks={g.weeks} />
+      <div class="ad-scroll">
+        <table class="ad-table">
+          <thead><tr><th>Week of</th><th>New</th><th>In all</th><th>Joins</th><th>Members</th><th>Played</th><th>Games</th><th>New players</th><th>Invite opens</th><th>New leagues</th></tr></thead>
+          <tbody>
+            {weeks.map((w, i) => {
+              const prev = weeks[i + 1];
+              return (
+                <tr key={w.week}>
+                  <td>{dayLabel(w.week)}</td>
+                  <td>{prev ? <Wow now={w.new_leagues} prev={prev.new_leagues} /> : n(w.new_leagues)}</td>
+                  <td>{n(w.total_leagues)}</td><td>{n(w.joins)}</td><td>{n(w.members)}</td>
+                  <td>{prev ? <Wow now={w.active_leagues} prev={prev.active_leagues} /> : n(w.active_leagues)}</td>
+                  <td>{n(w.games)}</td><td>{n(w.new_players)}</td><td>{n(w.invite_opens)}</td>
+                  <td class="ad-names">{w.names.join(", ") || <span class="ad-muted">–</span>}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <p class="ad-muted">Members = players in a league someone made, counted by when they joined (people who left aren't counted). Played = leagues with a game that week.</p>
+      <h3>Every league, newest first</h3>
+      <div class="ad-scroll">
+        <table class="ad-table">
+          <thead><tr><th>League</th><th>Started</th><th>Members</th><th>Joined 7d</th><th>Players 7d</th><th>Games 7d</th><th>Chat 7d</th><th>Last game</th><th>Invites → joins</th></tr></thead>
+          <tbody>
+            {g.leagues.map((l) => (
+              <tr key={l.id}>
+                <td>
+                  <b>{l.name}</b>{l.is_public ? <span class="ad-muted"> public</span> : null}
+                  <div class="ad-muted">{l.commissioners.length ? `run by ${l.commissioners.join(", ")}` : l.created_by ? `by ${l.created_by}` : ""}</div>
+                </td>
+                <td>{dayLabel(pacific(l.created_at), { month: "short", day: "numeric", year: "2-digit" })}</td>
+                <td>{n(l.members)}</td>
+                <td><Wow now={l.joined_7d} prev={l.joined_prev_7d} /></td>
+                <td><Wow now={l.players_7d} prev={l.players_prev_7d} /></td>
+                <td><Wow now={l.games_7d} prev={l.games_prev_7d} /></td>
+                <td>{n(l.messages_7d)}</td>
+                <td>{ago(l.last_game)}</td>
+                <td>{n(l.invite_opens)} → {n(l.invite_joins)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="ad-muted">▲▼ = change from the 7 days before.</p>
+    </>
+  );
+}
+
+/* ---------- growth: funnels ---------- */
+
+/** Each step: how many, the share of the step before, and the share of the first step. */
+function Steps({ steps }: { steps: [string, number, number?][] }) {
+  const top = steps[0]?.[1] ?? 0;
+  return (
+    <div class="ad-funnel">
+      {steps.map(([l, v, base], i) => {
+        const prev = base ?? (i ? steps[i - 1][1] : v);
+        const drop = i > 0 && prev > 0 && v / prev < 0.5;
+        return (
+          <div class="step" key={l}>
+            <div class="ad-muted">{l} · <b class="ad-strong">{n(v)}</b>{i > 0 && (base === 0 ? " · too early to tell" : <> · {pct(v, prev)} of {base != null ? `${n(base)} who could` : "the step before"}</>)}</div>
+            <div class={"bar" + (drop ? " drop" : "")} style={{ width: `${top ? Math.max(4, (v / top) * 100) : 4}%` }}>{pct(v, top)}</div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+const yes = (b: boolean, due = true) => <td class={b ? "ad-yes" : due ? "ad-no" : "ad-muted"}>{b ? "✓" : due ? "✗" : "·"}</td>;
+
+function Funnels({ g, open }: { g: Growth; open: (name: string) => void }) {
+  const [via, setVia] = useState<"all" | "invite" | "global">("all");
+  const [more, setMore] = useState(false);
+  const today = g.today;
+  const ps = g.new_players.filter((p) => via === "all" || (via === "invite" ? !!p.via : !p.via));
+  const played = ps.filter((p) => p.played);
+  // the next day has to have happened before it can count
+  const couldNext = played.filter((p) => addDays(pacific(p.first_play!), 1) < today);
+  const couldWeek = played.filter((p) => addDays(pacific(p.first_play!), 7) < today);
+  const inv = g.invites;
+  const prompts = ps.reduce<Record<string, number>>((a, p) => {
+    const k = p.prompt === "settings" ? "opened settings" : p.prompt === "dismissed" ? "dismissed" : p.played ? "not answered yet" : "hasn't played yet";
+    a[k] = (a[k] ?? 0) + 1;
+    return a;
+  }, {});
+  const shown = more ? ps : ps.slice(0, 30);
+  return (
+    <>
+      <div style={{ marginBottom: "6px" }}>
+        {([["all", "Everyone"], ["invite", "Came into a league"], ["global", "Only in Reidle Global"]] as const).map(([k, l]) => (
+          <button type="button" key={k} class={"ad-pill" + (k === via ? " on" : "")} onClick={() => setVia(k)}>{l}</button>
+        ))}
+      </div>
+      <div class="ad-grid">
+        <div>
+          <h3>New players</h3>
+          <Steps steps={[
+            ["Signed up", ps.length],
+            ["Started a game", ps.filter((p) => p.started).length],
+            ["Finished their first game", played.length],
+            ["Played again the next day", couldNext.filter((p) => p.next_day).length, couldNext.length],
+            ["Played again within a week", couldWeek.filter((p) => p.week).length, couldWeek.length],
+            ["Saved their account", ps.filter((p) => p.saved).length, ps.length],
+            ["Daily reminder on", ps.filter((p) => p.reminder).length, played.length],
+          ]} />
+        </div>
+        <div>
+          <h3>Invite links</h3>
+          {!inv.length ? <p class="ad-muted">No invite opens in this period yet (counted from Oct 25).</p> : (
+            <Steps steps={[
+              ["Opened an invite", inv.length],
+              ["Signed in", inv.filter((i) => i.signed_in).length],
+              ["Joined the league", inv.filter((i) => i.joined).length],
+              ["Played in it", inv.filter((i) => i.played).length],
+              ["Came back the next day", inv.filter((i) => i.next_day).length],
+            ]} />
+          )}
+          <h3>Arrived signed out</h3>
+          <Steps steps={[
+            ["Visits that started signed out", g.arrivals.signed_out],
+            ["Saw the sign-in page", g.arrivals.saw_sign_in],
+            ["Became a player in that visit", g.arrivals.became_player, g.arrivals.signed_out],
+          ]} />
+          <h3>Reminder prompt</h3>
+          <HBars rows={sorted(prompts)} />
+        </div>
+      </div>
+      {!!inv.length && (
+        <>
+          <h3>Invites by league</h3>
+          <div class="ad-scroll">
+            <table class="ad-table">
+              <thead><tr><th>Who</th><th>League</th><th>Opened</th><th>Signed in</th><th>Joined</th><th>Played</th><th>Next day</th></tr></thead>
+              <tbody>
+                {inv.slice(0, 40).map((i, k) => (
+                  <tr key={k}>
+                    <td>{i.who}</td><td>{i.league}</td><td>{when(i.at)}</td>
+                    {yes(i.signed_in)}{yes(i.joined)}{yes(i.played)}{yes(i.next_day, i.played)}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+      <h3>Where each new player got to</h3>
+      {!ps.length ? <p class="ad-muted">Nobody new in this period.</p> : (
+        <div class="ad-scroll">
+          <table class="ad-table">
+            <thead><tr><th>Player</th><th>Joined</th><th>League</th><th>Login</th><th>Started</th><th>Finished</th><th>Next day</th><th>Week</th><th>Days</th><th>Saved</th><th>Reminder</th></tr></thead>
+            <tbody>
+              {shown.map((p) => {
+                const fp = p.first_play && pacific(p.first_play);
+                return (
+                  <tr key={p.name} class="click" onClick={() => open(p.name)}>
+                    <td>{p.name}</td><td>{when(p.joined)}</td><td>{p.via ?? <span class="ad-muted">Global</span>}</td><td>{p.login}</td>
+                    {yes(p.started)}{yes(p.played)}
+                    {yes(p.next_day, !!fp && addDays(fp, 1) < today)}{yes(p.week, !!fp && addDays(fp, 7) < today)}
+                    <td>{n(p.days)}</td>{yes(p.saved)}{yes(p.reminder, p.played)}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {!more && ps.length > shown.length && <button type="button" class="ad-pill" onClick={() => setMore(true)}>Show all {ps.length}</button>}
+      <p class="ad-muted">✗ = didn't (yet) · · = too early to tell. League = the first league they joined other than Reidle Global. Days are Pacific.</p>
+    </>
+  );
+}
+
 /* ---------- page ---------- */
 
 const PERIODS = [7, 30, 90];
 const SECTIONS: [string, string][] = [
-  ["overview", "Overview"], ["usage", "Usage"], ["pages", "Pages"], ["players", "Players"], ["retention", "Retention"],
-  ["leagues", "Leagues"], ["errors", "Errors"], ["activity", "Activity"],
+  ["overview", "Overview"], ["leagues", "Leagues"], ["funnel", "Funnel"], ["usage", "Usage"], ["pages", "Pages"],
+  ["players", "Players"], ["retention", "Retention"], ["errors", "Errors"], ["activity", "Activity"],
 ];
 const LENGTHS: [string, string][] = [["under_1m", "under 1 min"], ["1_3m", "1–3 min"], ["3_10m", "3–10 min"], ["10_30m", "10–30 min"], ["over_30m", "30+ min"]];
 
 /** Owner-only dashboard: who plays, when, for how long, what they use, and what breaks. */
 export default function Admin({ data }: PageProps<AdminData>) {
   const [player, setPlayer] = useState<string | null>(null);
-  const k = data.kpis, f = data.funnel, span = data.days_span;
+  const k = data.kpis, span = data.days_span;
   const totals = data.days.reduce((a, d) => ({ visits: a.visits + d.visits, minutes: a.minutes + d.minutes }), { visits: 0, minutes: 0 });
   return (
     <div class="ad">
@@ -358,6 +624,14 @@ export default function Admin({ data }: PageProps<AdminData>) {
         <DailyChart days={data.days} />
       </Card>
 
+      <Card id="leagues" title="Leagues" note="weeks start Monday, Pacific">
+        <LeagueGrowth g={data.growth} />
+      </Card>
+
+      <Card id="funnel" title="Funnel" note={`people who signed up in the last ${span} days`}>
+        <Funnels g={data.growth} open={setPlayer} />
+      </Card>
+
       <div id="usage" class="ad-grid">
         <Card title="When people play" note="games by weekday and hour, Pacific" wide>
           <Heatmap cells={data.heatmap} />
@@ -369,16 +643,6 @@ export default function Admin({ data }: PageProps<AdminData>) {
           <p class="ad-muted" style={{ marginTop: "6px" }}>
             {pct(data.app_share.app, data.app_share.total)} from the Home Screen app · {pct(data.app_share.dark, data.app_share.total)} in dark mode
           </p>
-        </Card>
-        <Card title="New players" note={`signed up in the last ${span} days`}>
-          <div class="ad-funnel">
-            {([["Signed up", f.signed_up], ["Finished a game", f.played], ["Came back another day", f.returned], ["Saved their account", f.verified]] as [string, number][]).map(([l, v]) => (
-              <div class="step" key={l}>
-                <div class="ad-muted">{l} · {n(v)} ({pct(v, f.signed_up)})</div>
-                <div class="bar" style={{ width: `${f.signed_up ? Math.max(4, (v / f.signed_up) * 100) : 4}%` }}>{n(v)}</div>
-              </div>
-            ))}
-          </div>
         </Card>
         <Card title="What gets used" note={`last ${span} days`}>
           <HBars rows={[
@@ -429,19 +693,6 @@ export default function Admin({ data }: PageProps<AdminData>) {
                       : <td key={i} class="ad-muted">·</td>;
                   })}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Card>
-
-      <Card id="leagues" title="Leagues" note={`games and chat in the last ${span} days`}>
-        <div class="ad-scroll">
-          <table class="ad-table">
-            <thead><tr><th>League</th><th>Members</th><th>Players</th><th>Games</th><th>Chat</th></tr></thead>
-            <tbody>
-              {data.leagues.map((l) => (
-                <tr key={l.id}><td>{l.name}{l.is_public ? " (public)" : ""}</td><td>{n(l.members)}</td><td>{n(l.players)}</td><td>{n(l.games)}</td><td>{n(l.messages)}</td></tr>
               ))}
             </tbody>
           </table>

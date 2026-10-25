@@ -79,3 +79,17 @@ button.ad-pill { cursor: pointer; }
 .ad-visit { border-top: 1px solid var(--ad-line); padding-top: 6px; margin-top: 6px; }
 .ad-path { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 4px; }
 .ad-path span { font-size: 11px; padding: 0 6px; border-radius: 6px; background: var(--ad-soft); color: var(--ad-sub); }
+.ad-delta { margin-left: 4px; font-size: 11px; font-weight: 600; }
+.ad-delta.up { color: var(--ad-good); }
+.ad-delta.down { color: var(--ad-bad); }
+.ad-kpi .ad-delta { font-size: 13px; }
+.ad-chart .line { fill: none; stroke: var(--ad-accent-2); stroke-width: 2; }
+.ad-chart .pt { fill: var(--ad-accent-2); }
+.ad-key { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: -1px; background: var(--ad-accent); }
+.ad-key.line { height: 3px; vertical-align: 2px; background: var(--ad-accent-2); }
+.ad-table td.ad-names { text-align: left; white-space: normal; min-width: 160px; color: var(--ad-sub); }
+.ad-table td.ad-yes { color: var(--ad-good); font-weight: 700; text-align: center; }
+.ad-table td.ad-no { color: var(--ad-bad); text-align: center; }
+.ad-table td.ad-muted { text-align: center; }
+.ad-strong { color: var(--ad-text); font-weight: 600; }
+.ad-funnel .bar.drop { background: #f59e0b; }

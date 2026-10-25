@@ -58,12 +58,15 @@ export default function Layout(
     fullPage?: boolean;
   },
 ) {
-  const { played_today: playedToday, name, unread, pending_challenges: pending = 0, league, leagues, account, tour_seen } = useSession();
+  const { played_today: playedToday, name, unread, pending_challenges: pending = 0, league, leagues, account, tour_seen, reminder_prompt } = useSession();
   const [open, setOpen] = useState(false);
   // never over a game in progress, nor before they've picked a league
   const Tour = useLazy(tour_seen === false && !fullPage && !!league, () => import("@/components/Tour"));
   // guests and name-only players: the "save your account" banners (and the name-only lock)
   const Banner = useLazy(account === "legacy" || account === "guest", () => import("@/components/AccountBanner"));
+  // new players, once they've finished a game (never with the tour up, in a game or on Settings itself)
+  const Reminder = useLazy(!!reminder_prompt && playedToday && tour_seen !== false && !fullPage && !!league && route !== "/account",
+    () => import("@/components/ReminderPrompt"));
   // name-only and guest accounts keep the dot until they link Google or an email
   const dot = useSettingsDot(route) || account === "legacy" || account === "guest";
   const install = useInstall();
@@ -352,6 +355,7 @@ export default function Layout(
           ].join(" ")}
         >
           {Banner && <Banner route={route} fullPage={fullPage} />}
+          {Reminder && <Reminder />}
           {children}
         </div>
         {Tour && <Tour />}

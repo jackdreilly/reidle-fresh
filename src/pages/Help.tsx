@@ -95,13 +95,13 @@ export default function Help() {
           ? <p>You're playing as a <b>guest</b>. Your stats live on this device's sign-in only. <A href="/account#login">Save your account</A> with Google or email to keep them on any device and to join private leagues.</p>
           : <p>Sign in with Google or email to keep your stats on every device. Guests can try everything, then save their account later without losing anything.</p>}
         <p>Change your nickname, theme (light or dark) and notifications in <A href="/account">Settings</A>.</p>
-        <p>To keep improving Reidle, the site notes which pages you open, how long they're on screen, and anything that breaks. It never records what you type in chat. More in our <a href="/privacy" target="_blank" class="underline">privacy policy</a> and <a href="/tos" target="_blank" class="underline">terms</a>.</p>
+        <p>To keep improving Reidle, the site notes which pages and invite links you open, how long they're on screen, and anything that breaks. It never records what you type in chat. More in our <a href="/privacy" target="_blank" class="underline">privacy policy</a> and <a href="/tos" target="_blank" class="underline">terms</a>.</p>
       </Section>
 
       <Section id="extras" title="Chat, alerts and the app">
         <ul class="list-disc space-y-1 pl-5">
           <li><A href="/messages">Messages</A> is your league's chat. A blue dot means something new.</li>
-          <li>Turn on notifications in <A href="/account">Settings</A> and pick what you hear about: chat, someone beating your time, new challenges, the new word, a weekly recap.</li>
+          <li>Turn on notifications in <A href="/account">Settings</A> and pick what you hear about: chat, someone beating your time, new challenges, the new word, a weekly recap, and a daily reminder before the word resets on days you haven't played.</li>
           <li>Add Reidle to your home screen from <A href="/account#install">Settings</A>: it opens full screen and starts instantly. On iPhone, notifications only work from the home-screen app.</li>
         </ul>
       </Section>

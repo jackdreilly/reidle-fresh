@@ -50,6 +50,9 @@ test("create a league, invite by link, join, commissioner scoring", async ({ pag
   await expect.poll(() => sql("select string_agg(l.name, ',' order by l.name) from league_members m join leagues l using (league_id) where m.name = 'omar'"))
     .toBe("Nina Pals,Reidle Global");
   await expect(friend.getByRole("link", { name: /League · switch Nina Pals/ })).toBeVisible();
+  // the owner's invite funnel: opened signed out, then again as omar, in the same tab
+  await expect.poll(() => sql(`select string_agg(coalesce(e.name, '-'), ',' order by e.at) from events e join leagues l using (league_id)
+                               where e.kind = 'invite_open' and l.name = 'Nina Pals'`)).toBe("-,omar");
 });
 
 test("no league yet: pick one", async ({ page }) => {

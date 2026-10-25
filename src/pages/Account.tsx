@@ -177,7 +177,7 @@ function Notifications({ initial }: { initial: Prefs }) {
   const resetAt = useSession().league?.reset_at;
 
   return (
-    <section class={card}>
+    <section id="notifications" class={card + " scroll-mt-24"}>
       <h2 class="font-semibold">Notifications</h2>
       <div class="mt-3 flex items-center justify-between gap-3 rounded-xl bg-gray-50 p-3">
         <div class="min-w-0 text-sm">

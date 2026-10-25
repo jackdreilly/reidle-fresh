@@ -160,7 +160,11 @@ export const routes: Route[] = [
   {
     path: "/admin", page: () => import("./pages/Admin"),
     layout: { route: "/admin", title: "Admin" },
-    load: (_, q) => read("admin_stats", { p_days: q.get("days") }), // null = 30; the server clamps it
+    // null = 30; the server clamps it
+    load: async (_, q) => {
+      const [stats, growth] = await Promise.all([read<object>("admin_stats", { p_days: q.get("days") }), read("admin_growth", { p_days: q.get("days") })]);
+      return { ...stats, growth };
+    },
   },
   {
     path: "/leagues", page: () => import("./pages/Leagues"), prefetchData: true,

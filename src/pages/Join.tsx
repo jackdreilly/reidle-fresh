@@ -1,4 +1,4 @@
-import { useState } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import type { PageProps } from "@/router";
 import { navigate } from "@/router";
 import { signedIn } from "@/boot";
@@ -14,6 +14,17 @@ export default function Join({ params, data }: PageProps<Preview>) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const here = `/join/${params.code}`;
+  // counted for the owner's invite funnel; the tab's visit id (shared with src/lib/telemetry.ts) ties a signed-out
+  // open to the account it turns into
+  useEffect(() => {
+    if (!data) return;
+    let sid: string | null = null;
+    try {
+      sid = sessionStorage.getItem("reidle:sid");
+      if (!sid) sessionStorage.setItem("reidle:sid", sid = crypto.randomUUID());
+    } catch { /* storage unavailable */ }
+    void rpc("log_invite", { p_code: params.code, p_sid: sid }).catch(() => {});
+  }, [params.code, !!data]);
   const join = async () => {
     setBusy(true);
     setError("");

@@ -18,11 +18,14 @@ test("visits, errors and the owner dashboard (admins with a saved login only)", 
   await page.goto("/account"); // the owner's Settings page links to the dashboard
   await page.getByRole("link", { name: "Admin" }).click();
   await expect(page.getByRole("heading", { name: "Admin" })).toBeVisible();
-  for (const h of ["Day by day", "When people play", "How long a visit lasts", "Pages", "Players", "Retention", "Browser errors"]) {
+  for (const h of ["Day by day", "Leagues", "Week by week", "Every league", "Funnel", "New players", "Invite links", "When people play", "How long a visit lasts", "Pages", "Players", "Retention", "Browser errors"]) {
     await expect(page.getByRole("heading", { name: h, exact: false }).first()).toBeVisible();
   }
   await expect(page.getByText("e2e boom").first()).toBeVisible();
   await expect(page.locator("#pages")).toContainText("/stats/daily/:date");
+  await expect(page.locator("#leagues")).toContainText("Reidle Global");
+  await page.locator("#leagues").screenshot({ path: "test-results/admin-leagues.png" });
+  await page.locator("#funnel").screenshot({ path: "test-results/admin-funnel.png" });
   await page.screenshot({ path: "test-results/admin.png", fullPage: true });
   await page.setViewportSize({ width: 1400, height: 900 });
   await page.locator("#usage").screenshot({ path: "test-results/admin-usage-wide.png" });

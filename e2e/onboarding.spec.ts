@@ -49,3 +49,33 @@ test("help page covers the basics and can replay the tour", async ({ page }) => 
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
 });
+
+test("after their first game, new players get a reminder card once: it opens notification settings", async ({ page, browser }) => {
+  await signIn(page, "rita", "/stats/today", { fresh: true });
+  await page.getByRole("dialog").getByRole("button", { name: "Skip" }).click();
+  const card = page.getByRole("region", { name: "Daily reminder" });
+  await expect(page.getByRole("link", { name: /League Reidle Global/ })).toBeVisible();
+  await expect(card).toHaveCount(0); // not before they've played
+  sql(`insert into submissions (league_id, day, name, "time", penalty, word, paste)
+       select 2, league_day(2), 'rita', 30, 0, 'x', '' `);
+  await page.reload();
+  await expect(card).toContainText("Want a nudge each day?");
+  await page.screenshot({ path: "test-results/reminder-card.png" });
+  await card.getByRole("link", { name: "Set up a reminder" }).click();
+  await expect(page).toHaveURL(/\/account/);
+  await expect(page.locator("#notifications")).toBeInViewport();
+  await expect.poll(() => sql("select reminder_prompt_seen from players where name = 'rita'")).toBe("t");
+
+  // answered once = gone on every device
+  const other = await (await browser.newContext()).newPage();
+  await signIn(other, "rita", "/stats/today", { fresh: true });
+  await expect(other.getByRole("link", { name: /League Reidle Global/ })).toBeVisible();
+  await expect(other.getByRole("region", { name: "Daily reminder" })).toHaveCount(0);
+
+  // the × dismisses it too
+  sql("update players set reminder_prompt_seen = false where name = 'rita'");
+  await other.reload();
+  await other.getByRole("region", { name: "Daily reminder" }).getByRole("button", { name: "Dismiss" }).click();
+  await expect(other.getByRole("region", { name: "Daily reminder" })).toHaveCount(0);
+  await expect.poll(() => sql("select data ->> 'outcome' from events where kind = 'reminder_prompt' order by at desc limit 1")).toBe("dismissed");
+});
