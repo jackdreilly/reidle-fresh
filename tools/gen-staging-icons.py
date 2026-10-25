@@ -25,7 +25,7 @@ def badge(src, dst, bottom=0.94):
     else:
         im.convert("RGB").save(dst, optimize=True)
 
-for f in ["android-chrome-192x192.png", "android-chrome-384x384.png", "android-chrome-512x512.png", "apple-touch-icon.png", "android-chrome-96x96.webp"]:
+for f in ["android-chrome-192x192.png", "android-chrome-384x384.png", "android-chrome-512x512.png", "apple-touch-icon.png", "apple-touch-icon-precomposed.png", "android-chrome-96x96.webp"]:
     badge("public/" + f, "public-staging/" + f)
 badge("public/mask.png", "public-staging/mask.png", bottom=0.86)  # maskable: stay inside the safe zone
 # favicon: 32px is too small for text, so a plain teal dot in the corner

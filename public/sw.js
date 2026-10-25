@@ -5,7 +5,7 @@
 // - navigations are network-first (a new deploy shows up immediately), falling back to the cached
 //   shell only when offline or slow. Supabase calls (another origin) are never touched.
 // Unhashed files the shell shows (logo) or the OS asks for (icons); refreshed with each new build.
-const STATIC = ["/android-chrome-96x96.webp", "/android-chrome-192x192.png", "/manifest.webmanifest"];
+const STATIC = ["/android-chrome-96x96.webp", "/android-chrome-192x192.png", "/apple-touch-icon.png", "/manifest.webmanifest"];
 const PRECACHE = self.__PRECACHE__ ?? [];
 const CACHE = "reidle-" + (self.__BUILD__ ?? "dev");
 const SHELL = "/index.html";
