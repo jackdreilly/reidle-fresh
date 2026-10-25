@@ -27,6 +27,9 @@ def badge(src, dst, bottom=0.94):
 
 for f in ["android-chrome-192x192.png", "android-chrome-384x384.png", "android-chrome-512x512.png", "apple-touch-icon.png", "apple-touch-icon-precomposed.png", "android-chrome-96x96.webp"]:
     badge("public/" + f, "public-staging/" + f)
+# the 180px touch icon is inlined into index.html (vite.config.ts `reidle-touch-icon`): keep it small
+for f in ["apple-touch-icon.png", "apple-touch-icon-precomposed.png"]:
+    Image.open("public-staging/" + f).quantize(colors=64, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).save("public-staging/" + f, optimize=True)
 badge("public/mask.png", "public-staging/mask.png", bottom=0.86)  # maskable: stay inside the safe zone
 # favicon: 32px is too small for text, so a plain teal dot in the corner
 im = Image.open("public/android-chrome-192x192.png").convert("RGBA").resize((48, 48), Image.LANCZOS)

@@ -52,6 +52,21 @@ const staging = (): Plugin => {
   };
 };
 
+// iOS "Add to Home Screen" showed a plain letter instead of the logo even though /apple-touch-icon.png serves
+// fine, so the 180px icon (64 colours, ~11KB) is inlined into index.html: nothing left for iOS to fetch.
+// Staging inlines its badged copy from public-staging/.
+const touchIcon = (): Plugin => {
+  let file = "";
+  return {
+    name: "reidle-touch-icon",
+    apply: "build",
+    configResolved(c) { file = resolve(c.root, c.mode === "staging" ? "public-staging" : "public", "apple-touch-icon.png"); },
+    transformIndexHtml(html) {
+      return html.replace('href="/apple-touch-icon.png?v=2"', `href="data:image/png;base64,${readFileSync(file).toString("base64")}"`);
+    },
+  };
+};
+
 // Cloudflare Web Analytics (privacy-friendly page views, no cookies): the beacon loads deferred from Cloudflare,
 // outside the bundle budget, only when the build has a site token (VITE_CF_BEACON_TOKEN; public, like the
 // Supabase key). spa: true counts client-side route changes as page views.
@@ -71,7 +86,7 @@ const beacon = (): Plugin => {
 };
 
 export default defineConfig({
-  plugins: [preact(), tailwind(), precache(), staging(), beacon()],
+  plugins: [preact(), tailwind(), precache(), staging(), touchIcon(), beacon()],
   resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
   server: { host: "127.0.0.1", port: 3000 },
   preview: { host: "127.0.0.1" },
