@@ -15,7 +15,6 @@ function readCache(): Bootstrap {
       const fresh = c.league && c.league.id === leagueId();
       return {
         ...anon, name: c.name, account: c.account, legacy_until: c.legacy_until, nickname_set: c.nickname_set, tour_seen: c.tour_seen,
-        reminder_prompt: c.reminder_prompt,
         league: fresh ? c.league : null, leagues: c.leagues ?? [],
         played_today: fresh && c.day === dayIn(c.league.tz, c.league.reset_hour) && c.played_today,
       };

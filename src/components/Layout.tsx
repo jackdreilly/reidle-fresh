@@ -65,8 +65,8 @@ export default function Layout(
   // guests and name-only players: the "save your account" banners (and the name-only lock)
   const Banner = useLazy(account === "legacy" || account === "guest", () => import("@/components/AccountBanner"));
   // new players, once they've finished a game (never with the tour up, in a game or on Settings itself)
-  const Reminder = useLazy(!!reminder_prompt && playedToday && tour_seen !== false && !fullPage && !!league && route !== "/account",
-    () => import("@/components/ReminderPrompt"));
+  const Reminder = useLazy(!!(reminder_prompt && playedToday && tour_seen) && !fullPage && route !== "/account",
+    () => import("@/components/Remind"));
   // name-only and guest accounts keep the dot until they link Google or an email
   const dot = useSettingsDot(route) || account === "legacy" || account === "guest";
   const install = useInstall();

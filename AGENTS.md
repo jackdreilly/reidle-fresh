@@ -239,11 +239,11 @@ landed on legacy (append-only, idempotent).
   name-only form never opens it. Styled by `src/pages/admin.css` only: Admin.tsx is excluded from the Tailwind scan
   (`@source not` in index.css), so the dashboard adds nothing to the first-load CSS.
 - **Growth** (migration `*_growth.sql`, Jack 2026-10-25): `admin_growth(days)` feeds the Leagues and Funnel sections of
-  /admin (loaded alongside `admin_stats`): player-made leagues (not OG/Global) week by week (new, names, cumulative, joins,
+  /admin (`admin_page(days)` = `admin_stats` + `growth` in one call): player-made leagues (not OG/Global) week by week (new, names, cumulative, joins,
   active) and per league with week-over-week deltas; one row per new player (started, first game, next day, week,
   saved, reminder, which league they came into); invite links (`log_invite(code, sid)` from `/join/:code`, signed out too,
   tied to the account via the telemetry tab id `reidle:sid`; members opening their own link are left out).
-- **Reminder card** (`src/components/ReminderPrompt.tsx`, lazy): after a new player's first finished game,
+- **Reminder card** (`src/components/Remind.tsx`, lazy): after a new player's first finished game,
   `bootstrap().reminder_prompt` shows "Want a nudge each day?" linking to Settings -> Notifications. Either answer calls
   `dismiss_reminder_prompt()` (players.reminder_prompt_seen, so it follows the player; logged as a `reminder_prompt`
   event). Setting a reminder in Settings hides it too. Players from before it shipped (14+ days old) start with it seen.

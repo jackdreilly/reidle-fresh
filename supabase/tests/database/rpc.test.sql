@@ -38,7 +38,7 @@ select is(
   (select array_agg(p.proname::text order by p.proname) from pg_proc p
     where p.pronamespace = 'public'::regnamespace and p.proname not in ('act_as', 'act_in', 'reset_role', 'uid_of')
       and has_function_privilege('authenticated', p.oid, 'execute')),
-  array['admin_growth','admin_player','admin_stats','battle_get','battle_home','battle_restart','bootstrap','challenge_next','challenge_page',
+  array['admin_growth','admin_page','admin_player','admin_stats','battle_get','battle_home','battle_restart','bootstrap','challenge_next','challenge_page',
         'challenge_play','challenges_page','create_league','daily_page','delete_message','dismiss_reminder_prompt','dismiss_tour','get_playback',
         'join_league','league_page','league_preview','leagues_page','leave_league','like_message','log_error','log_invite','log_visit',
         'messages_page','name_sign_in_open','new_battle','nickname_free','past_page','past_winners','play_state','player_stats',
