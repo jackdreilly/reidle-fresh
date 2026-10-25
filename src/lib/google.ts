@@ -3,7 +3,8 @@
 // Needs the site's origin under "Authorized JavaScript origins" on the OAuth client in Google Cloud Console;
 // without VITE_GOOGLE_CLIENT_ID the app keeps the old redirect through Supabase.
 
-import { accessToken, auth, config } from "./supabase";
+import { accessToken, config } from "./supabase";
+import { auth } from "./auth-api";
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
 

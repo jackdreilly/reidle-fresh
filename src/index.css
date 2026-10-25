@@ -1,10 +1,14 @@
-@import "tailwindcss";
-/* the owner dashboard has its own stylesheet (pages/admin.css), so it adds nothing to the first-load CSS */
+@import "tailwindcss" source(none);
+@import "./theme.css";
+@source ".";
+@source "../index.html";
+/* Parts with a stylesheet of their own, loaded with their chunk, so they add nothing to the first-load CSS:
+   the owner dashboard (pages/admin.css) and the game (components/game.chunk.css). */
 @source not "./pages/Admin.tsx";
-@theme {
-  --breakpoint-sm: 420px;
-  --breakpoint-md: 700px;
-}
+@source not "./components/Game.tsx";
+@source not "./components/ErrorBar.tsx";
+@source not "./components/PartyChat.tsx";
+@source not "./components/Confetti.tsx";
 /* Tailwind v4 defaults borders to currentColor; keep the v3 look. */
 @layer base {
   *, ::after, ::before { border-color: var(--color-gray-200); }
@@ -12,28 +16,6 @@
 }
 html, body { height: 100%; }
 #app { min-height: 100%; }
-@keyframes fade-out { 0%, 25% { opacity: 1; } 100% { opacity: 0; } }
-
-/* Gameplay motion: short, transform/opacity only, never gates input. Off for reduced motion. */
-@media (prefers-reduced-motion: no-preference) {
-  .tile-pop { animation: tile-pop 90ms ease-out; }
-  .tile-reveal { animation: tile-reveal 140ms ease-out backwards; animation-delay: calc(var(--i) * 25ms); }
-  /* winning row: same reveal, then a quick wave */
-  .tile-win {
-    animation: tile-reveal 140ms ease-out backwards, tile-win 260ms cubic-bezier(.3, 1.6, .5, 1);
-    animation-delay: calc(var(--i) * 25ms), calc(200ms + var(--i) * 45ms);
-  }
-  .row-shake { animation: row-shake 180ms ease-in-out; }
-  .key { transition: background-color 150ms ease-out, transform 60ms ease-out; }
-  .key:active { transform: scale(.93); }
-}
-@keyframes tile-pop { 50% { transform: scale(1.1); } }
-@keyframes tile-reveal { from { transform: scaleY(0); } }
-@keyframes tile-win { 40% { transform: translateY(-22%) scale(1.06); } }
-@keyframes row-shake {
-  20%, 60% { transform: translateX(-4%); }
-  40%, 80% { transform: translateX(4%); }
-}
 
 /* Installed app: feel native. No rubber-band overscroll or grey tap flashes. */
 @media (display-mode: standalone) {

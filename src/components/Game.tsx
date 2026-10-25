@@ -1,3 +1,4 @@
+import "./game.chunk.css";
 import ErrorBar from "@/components/ErrorBar";
 import TimerText from "@/components/TimerText";
 import { Playback, PlaybackEvent, scoreColor } from "@/lib/playback";

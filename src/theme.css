@@ -1,0 +1,5 @@
+/* Tailwind theme overrides shared by index.css and components/game.chunk.css. */
+@theme {
+  --breakpoint-sm: 420px;
+  --breakpoint-md: 700px;
+}

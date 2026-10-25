@@ -24,7 +24,7 @@ src/pages/             one component per route
 src/components/        Game, Battle, tables, charts, layout
 src/data/*.csv         word lists (client validation AND generated DB migration)
 e2e/                   Playwright specs (+ helpers: sql(), signIn(), typeWord())
-tools/                 clone-db.sh, sync-auth-users.ts, gen-words-seed.mjs, check-bundle.mjs
+tools/                 clone-db.sh, sync-auth-users.ts, gen-words-seed.mjs, check-bundle.mjs (first-load budget)
 ```
 
 ## Data access rules
@@ -247,8 +247,18 @@ landed on legacy (append-only, idempotent).
   `bootstrap().reminder_prompt` shows "Want a nudge each day?" linking to Settings -> Notifications. Either answer calls
   `dismiss_reminder_prompt()` (players.reminder_prompt_seen, so it follows the player; logged as a `reminder_prompt`
   event). Setting a reminder in Settings hides it too. Players from before it shipped (14+ days old) start with it seen.
-- **First-load JS budget is full** (staging build ~20.47/20KB): anything new in the entry bundle needs trimming
-  elsewhere or Jack's OK to raise `BUDGET` in tools/check-bundle.mjs.
+- **First-load budget** (tools/check-bundle.mjs, gzip; 2026-10-25: JS ~18.4/20KB, CSS ~8.5/10KB): the entry chunk,
+  the `preact` vendor chunk it preloads, and index.css. Keep new code out of it: page-only code belongs in the page's
+  chunk, and big optional parts load lazily (`useLazy` in Layout.tsx, `loadWordle` in routes.ts, `auth-api.ts` for
+  sign-in calls). Libraries sit in their own chunks (`manualChunks` in vite.config.ts: `preact`, `realtime`) so a
+  deploy doesn't make returning players re-download them.
+- **Game stylesheet** (`src/components/game.chunk.css`): Game, ErrorBar, PartyChat and Confetti are left out of
+  index.css's Tailwind scan (`@source not`) and get their own sheet that loads with the game chunk. The build
+  (`chunkCss` in vite.config.ts) drops from it every utility index.css already has, so the two sheets never repeat a
+  rule (a repeat loaded later would beat index.css's ordering on other pages), and fails if one of those files is
+  imported outside the game. Within a game element, a game-only class always beats a first-load class it conflicts
+  with, so don't put two conflicting utilities on one game element and rely on Tailwind's order (e.g.
+  `animate-bounce animate-pulse`).
 
 ## Known gaps / TODO
 

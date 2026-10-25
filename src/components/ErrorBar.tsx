@@ -119,7 +119,7 @@ export default function ErrorBar(
       {wordle
         ? null
         : (
-          <div class="animate-bounce animate-pulse text-blue-400 font-bold">
+          <div class="animate-pulse text-blue-400 font-bold">
             Loading...
           </div>
         )}

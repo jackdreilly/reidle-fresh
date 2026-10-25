@@ -1,8 +1,7 @@
 import type { ComponentType } from "preact";
-import { auth, rpc } from "./lib/supabase";
+import { rpc, signOut } from "./lib/supabase";
 import { clearSession, getSession, refreshSession, today } from "./lib/session";
 import { setSignedIn } from "./boot";
-import { loadWordle } from "./lib/wordle";
 import { normalizeName } from "./lib/credentials";
 import { Redirect, type Params } from "./router";
 
@@ -22,6 +21,9 @@ export type Route = {
 /** Names from ?vs=, normalised, without duplicates or the page's own player. */
 export const compareNames = (name: string, q: URLSearchParams) =>
   [...new Set((q.get("vs") ?? "").split(",").map(normalizeName).filter((n) => n && n !== name))].slice(0, 3);
+
+/** The word lists and rules: a chunk of their own, fetched only by the game routes (and warmed when idle). */
+export const loadWordle = () => import("./lib/wordle").then((m) => m.loadWordle());
 
 const read = <T>(fn: string, args?: Record<string, unknown>) => rpc<T>(fn, args);
 const alreadyPlayed = (e: unknown, to: string) => {
@@ -184,7 +186,7 @@ export const routes: Route[] = [
     path: "/sign-out",
     public: true,
     redirect: async () => {
-      await auth.signOut();
+      await signOut();
       setSignedIn(false);
       clearSession();
       return "/sign-in";

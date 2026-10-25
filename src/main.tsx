@@ -2,9 +2,9 @@ import "./index.css";
 import { render } from "preact";
 import App from "./App";
 import { navigate, refresh, startRouter } from "./router";
+import { loadWordle } from "./routes";
 import { detectSignedIn, signedIn } from "./boot";
 import { refreshSession, today } from "./lib/session";
-import { loadWordle } from "./lib/wordle";
 import { initPwa } from "./lib/pwa";
 import { initTheme } from "./lib/theme";
 

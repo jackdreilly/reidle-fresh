@@ -1,7 +1,5 @@
-import { auth } from "./supabase";
+import { auth } from "./auth-api";
 import { credentials, normalizeName } from "./credentials";
-
-export { normalizeName };
 
 const NEW_PLAYERS = "New players sign in with Google, an email code, or as a guest.";
 
@@ -30,8 +28,6 @@ export async function signIn(rawName: string): Promise<string> {
   }
   return name;
 }
-
-export const signOut = () => auth.signOut();
 
 const AFTER = "reidle:after-auth";
 const LINKING = "reidle:linking";

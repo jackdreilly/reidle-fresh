@@ -1,0 +1,31 @@
+/* The game's styles (board, keyboard, battle chat), loaded with the game chunk instead of the first load.
+   Same Tailwind setup as index.css minus the base layer, scanning only the game's files (which index.css skips).
+   A class also used elsewhere is in both sheets with the same rule, which is harmless. */
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities) source(none);
+@import "../theme.css";
+@source "./Game.tsx";
+@source "./ErrorBar.tsx";
+@source "./PartyChat.tsx";
+@source "./Confetti.tsx";
+
+/* Gameplay motion: short, transform/opacity only, never gates input. Off for reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .tile-pop { animation: tile-pop 90ms ease-out; }
+  .tile-reveal { animation: tile-reveal 140ms ease-out backwards; animation-delay: calc(var(--i) * 25ms); }
+  /* winning row: same reveal, then a quick wave */
+  .tile-win {
+    animation: tile-reveal 140ms ease-out backwards, tile-win 260ms cubic-bezier(.3, 1.6, .5, 1);
+    animation-delay: calc(var(--i) * 25ms), calc(200ms + var(--i) * 45ms);
+  }
+  .row-shake { animation: row-shake 180ms ease-in-out; }
+  .key { transition: background-color 150ms ease-out, transform 60ms ease-out; }
+  .key:active { transform: scale(.93); }
+}
+@keyframes tile-pop { 50% { transform: scale(1.1); } }
+@keyframes tile-reveal { from { transform: scaleY(0); } }
+@keyframes tile-win { 40% { transform: translateY(-22%) scale(1.06); } }
+@keyframes row-shake {
+  20%, 60% { transform: translateX(-4%); }
+  40%, 80% { transform: translateX(4%); }
+}

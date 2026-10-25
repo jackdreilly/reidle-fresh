@@ -5,8 +5,7 @@ import {
   PartyChatInput,
   PartyChatToast,
 } from "@/components/PartyChat";
-import { patchRow } from "@/lib/supabase";
-import { realtime } from "@/lib/realtime";
+import { patchRow, realtime } from "@/lib/realtime";
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { ScoredWord } from "@/lib/wordle";
 

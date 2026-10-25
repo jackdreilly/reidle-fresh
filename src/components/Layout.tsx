@@ -175,174 +175,24 @@ export default function Layout(
                   </a>
                 </li>
               )}
-              <li class="rounded-lg bg-[#b68c0021] hover:bg-[#b68c0060] ">
-                <a
-                  href="/stats/today"
-                  class="flex items-center p-2 text-base font-normal text-gray-900"
-                >
-                  <svg
-                    fill="#D4A65D"
-                    viewBox="0 0 20 20"
-                    xmlns="http://www.w3.org/2000/svg"
-                    aria-hidden="true"
-                    class="flex-shrink-0 w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 "
-                  >
-                    <path
-                      clip-rule="evenodd"
-                      fill-rule="evenodd"
-                      d="M10 1c-1.828 0-3.623.149-5.371.435a.75.75 0 00-.629.74v.387c-.827.157-1.642.345-2.445.564a.75.75 0 00-.552.698 5 5 0 004.503 5.152 6 6 0 002.946 1.822A6.451 6.451 0 017.768 13H7.5A1.5 1.5 0 006 14.5V17h-.75C4.56 17 4 17.56 4 18.25c0 .414.336.75.75.75h10.5a.75.75 0 00.75-.75c0-.69-.56-1.25-1.25-1.25H14v-2.5a1.5 1.5 0 00-1.5-1.5h-.268a6.453 6.453 0 01-.684-2.202 6 6 0 002.946-1.822 5 5 0 004.503-5.152.75.75 0 00-.552-.698A31.804 31.804 0 0016 2.562v-.387a.75.75 0 00-.629-.74A33.227 33.227 0 0010 1zM2.525 4.422C3.012 4.3 3.504 4.19 4 4.09V5c0 .74.134 1.448.38 2.103a3.503 3.503 0 01-1.855-2.68zm14.95 0a3.503 3.503 0 01-1.854 2.68C15.866 6.449 16 5.74 16 5v-.91c.496.099.988.21 1.475.332z"
-                    >
-                    </path>
-                  </svg>
-                  <span
-                    class={"ml-3 " + (route === "/stats" ? "font-bold" : "")}
-                  >
-                    Leaderboard
-                  </span>
-                </a>
-              </li>
-              <li
-                class="rounded-lg  bg-[#ff00001c] hover:bg-[#ff000050]"
-                style={{ display: playedToday ? "none" : null }}
-              >
-                <a
-                  href="/play"
-                  class="flex items-center p-2 text-base font-normal text-gray-900"
-                >
-                  <PlaySVG fill="#db2777" />
-                  <span
-                    class={"ml-3 " + (route === "/play" ? "font-bold" : "")}
-                  >
-                    Play
-                  </span>
-                </a>
-              </li>
-              <li class="bg-[#00ff3c1f] hover:bg-[#00ff3c60]  rounded-lg">
-                <a
-                  href="/challenges"
-                  class="flex items-center p-2 text-base font-normal text-gray-900"
-                >
-                  <ChallengeSVG fill="#059669" />
-                  <span
-                    class={"flex-1 ml-3 " +
-                      (route === "/challenges" ? "font-bold" : "")}
-                  >
-                    Challenges
-                  </span>
-                  {pending ? <CountBadge n={pending} /> : null}
-                </a>
-              </li>
-              <li class="rounded-lg bg-[#5b73ff21] hover:bg-[#5b73ff60] ">
-                <a
-                  href="/battles"
-                  class="flex items-center p-2 text-base font-normal text-gray-900"
-                >
-                  <BattleSvg fill="#6d28d9" />
-                  <span
-                    class={"flex-1 ml-3 whitespace-nowrap " +
-                      (route === "/battles" ? "font-bold" : "")}
-                  >
-                    Battles
-                  </span>
-                </a>
-              </li>
-              <li class="rounded-lg bg-[#00ddff1a] hover:bg-[#00ddff60] ">
-                <a
-                  href="/practice"
-                  class="flex items-center p-2 text-base font-normal text-gray-900"
-                >
-                  <PracticeSVG fill="#00A6B5" />
-                  <span
-                    class={"ml-3 " + (route === "/practice" ? "font-bold" : "")}
-                  >
-                    Practice
-                  </span>
-                </a>
-              </li>
-              <li class="rounded-lg bg-[#f7f1b5] hover:bg-[#bfb865] ">
-                <a
-                  href="/rankings"
-                  class="flex items-center p-2 text-base font-normal text-gray-900"
-                >
-                  <RankingsSVG fill="#5c5300" />
-                  <span
-                    class={"ml-3 " + (route === "/rankings" ? "font-bold" : "")}
-                  >
-                    Rankings
-                  </span>
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/messages"
-                  class="flex items-center p-2 text-base font-normal text-gray-900 rounded-lg hover:bg-gray-100 "
-                >
-                  <Messages />
-                  <span
-                    class={"flex-1 ml-3 whitespace-nowrap " +
-                      (route === "/messages" ? "font-bold" : "")}
-                  >
-                    Messages
-                  </span>
-                  <span class="inline-flex items-center justify-center">
-                    <AllNotification />
-                  </span>
-                </a>
-              </li>
-              <li>
-                <a href="/league" class="flex items-center p-2 text-base font-normal text-gray-900 rounded-lg hover:bg-gray-100">
-                  <svg aria-hidden="true" class="flex-shrink-0 w-6 h-6 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M10 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM6 8a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM1.49 15.33a.78.78 0 0 1-.36-.44 3 3 0 0 1 4.31-3.52 6.48 6.48 0 0 0-1.9 3.96c-.03.22-.02.44.02.65a4.97 4.97 0 0 1-2.07-.65ZM16.44 15.98a4.97 4.97 0 0 0 2.07-.65.78.78 0 0 0 .36-.44 3 3 0 0 0-4.31-3.52 6.48 6.48 0 0 1 1.9 3.96c.03.22.02.44-.02.65ZM18 8a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM5.3 16.19a.84.84 0 0 1-.27-.71 5 5 0 0 1 9.94 0 .84.84 0 0 1-.27.71A6.98 6.98 0 0 1 10 18a6.97 6.97 0 0 1-4.7-1.81Z" />
-                  </svg>
-                  <span class={"ml-3 " + (route === "/league" ? "font-bold" : "")}>Invite &amp; league</span>
-                </a>
-              </li>
-              <li>
-                <a href="/help" class="flex items-center p-2 text-base font-normal text-gray-900 rounded-lg hover:bg-gray-100">
-                  <svg aria-hidden="true" class="flex-shrink-0 w-6 h-6 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" clip-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0ZM8.94 6.94a.75.75 0 1 1-1.06-1.06 3 3 0 1 1 2.87 5.02c-.2.07-.35.22-.35.4v.2a.75.75 0 0 1-1.5 0v-.2c0-.88.6-1.6 1.38-1.85a1.5 1.5 0 1 0-1.34-2.51ZM10 15a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" />
-                  </svg>
-                  <span class={"ml-3 " + (route === "/help" ? "font-bold" : "")}>Help</span>
-                </a>
-              </li>
+              <NavItem href="/stats/today" bg="bg-[#b68c0021] hover:bg-[#b68c0060]" bold={route === "/stats"} icon={<Icon fill="#D4A65D" d={TROPHY} />}>Leaderboard</NavItem>
+              {!playedToday && <NavItem href="/play" bg="bg-[#ff00001c] hover:bg-[#ff000050]" bold={route === "/play"} icon={<PlaySVG fill="#db2777" />}>Play</NavItem>}
+              <NavItem href="/challenges" bg="bg-[#00ff3c1f] hover:bg-[#00ff3c60]" bold={route === "/challenges"} icon={<ChallengeSVG fill="#059669" />}
+                end={pending ? <CountBadge n={pending} /> : null}>Challenges</NavItem>
+              <NavItem href="/battles" bg="bg-[#5b73ff21] hover:bg-[#5b73ff60]" bold={route === "/battles"} icon={<BattleSvg fill="#6d28d9" />} end={null}>Battles</NavItem>
+              <NavItem href="/practice" bg="bg-[#00ddff1a] hover:bg-[#00ddff60]" bold={route === "/practice"} icon={<PracticeSVG fill="#00A6B5" />}>Practice</NavItem>
+              <NavItem href="/rankings" bg="bg-[#f7f1b5] hover:bg-[#bfb865]" bold={route === "/rankings"} icon={<RankingsSVG fill="#5c5300" />}>Rankings</NavItem>
+              <NavItem href="/messages" bold={route === "/messages"} icon={<Messages />}
+                end={<span class="inline-flex items-center justify-center"><AllNotification /></span>}>Messages</NavItem>
+              <NavItem href="/league" bold={route === "/league"} icon={<Icon d={PEOPLE} />}>Invite &amp; league</NavItem>
+              <NavItem href="/help" bold={route === "/help"} icon={<Icon d={HELP} />}>Help</NavItem>
               {install && (
-                <li>
-                  <a
-                    href="/account#install"
-                    onClick={(e) => { if (install.kind === "prompt") { e.preventDefault(); void install.install(); } }}
-                    class="flex items-center p-2 text-base font-normal text-gray-900 rounded-lg hover:bg-gray-100"
-                  >
-                    <svg aria-hidden="true" class="flex-shrink-0 w-6 h-6 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M10.75 2.75a.75.75 0 0 0-1.5 0v8.69L6.28 8.47a.75.75 0 0 0-1.06 1.06l4.25 4.25a.75.75 0 0 0 1.06 0l4.25-4.25a.75.75 0 1 0-1.06-1.06l-2.97 2.97V2.75Z" />
-                      <path d="M3.5 12.75a.75.75 0 0 0-1.5 0v2.5A2.75 2.75 0 0 0 4.75 18h10.5A2.75 2.75 0 0 0 18 15.25v-2.5a.75.75 0 0 0-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5Z" />
-                    </svg>
-                    <span class="ml-3">Install app</span>
-                  </a>
-                </li>
+                <NavItem href="/account#install" bold={false} icon={<Icon d={DOWNLOAD} />}
+                  onClick={(e) => { if (install.kind === "prompt") { e.preventDefault(); void install.install(); } }}>Install app</NavItem>
               )}
-              <li>
-                <a
-                  href="/account"
-                  class="flex items-center p-2 text-base font-normal text-gray-900 rounded-lg hover:bg-gray-100"
-                >
-                  {/* bell: Settings is where notifications are switched on */}
-                  <svg aria-hidden="true" class="flex-shrink-0 w-6 h-6 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                      fill-rule="evenodd"
-                      clip-rule="evenodd"
-                      d="M10 2a6 6 0 0 0-6 6c0 1.887-.454 3.665-1.257 5.234a.75.75 0 0 0 .515 1.076 32.91 32.91 0 0 0 3.256.508 3.5 3.5 0 0 0 6.972 0 32.903 32.903 0 0 0 3.256-.508.75.75 0 0 0 .515-1.076A11.448 11.448 0 0 1 16 8a6 6 0 0 0-6-6ZM8.05 14.943a33.54 33.54 0 0 0 3.9 0 2 2 0 0 1-3.9 0Z"
-                    />
-                  </svg>
-                  <span
-                    class={"flex-1 min-w-0 ml-3 truncate " +
-                      (route === "/account" ? "font-bold" : "")}
-                    title={name ? `Settings (${name})` : undefined}
-                  >
-                    {name ?? "Account"}
-                  </span>
-                  {dot && newDot({ marginLeft: "6px", flexShrink: "0" })}
-                </a>
-              </li>
+              {/* bell: Settings is where notifications are switched on */}
+              <NavItem href="/account" bold={route === "/account"} icon={<Icon d={BELL} />} title={name ? `Settings (${name})` : undefined}
+                end={dot ? newDot({ marginLeft: "6px", flexShrink: "0" }) : null}>{name ?? "Account"}</NavItem>
             </ul>
           </div>
         </aside>
@@ -389,16 +239,48 @@ function TopPill(
   );
 }
 
-function BattleSvg({ fill }: { fill?: string }) {
+/** A sidebar link. `bg` is its tinted pill (the plain ones get a grey hover); `end` sits right of the label. */
+function NavItem({ href, bg, bold, icon, end, title, onClick, children }: {
+  href: string;
+  bg?: string;
+  bold: boolean;
+  icon: ComponentChildren;
+  /** Present (even null) for a label that fills the row. */
+  end?: ComponentChildren;
+  title?: string;
+  onClick?: (e: MouseEvent) => void;
+  children: ComponentChildren;
+}) {
   return (
-    <svg
-      class="flex-shrink-0 w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900"
-      fill={fill ?? "currentColor"}
-      x="0px"
-      y="0px"
-      height="24"
-      width="24"
-    >
+    <li class={bg ? "rounded-lg " + bg : undefined}>
+      <a href={href} onClick={onClick} class={"flex items-center p-2 text-base font-normal text-gray-900" + (bg ? "" : " rounded-lg hover:bg-gray-100")}>
+        {icon}
+        <span class={(end !== undefined ? "flex-1 min-w-0 truncate " : "") + "ml-3" + (bold ? " font-bold" : "")} title={title}>{children}</span>
+        {end}
+      </a>
+    </li>
+  );
+}
+
+const ICON = "flex-shrink-0 w-6 h-6 text-gray-500";
+/** A 20x20 solid icon (one path). */
+function Icon({ d, fill }: { d: string; fill?: string }) {
+  return (
+    <svg aria-hidden="true" class={ICON} fill={fill ?? "currentColor"} viewBox="0 0 20 20">
+      <path fill-rule="evenodd" clip-rule="evenodd" d={d} />
+    </svg>
+  );
+}
+
+const TROPHY = "M10 1c-1.828 0-3.623.149-5.371.435a.75.75 0 00-.629.74v.387c-.827.157-1.642.345-2.445.564a.75.75 0 00-.552.698 5 5 0 004.503 5.152 6 6 0 002.946 1.822A6.451 6.451 0 017.768 13H7.5A1.5 1.5 0 006 14.5V17h-.75C4.56 17 4 17.56 4 18.25c0 .414.336.75.75.75h10.5a.75.75 0 00.75-.75c0-.69-.56-1.25-1.25-1.25H14v-2.5a1.5 1.5 0 00-1.5-1.5h-.268a6.453 6.453 0 01-.684-2.202 6 6 0 002.946-1.822 5 5 0 004.503-5.152.75.75 0 00-.552-.698A31.804 31.804 0 0016 2.562v-.387a.75.75 0 00-.629-.74A33.227 33.227 0 0010 1zM2.525 4.422C3.012 4.3 3.504 4.19 4 4.09V5c0 .74.134 1.448.38 2.103a3.503 3.503 0 01-1.855-2.68zm14.95 0a3.503 3.503 0 01-1.854 2.68C15.866 6.449 16 5.74 16 5v-.91c.496.099.988.21 1.475.332z";
+const PEOPLE = "M10 9a3 3 0 100-6 3 3 0 000 6zM6 8a2 2 0 11-4 0 2 2 0 014 0zM1.49 15.326a.78.78 0 01-.358-.442 3 3 0 014.308-3.516 6.484 6.484 0 00-1.905 3.959c-.023.222-.014.442.025.654a4.97 4.97 0 01-2.07-.655zM16.44 15.98a4.97 4.97 0 002.07-.654.78.78 0 00.357-.442 3 3 0 00-4.308-3.517 6.484 6.484 0 011.907 3.96 2.32 2.32 0 01-.026.654zM18 8a2 2 0 11-4 0 2 2 0 014 0zM5.304 16.19a.844.844 0 01-.277-.71 5 5 0 019.947 0 .843.843 0 01-.277.71A6.975 6.975 0 0110 18a6.974 6.974 0 01-4.696-1.81z";
+const HELP = "M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0ZM8.94 6.94a.75.75 0 1 1-1.06-1.06 3 3 0 1 1 2.87 5.02c-.2.07-.35.22-.35.4v.2a.75.75 0 0 1-1.5 0v-.2c0-.88.6-1.6 1.38-1.85a1.5 1.5 0 1 0-1.34-2.51ZM10 15a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z";
+const DOWNLOAD = "M10.75 2.75a.75.75 0 0 0-1.5 0v8.69L6.28 8.47a.75.75 0 0 0-1.06 1.06l4.25 4.25a.75.75 0 0 0 1.06 0l4.25-4.25a.75.75 0 1 0-1.06-1.06l-2.97 2.97V2.75ZM3.5 12.75a.75.75 0 0 0-1.5 0v2.5A2.75 2.75 0 0 0 4.75 18h10.5A2.75 2.75 0 0 0 18 15.25v-2.5a.75.75 0 0 0-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5Z";
+const BELL = "M10 2a6 6 0 0 0-6 6c0 1.887-.454 3.665-1.257 5.234a.75.75 0 0 0 .515 1.076 32.91 32.91 0 0 0 3.256.508 3.5 3.5 0 0 0 6.972 0 32.903 32.903 0 0 0 3.256-.508.75.75 0 0 0 .515-1.076A11.448 11.448 0 0 1 16 8a6 6 0 0 0-6-6ZM8.05 14.943a33.54 33.54 0 0 0 3.9 0 2 2 0 0 1-3.9 0Z";
+
+function BattleSvg({ fill }: { fill: string }) {
+  return (
+    <svg class={ICON} fill={fill} height="24" width="24">
       <path
         d="M 119,462 C 99,457 66,431 39,402 10,369 -2,343 3,322 6,314 10,305 15,298 c 7,-8 25,-29 27,-28 2,1 -0,7 -1,16 -2,18 -2,27 2,34 3,7 6,11 26,35 24,29 28,33 39,33 8,0 12,-2 19,-8 C 132,374 134,370 134,364 c 0,-6 -2,-10 -10,-18 C 108,330 92,308 85,296 80,284 79,280 79,254 L 79,231 80,230 84,226 l 5,-5 0,-12 c 0,-30 5,-63 15,-88 8,-23 24,-50 38,-69 9,-11 23,-25 33,-31 C 185,14 202,6 212,3 c 11,-3 25,-2 33,1 9,3 19,10 20,19 0,0 1,2 -1,8 -20,54 -7,18 21,-0 C 293,26 310,21 327,21 c 20,0 34,4 52,15 14,8 24,16 40,32 24,24 38,43 50,66 9,18 11,27 11,45 0,16 -1,21 -6,36 -10,31 -34,62 -69,92 -56,47 -107,70 -161,74 l -9,1 -11,13 c -40,46 -59,61 -79,67 -8,2 -19,2 -25,1 z"
         transform="matrix(0.05019839,0,0,0.05019839,-0.09522931,0.33275301)"
@@ -407,54 +289,18 @@ function BattleSvg({ fill }: { fill?: string }) {
   );
 }
 
-function PlaySVG({ fill }: { fill?: string }) {
-  return (
-    <svg
-      fill={fill ?? "currentColor"}
-      viewBox="0 0 20 20"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-      class="w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 "
-      style="stroke-width: var(--grid-item-icon-stroke-width); transform: scale(var(--grid-item-icon-scale));"
-    >
-      <path
-        clip-rule="evenodd"
-        fill-rule="evenodd"
-        d="M2 10a8 8 0 1116 0 8 8 0 01-16 0zm6.39-2.908a.75.75 0 01.766.027l3.5 2.25a.75.75 0 010 1.262l-3.5 2.25A.75.75 0 018 12.25v-4.5a.75.75 0 01.39-.658z"
-      >
-      </path>
-    </svg>
-  );
-}
+const PlaySVG = ({ fill }: { fill: string }) => <Icon fill={fill} d="M2 10a8 8 0 1116 0 8 8 0 01-16 0zm6.39-2.908a.75.75 0 01.766.027l3.5 2.25a.75.75 0 010 1.262l-3.5 2.25A.75.75 0 018 12.25v-4.5a.75.75 0 01.39-.658z" />;
+const Messages = () => <Icon d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" />;
+const ChallengeSVG = ({ fill }: { fill: string }) => <Icon fill={fill} d={PEOPLE} />;
+const RankingsSVG = ({ fill }: { fill: string }) => <Icon fill={fill} d="M12.577 4.878a.75.75 0 0 1 .919-.53l4.78 1.281a.75.75 0 0 1 .531.919l-1.281 4.78a.75.75 0 0 1-1.449-.387l.81-3.022a19.407 19.407 0 0 0-5.594 5.203.75.75 0 0 1-1.139.093L7 10.06l-4.72 4.72a.75.75 0 0 1-1.06-1.061l5.25-5.25a.75.75 0 0 1 1.06 0l3.074 3.073a20.923 20.923 0 0 1 5.545-4.931l-3.042-.815a.75.75 0 0 1-.53-.919Z" />;
 
-function Messages() {
+function PracticeSVG({ fill }: { fill: string }) {
   return (
     <svg
-      aria-hidden="true"
-      class="flex-shrink-0 w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 "
-      fill="currentColor"
+      fill={fill}
       viewBox="0 0 20 20"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
-        clip-rule="evenodd"
-        fill-rule="evenodd"
-        d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z"
-      >
-      </path>
-    </svg>
-  );
-}
-
-function PracticeSVG({ fill }: { fill?: string }) {
-  return (
-    <svg
-      fill={fill ?? "currentColor"}
-      viewBox="0 0 20 20"
-      xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
-      class="w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 "
-      style="stroke-width: var(--grid-item-icon-stroke-width); transform: scale(var(--grid-item-icon-scale));"
+      class={ICON}
     >
       <g transform="translate(0.000000,20.000000) scale(0.003906,-0.003906)">
         <path d="M3240 5111 c-74 -24 -141 -83 -181 -161 -20 -37 -24 -60 -24 -130 0
@@ -480,39 +326,6 @@ l227 -228 -167 -167 c-91 -93 -171 -178 -177 -190 -16 -31 -14 -109 3 -141 18
 65 67 84 116 84 213 0 74 -4 92 -29 140 -22 44 -177 204 -794 822 -685 685
 -773 770 -826 794 -70 32 -162 40 -223 20z" />
       </g>
-    </svg>
-  );
-}
-function ChallengeSVG({ fill }: { fill?: string }) {
-  return (
-    <svg
-      fill={fill ?? "currentColor"}
-      viewBox="0 0 20 20"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-      class="w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 "
-      style="stroke-width: var(--grid-item-icon-stroke-width); transform: scale(var(--grid-item-icon-scale));"
-    >
-      <path d="M10 9a3 3 0 100-6 3 3 0 000 6zM6 8a2 2 0 11-4 0 2 2 0 014 0zM1.49 15.326a.78.78 0 01-.358-.442 3 3 0 014.308-3.516 6.484 6.484 0 00-1.905 3.959c-.023.222-.014.442.025.654a4.97 4.97 0 01-2.07-.655zM16.44 15.98a4.97 4.97 0 002.07-.654.78.78 0 00.357-.442 3 3 0 00-4.308-3.517 6.484 6.484 0 011.907 3.96 2.32 2.32 0 01-.026.654zM18 8a2 2 0 11-4 0 2 2 0 014 0zM5.304 16.19a.844.844 0 01-.277-.71 5 5 0 019.947 0 .843.843 0 01-.277.71A6.975 6.975 0 0110 18a6.974 6.974 0 01-4.696-1.81z" />
-    </svg>
-  );
-}
-
-function RankingsSVG({ fill }: { fill?: string }) {
-  return (
-    <svg
-      fill={fill ?? "currentColor"}
-      viewBox="0 0 20 20"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-      class="w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 "
-      style="stroke-width: var(--grid-item-icon-stroke-width); transform: scale(var(--grid-item-icon-scale));"
-    >
-      <path
-        fill-rule="evenodd"
-        d="M12.577 4.878a.75.75 0 0 1 .919-.53l4.78 1.281a.75.75 0 0 1 .531.919l-1.281 4.78a.75.75 0 0 1-1.449-.387l.81-3.022a19.407 19.407 0 0 0-5.594 5.203.75.75 0 0 1-1.139.093L7 10.06l-4.72 4.72a.75.75 0 0 1-1.06-1.061l5.25-5.25a.75.75 0 0 1 1.06 0l3.074 3.073a20.923 20.923 0 0 1 5.545-4.931l-3.042-.815a.75.75 0 0 1-.53-.919Z"
-        clip-rule="evenodd"
-      />
     </svg>
   );
 }

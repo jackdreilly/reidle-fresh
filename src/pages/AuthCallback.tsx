@@ -1,5 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
-import { auth, landingHash } from "@/lib/supabase";
+import { landingHash } from "@/lib/supabase";
+import { auth } from "@/lib/auth-api";
 import { afterAuth, finishLink } from "@/lib/auth";
 import { refreshSession } from "@/lib/session";
 import { setSignedIn } from "@/boot";

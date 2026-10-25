@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "preact/hooks";
-import { auth } from "@/lib/supabase";
+import { auth } from "@/lib/auth-api";
 import { expectAuth, viaProvider } from "@/lib/auth";
 import { renderGoogleButton, signInWithGoogleToken } from "@/lib/google";
 
