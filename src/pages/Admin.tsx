@@ -18,6 +18,15 @@ type Player = {
   name: string; joined: string; login: string; last_seen: string | null; games_7d: number; games_30d: number;
   games_all: number; visits_7d: number; minutes_7d: number; device: string | null; leagues: number;
 };
+type Speed = {
+  kinds: { kind: string; n: number; p50: number; p75: number; p90: number }[];
+  pages: { path: string; n: number; p50: number; p90: number; first_p50: number | null }[];
+};
+const KINDS: Record<string, string> = {
+  cold: "First page, fresh load", warm: "First page, app cached", nav: "Tapping around", cache: "Shown from the device",
+};
+const ms = (x: number | null | undefined) => x == null ? "–" : x < 1000 ? `${x} ms` : `${(x / 1000).toFixed(1)} s`;
+
 export type AdminData = {
   since: string; today: string; days_span: number;
   kpis: {
@@ -40,6 +49,7 @@ export type AdminData = {
   errors: { message: string; n: number; players: number; last_at: string; path: string | null }[];
   recent: Ev[];
   growth: Growth;
+  speed?: Speed;
 };
 type Growth = {
   today: string; days_span: number;
@@ -585,7 +595,7 @@ function Funnels({ g, open }: { g: Growth; open: (name: string) => void }) {
 
 const PERIODS = [7, 30, 90];
 const SECTIONS: [string, string][] = [
-  ["overview", "Overview"], ["leagues", "Leagues"], ["funnel", "Funnel"], ["usage", "Usage"], ["pages", "Pages"],
+  ["overview", "Overview"], ["leagues", "Leagues"], ["funnel", "Funnel"], ["usage", "Usage"], ["pages", "Pages"], ["speed", "Speed"],
   ["players", "Players"], ["retention", "Retention"], ["errors", "Errors"], ["activity", "Activity"],
 ];
 const LENGTHS: [string, string][] = [["under_1m", "under 1 min"], ["1_3m", "1–3 min"], ["3_10m", "3–10 min"], ["10_30m", "10–30 min"], ["over_30m", "30+ min"]];
@@ -672,6 +682,33 @@ export default function Admin({ data }: PageProps<AdminData>) {
           <div><h3>Came from</h3><HBars rows={data.referrers.map((r) => [r.referrer, r.n])} /></div>
         </div>
       </Card>
+
+      {data.speed && (
+        <Card id="speed" title="Speed" note="from tap (or opening the app) until the page is on screen">
+          <div class="ad-scroll">
+            <table class="ad-table">
+              <thead><tr><th>How</th><th>Pages</th><th>Median</th><th>75%</th><th>90%</th></tr></thead>
+              <tbody>
+                {data.speed.kinds.map((k) => (
+                  <tr key={k.kind}><td>{KINDS[k.kind] ?? k.kind}</td><td>{n(k.n)}</td><td>{ms(k.p50)}</td><td>{ms(k.p75)}</td><td>{ms(k.p90)}</td></tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <h3>By page</h3>
+          <div class="ad-scroll">
+            <table class="ad-table">
+              <thead><tr><th>Page</th><th>Shown</th><th>Median</th><th>90%</th><th>First page median</th></tr></thead>
+              <tbody>
+                {data.speed.pages.map((p) => (
+                  <tr key={p.path}><td>{p.path}</td><td>{n(p.n)}</td><td>{ms(p.p50)}</td><td>{ms(p.p90)}</td><td>{ms(p.first_p50)}</td></tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {!data.speed.kinds.length && <p class="ad-muted">Timings are recorded from when this was switched on.</p>}
+        </Card>
+      )}
 
       <Card id="players" title="Players" note="green dot = here in the last 15 min">
         <Players players={data.players} open={setPlayer} />

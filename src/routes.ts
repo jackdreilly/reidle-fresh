@@ -14,6 +14,8 @@ export type Route = {
   load?: (p: Params, q: URLSearchParams) => Promise<unknown>;
   /** Safe/idempotent read: may be prefetched on hover. */
   prefetchData?: boolean;
+  /** Read-only page whose data is kept on the device: shown instantly from there next time, then refreshed. */
+  instant?: boolean;
   redirect?: (p: Params, q: URLSearchParams) => string | Promise<string>;
   public?: boolean;
 };
@@ -44,17 +46,17 @@ export const routes: Route[] = [
   { path: "/stats/today", redirect: () => `/stats/daily/${today()}` },
   { path: "/stats/this_week", redirect: () => `/stats/weekly/${today()}` },
   {
-    path: "/stats/daily/:date", page: () => import("./pages/Daily"), prefetchData: true,
+    path: "/stats/daily/:date", page: () => import("./pages/Daily"), prefetchData: true, instant: true,
     layout: { route: "/stats", title: "Stats" },
     load: (p) => read("daily_page", { p_day: p.date }),
   },
   {
-    path: "/stats/weekly/:date", page: () => import("./pages/Weekly"), prefetchData: true,
+    path: "/stats/weekly/:date", page: () => import("./pages/Weekly"), prefetchData: true, instant: true,
     layout: { route: "/stats", title: "Stats" },
     load: (p) => read("weekly_page", { p_week: p.date }),
   },
   {
-    path: "/stats/past_winners", page: () => import("./pages/Past"), prefetchData: true,
+    path: "/stats/past_winners", page: () => import("./pages/Past"), prefetchData: true, instant: true,
     layout: { route: "/stats", title: "Stats" },
     load: () => read("past_page", { p_month: null }),
   },
@@ -81,7 +83,7 @@ export const routes: Route[] = [
     },
   },
   {
-    path: "/challenges", page: () => import("./pages/Challenges"), prefetchData: true,
+    path: "/challenges", page: () => import("./pages/Challenges"), prefetchData: true, instant: true,
     layout: { route: "/challenges", title: "Challenges" },
     load: () => read("challenges_page"),
   },
@@ -90,7 +92,7 @@ export const routes: Route[] = [
     redirect: async () => `/challenges/challenge/${await read<number>("challenge_next")}/play`,
   },
   {
-    path: "/challenges/challenge/:id", page: () => import("./pages/Challenge"), prefetchData: true,
+    path: "/challenges/challenge/:id", page: () => import("./pages/Challenge"), prefetchData: true, instant: true,
     layout: { route: "/challenges", title: "Challenge" },
     // + the challenges leaderboard, so a challenge's results and the standings sit on one page.
     load: async (p) => {
@@ -112,7 +114,7 @@ export const routes: Route[] = [
     },
   },
   {
-    path: "/battles", page: () => import("./pages/Battles"), prefetchData: true,
+    path: "/battles", page: () => import("./pages/Battles"), prefetchData: true, instant: true,
     layout: { route: "/battles", title: "Battles" },
     load: () => read("battle_home"),
   },
@@ -128,12 +130,12 @@ export const routes: Route[] = [
     },
   },
   {
-    path: "/submissions/:id/playback", page: () => import("./pages/PlaybackPage"), prefetchData: true,
+    path: "/submissions/:id/playback", page: () => import("./pages/PlaybackPage"), prefetchData: true, instant: true,
     layout: { route: "/play", title: "Playback", fullPage: true },
     load: async (p) => (await read("get_playback", { p_id: Number(p.id) })) ?? { events: [] },
   },
   {
-    path: "/players/:name", page: () => import("./pages/Player"), prefetchData: true,
+    path: "/players/:name", page: () => import("./pages/Player"), prefetchData: true, instant: true,
     layout: { route: "/players", title: "Player" },
     // ?vs=bob,carol overlays up to 3 other players on the comparable charts (one RPC each, in parallel).
     load: async (p, q) => {
@@ -148,7 +150,7 @@ export const routes: Route[] = [
     load: () => read("messages_page"),
   },
   {
-    path: "/rankings", page: () => import("./pages/Rankings"), prefetchData: true,
+    path: "/rankings", page: () => import("./pages/Rankings"), prefetchData: true, instant: true,
     layout: { route: "/rankings", title: "Rankings" },
     load: () => read("rankings"),
   },
@@ -165,7 +167,7 @@ export const routes: Route[] = [
     load: (_, q) => read("admin_page", { p_days: q.get("days") }), // admin_stats + admin_growth; null = 30, the server clamps it
   },
   {
-    path: "/leagues", page: () => import("./pages/Leagues"), prefetchData: true,
+    path: "/leagues", page: () => import("./pages/Leagues"), prefetchData: true, instant: true,
     layout: { route: "/leagues", title: "Leagues" },
     load: () => read("leagues_page"),
   },

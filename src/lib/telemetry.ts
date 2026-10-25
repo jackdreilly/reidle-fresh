@@ -1,4 +1,5 @@
 import { rpc } from "./supabase";
+import { onShown, shown, type Shown } from "../router";
 
 // Usage + error reporting for the owner dashboard (/admin). Loaded at idle after the first page (main.tsx), so it
 // costs the first load nothing; errors from before that wait in window.__errs (index.html).
@@ -25,7 +26,7 @@ w.__errs = { push: report } as unknown as unknown[];
 
 /* ---------- visits ---------- */
 
-type View = { p: string; t: number; ms: number };
+type View = { p: string; t: number; ms: number; lms?: number; k?: string };
 const IDLE = 30 * 60_000;
 const SID = "reidle:sid";
 
@@ -73,7 +74,7 @@ function tick() {
 
 function flush(keepalive = false) {
   tick();
-  const batch = [...dirty].filter((v) => v.ms > 0 || v === cur).map((v) => ({ p: v.p, t: v.t, ms: Math.round(v.ms) }));
+  const batch = [...dirty].filter((v) => v.ms > 0 || v === cur).map((v) => ({ p: v.p, t: v.t, ms: Math.round(v.ms), lms: v.lms, k: v.k }));
   dirty = new Set();
   if (batch.length) void rpc("log_visit", { p_sid: sid, p_views: batch, p_meta: meta() }, { keepalive }).catch(() => {});
 }
@@ -92,6 +93,17 @@ function show(path: string, replace: boolean) {
   dirty.add(cur);
 }
 views.push(cur);
+
+// page-show times (router.tsx): the ones from before this module loaded, then each as it happens
+function timed(s: Shown) {
+  const v = [cur, ...views].find((x) => x.p === pattern(s.path) && x.lms === undefined);
+  if (!v) return;
+  v.lms = s.ms;
+  v.k = s.kind;
+  dirty.add(v);
+}
+shown.forEach(timed);
+onShown.cb = timed;
 
 for (const m of ["pushState", "replaceState"] as const) {
   const orig = history[m].bind(history);

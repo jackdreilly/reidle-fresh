@@ -252,6 +252,16 @@ landed on legacy (append-only, idempotent).
   chunk, and big optional parts load lazily (`useLazy` in Layout.tsx, `loadWordle` in routes.ts, `auth-api.ts` for
   sign-in calls). Libraries sit in their own chunks (`manualChunks` in vite.config.ts: `preact`, `realtime`) so a
   deploy doesn't make returning players re-download them.
+- **Instant pages** (`instant: true` in routes.ts, `src/lib/pagecache.ts`): read-only pages keep their last data in
+  localStorage (per league + URL, 30 pages, dropped on sign-out, by `clearPrefetch()` after a game, and on every new
+  build). A page seen before renders from it at once and swaps in the fresh RPC result when it lands, in place (same
+  component, no remount), so a page that copies `data` into state must not be `instant` (League's form, Messages).
+- **Speed numbers**: the router times every page from tap (or document request) to paint (`shown` / `onShown` in
+  router.tsx); telemetry sends them as `page_views.load_ms` + `nav` (cold | warm | nav | cache); /admin "Speed"
+  (`admin_speed`) shows medians and p90 by kind and page. Check it before and after performance work.
+- **Slow SQL**: `pg_stat_statements` on prod (Supabase MCP `execute_sql`, read-only) shows RPC mean times. Watch
+  one-row CTEs referenced inside per-row subqueries: the planner may inline them and re-run them per row (fixed in
+  player_stats with `as materialized`).
 - **Game stylesheet** (`src/components/game.chunk.css`): Game, ErrorBar, PartyChat and Confetti are left out of
   index.css's Tailwind scan (`@source not`) and get their own sheet that loads with the game chunk. The build
   (`chunkCss` in vite.config.ts) drops from it every utility index.css already has, so the two sheets never repeat a

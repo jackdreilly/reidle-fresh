@@ -4,6 +4,7 @@ import type { Bootstrap } from "./types";
 import { dayIn, utcToday } from "./time";
 import { setBadge } from "./pwa";
 import { leagueId, setLeagueId } from "./league";
+import { clearPages } from "./pagecache";
 
 const KEY = "reidle:boot";
 const anon: Bootstrap = { name: null, played_today: false, unread: false, leagues: [] };
@@ -40,7 +41,7 @@ function set(next: Bootstrap) {
 export const getSession = () => state;
 let rev = 0; // bumps on local patches so a slower bootstrap can't clobber fresher state
 export const patchSession = (p: Partial<Bootstrap>) => { rev++; set({ ...state, ...p }); };
-export const clearSession = () => { setLeagueId(null); set(anon); };
+export const clearSession = () => { setLeagueId(null); clearPages(); set(anon); };
 
 /** The current league's game day (the server's league_day), UTC before we know the league. */
 export const today = () => state.league ? dayIn(state.league.tz, state.league.reset_hour) : utcToday();

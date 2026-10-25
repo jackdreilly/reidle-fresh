@@ -2,7 +2,7 @@ import "./index.css";
 import { render } from "preact";
 import App from "./App";
 import { navigate, refresh, startRouter } from "./router";
-import { loadWordle } from "./routes";
+import { loadWordle, routes } from "./routes";
 import { detectSignedIn, signedIn } from "./boot";
 import { refreshSession, today } from "./lib/session";
 import { initPwa } from "./lib/pwa";
@@ -27,7 +27,10 @@ void (async () => {
   // and load usage + error reporting (src/lib/telemetry.ts), off the first load
   (window.requestIdleCallback ?? setTimeout)(() => {
     import("./lib/telemetry");
-    if (isIn) void loadWordle().catch(() => {});
+    if (!isIn) return;
+    void loadWordle().catch(() => {});
+    // and the code of the pages a tap away (the tabs and the game), so switching never waits on a download
+    for (const r of routes) if (r.instant || r.path === "/play" || r.path === "/practice") void r.page?.().catch(() => {});
   });
   // a tapped chat notification asks an already-open tab to go to the chat
   navigator.serviceWorker?.addEventListener("message", (e) => {

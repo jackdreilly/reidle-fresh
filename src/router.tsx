@@ -4,6 +4,7 @@ import { notFound, routes, type Route } from "./routes";
 import { signedIn } from "./boot";
 import { leagueId } from "./lib/league";
 import { switchLeague } from "./lib/session";
+import { clearPages, readPage, writePage } from "./lib/pagecache";
 
 export class Redirect extends Error {
   constructor(public to: string) { super("redirect " + to); }
@@ -33,7 +34,7 @@ function match(pathname: string): { route: Route; params: Params } | null {
 // Warm chunk + data on hover/touch so the click is (nearly) instant.
 const warm = new Map<string, { at: number; data: Promise<unknown> }>();
 /** Drop prefetched page data, e.g. after a write that changes what pages show. */
-export const clearPrefetch = () => warm.clear();
+export const clearPrefetch = () => { warm.clear(); clearPages(); };
 export function prefetch(href: string) {
   const url = new URL(href, location.origin);
   const m = match(url.pathname);
@@ -48,10 +49,24 @@ export function prefetch(href: string) {
   }
 }
 
-type NavOpts = { replace?: boolean; pop?: boolean; refresh?: boolean; keepScroll?: boolean };
+type NavOpts = { replace?: boolean; pop?: boolean; refresh?: boolean; keepScroll?: boolean; first?: boolean };
+
+/** How long each page took to show (tap, or document request for the first page, until painted). Read by telemetry. */
+export type Shown = { path: string; ms: number; kind: "cold" | "warm" | "nav" | "cache" };
+export const shown: Shown[] = [];
+export const onShown = { cb: (_: Shown) => {} };
+function measure(t0: number, kind: Shown["kind"]) {
+  const path = location.pathname;
+  requestAnimationFrame(() => setTimeout(() => {
+    const s = { path, ms: Math.round(performance.now() - t0), kind };
+    if (shown.push(s) > 50) shown.shift();
+    onShown.cb(s);
+  }));
+}
 
 export async function navigate(href: string, opts: NavOpts = {}): Promise<void> {
   const id = ++navId;
+  const t0 = opts.first ? 0 : performance.now();
   const url = new URL(href, location.origin);
   // ?league=N (notification links, shared links) switches league first
   const lq = Number(url.searchParams.get("league"));
@@ -69,22 +84,38 @@ export async function navigate(href: string, opts: NavOpts = {}): Promise<void> 
     }
     const { route, params } = hit;
     if (!route.public && !signedIn()) {
-      return void navigate(`/sign-in?redirect=${encodeURIComponent(url.pathname + url.search)}`, { replace: true });
+      return void navigate(`/sign-in?redirect=${encodeURIComponent(url.pathname + url.search)}`, { replace: true, first: opts.first });
     }
     if (route.redirect) {
-      return void navigate(await route.redirect(params, url.searchParams), { replace: true });
+      return void navigate(await route.redirect(params, url.searchParams), { replace: true, first: opts.first });
     }
     const key = leagueId() + url.pathname + url.search;
     const cached = warm.get(key);
     warm.delete(key);
     const fresh = cached && Date.now() - cached.at < 10_000 ? cached.data : route.load?.(params, url.searchParams);
+    // seen before on this device: show that now, swap in the fresh data when it lands (a refresh waits for it)
+    const kept = route.instant ? readPage(key) : undefined;
+    if (kept !== undefined && !opts.refresh) {
+      const mod = await route.page!();
+      finish(id, opts, url, { route, Page: mod.default, params, query: url.searchParams, data: JSON.parse(kept), key: url.href });
+      if (id === navId) measure(t0, "cache");
+      return void Promise.resolve(fresh).then((data) => {
+        writePage(key, data);
+        if (id === navId && current && JSON.stringify(data) !== kept) { current = { ...current, data }; emit(); }
+      }, () => {
+        // whatever the page would have shown (a redirect, an error): load it the normal way
+        if (id === navId) void navigate(url.pathname + url.search, { replace: true, pop: true, refresh: true, keepScroll: true });
+      });
+    }
     const [mod, data] = await Promise.all([route.page!(), fresh]);
+    if (route.instant) writePage(key, data);
     // a refresh remounts the page so state derived from the old data (and realtime channels) restart
     finish(id, opts, url, { route, Page: mod.default, params, query: url.searchParams, data, key: url.href + (opts.refresh ? "#" + id : "") });
+    if (id === navId && !opts.refresh) measure(t0, opts.first ? (navigator.serviceWorker?.controller ? "warm" : "cold") : "nav");
   } catch (e) {
     // superseded by a newer navigation, or the page is going away: nothing to report
     if (id !== navId || (e as { code?: string }).code === "unloading") return;
-    if (e instanceof Redirect) return void navigate(e.to, { replace: true });
+    if (e instanceof Redirect) return void navigate(e.to, { replace: true, first: opts.first });
     // A deploy replaced the hashed chunks this (old) page wants: reload once to pick up the new build.
     if (/dynamically imported module|importing a module script failed/i.test((e as Error)?.message ?? "")) {
       let last = 0;
@@ -131,7 +162,7 @@ export function startRouter() {
   };
   document.addEventListener("pointerover", hover, { passive: true });
   document.addEventListener("touchstart", hover, { passive: true });
-  return navigate(location.pathname + location.search, { replace: true });
+  return navigate(location.pathname + location.search, { replace: true, first: true });
 }
 
 /**
