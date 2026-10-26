@@ -13,3 +13,4 @@ dist-e2e/
 .wrangler/
 .worker/
 deno.lock
+.promo-work/

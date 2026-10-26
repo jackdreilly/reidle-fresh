@@ -1,0 +1,18 @@
+ffconcat version 1.0
+file gfx/title_0.png
+duration 0.35
+file gfx/title_1.png
+duration 0.22
+file gfx/title_2.png
+duration 0.22
+file gfx/title_3.png
+duration 0.22
+file gfx/title_4.png
+duration 0.22
+file gfx/title_5.png
+duration 0.22
+file gfx/title_6.png
+duration 0.5
+file gfx/title_7.png
+duration 1.45
+file gfx/title_7.png

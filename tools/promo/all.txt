@@ -1,0 +1,6 @@
+file 'seg/1title.mp4'
+file 'seg/2play.mp4'
+file 'seg/3today.mp4'
+file 'seg/4week.mp4'
+file 'seg/5chat.mp4'
+file 'seg/6end.mp4'
