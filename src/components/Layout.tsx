@@ -181,7 +181,6 @@ export default function Layout(
                 end={pending ? <CountBadge n={pending} /> : null}>Challenges</NavItem>
               <NavItem href="/battles" bg="bg-[#5b73ff21] hover:bg-[#5b73ff60]" bold={route === "/battles"} icon={<BattleSvg fill="#6d28d9" />} end={null}>Battles</NavItem>
               <NavItem href="/practice" bg="bg-[#00ddff1a] hover:bg-[#00ddff60]" bold={route === "/practice"} icon={<PracticeSVG fill="#00A6B5" />}>Practice</NavItem>
-              <NavItem href="/rankings" bg="bg-[#f7f1b5] hover:bg-[#bfb865]" bold={route === "/rankings"} icon={<RankingsSVG fill="#5c5300" />}>Rankings</NavItem>
               <NavItem href="/messages" bold={route === "/messages"} icon={<Messages />}
                 end={<span class="inline-flex items-center justify-center"><AllNotification /></span>}>Messages</NavItem>
               <NavItem href="/league" bold={route === "/league"} icon={<Icon d={PEOPLE} />}>Invite &amp; league</NavItem>
@@ -292,7 +291,6 @@ function BattleSvg({ fill }: { fill: string }) {
 const PlaySVG = ({ fill }: { fill: string }) => <Icon fill={fill} d="M2 10a8 8 0 1116 0 8 8 0 01-16 0zm6.39-2.908a.75.75 0 01.766.027l3.5 2.25a.75.75 0 010 1.262l-3.5 2.25A.75.75 0 018 12.25v-4.5a.75.75 0 01.39-.658z" />;
 const Messages = () => <Icon d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" />;
 const ChallengeSVG = ({ fill }: { fill: string }) => <Icon fill={fill} d={PEOPLE} />;
-const RankingsSVG = ({ fill }: { fill: string }) => <Icon fill={fill} d="M12.577 4.878a.75.75 0 0 1 .919-.53l4.78 1.281a.75.75 0 0 1 .531.919l-1.281 4.78a.75.75 0 0 1-1.449-.387l.81-3.022a19.407 19.407 0 0 0-5.594 5.203.75.75 0 0 1-1.139.093L7 10.06l-4.72 4.72a.75.75 0 0 1-1.06-1.061l5.25-5.25a.75.75 0 0 1 1.06 0l3.074 3.073a20.923 20.923 0 0 1 5.545-4.931l-3.042-.815a.75.75 0 0 1-.53-.919Z" />;
 
 function PracticeSVG({ fill }: { fill: string }) {
   return (

@@ -6,11 +6,11 @@ test.afterEach(() => { sql("update app_flags set legacy_until = 'infinity'"); })
 
 test("name-only sunset: countdown banner, then a save-your-account screen and no name form", async ({ page }) => {
   sql("update app_flags set legacy_until = now() + interval '3 days 1 hour'");
-  await signIn(page, "sunny", "/rankings");
+  await signIn(page, "sunny", "/battles");
   await expect(page.getByText(/Name-only sign-in ends [A-Z][a-z]+ \d+\./)).toBeVisible();
 
   sql("update app_flags set legacy_until = now() - interval '1 second'");
-  await page.goto("/rankings");
+  await page.goto("/battles");
   await expect(page).toHaveURL(/\/save-account$/);
   await expect(page.getByRole("heading", { name: "Keep playing as sunny" })).toBeVisible();
   await expect(page.getByRole("button", { name: /Link Google/ })).toBeVisible();

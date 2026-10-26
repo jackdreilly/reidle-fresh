@@ -108,6 +108,3 @@ html[data-theme=dark], html[data-theme=dark] body { background: #0d1117; color: 
 html[data-theme=dark] .text-white { color: #fff; }
 html[data-theme=dark] .bg-gray-900, html[data-theme=dark] .bg-gray-800 { background-color: #3a4554; }
 html[data-theme=dark] img[src$='.webp'] { filter: none; }
-/* the one solid light sidebar tile (Rankings) */
-html[data-theme=dark] .bg-\[\#f7f1b5\] { background-color: #3b3712; }
-html[data-theme=dark] .hover\:bg-\[\#bfb865\]:hover { background-color: #57511c; }

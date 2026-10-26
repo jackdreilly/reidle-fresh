@@ -42,7 +42,7 @@ select is(
         'challenge_play','challenges_page','create_league','daily_page','delete_message','dismiss_reminder_prompt','dismiss_tour','get_playback',
         'join_league','league_page','league_preview','leagues_page','leave_league','like_message','log_error','log_invite','log_visit',
         'messages_page','name_sign_in_open','new_battle','nickname_free','past_page','past_winners','play_state','player_stats',
-        'post_message','push_subscribe','push_unsubscribe','rankings','save_checkpoint','set_member',
+        'post_message','push_subscribe','push_unsubscribe','save_checkpoint','set_member',
         'set_nickname','set_notify_prefs','settings_page','start_play','submit_challenge','submit_daily',
         'update_league','weekly_page']::text[],
   'authenticated can execute exactly the RPC allowlist');

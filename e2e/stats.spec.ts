@@ -38,15 +38,12 @@ test("past tab: power rankings, records and every week's podium", async ({ page 
   await expect(page).toHaveURL(/\/stats\/weekly\/\d{4}-\d{2}-\d{2}$/);
 });
 
-test("player page and rankings render charts", async ({ page }) => {
+test("player page renders charts", async ({ page }) => {
   await page.goto("/players/alice");
   await expect(page.getByText(/Playing since \w+ \d{4} · [\d,]+ games/)).toBeVisible();
   await expect(page.getByText("Head to head", { exact: true })).toBeVisible();
   await expect(page.getByRole("img", { name: "Rolling median solve time" })).toBeVisible();
   await expect(page.getByText(/weeks? won/)).toBeVisible();
-  await page.goto("/rankings");
-  await expect(page.getByText("Reidle Power Rankings")).toBeVisible();
-  await expect(page.locator("svg path[stroke-width='12']").first()).toBeAttached();
 });
 
 test("player page compares other players on the charts", async ({ page }) => {

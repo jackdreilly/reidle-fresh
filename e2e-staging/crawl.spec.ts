@@ -34,7 +34,7 @@ test("crawl every route at phone and desktop sizes", async ({ page }) => {
 
   const routes = [
     "/stats/today", "/stats/this_week", "/stats/past_winners", `/stats/weekly/${lastMonday}`, `/stats/daily/${yesterday}`,
-    "/challenges", challengeHref, "/battles", "/rankings", "/players/alice", "/messages", "/account", "/practice", "/play",
+    "/challenges", challengeHref, "/battles", "/players/alice", "/messages", "/account", "/practice", "/play",
     "/league", "/leagues", "/leagues/new", "/welcome", "/join/global",
     playbackHref ?? "/stats/today", "/this/route/does/not/exist",
   ];

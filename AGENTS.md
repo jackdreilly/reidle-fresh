@@ -273,7 +273,6 @@ landed on legacy (append-only, idempotent).
 ## Known gaps / TODO
 
 - Battles are ported but least tested (E2E coverage pending).
-- `rankings()` recomputes full history per request; materialise if it gets slow.
 - Giphy API key is hardcoded in `src/components/MessageText.tsx` (inherited).
 - Hosting: Cloudflare Workers. `npm run deploy:staging` builds with `.env.staging`, packs `dist/` into one
   Worker module (`tools/build-worker.mjs`: SPA fallback, immutable asset caching) and `wrangler deploy`s it

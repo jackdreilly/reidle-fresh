@@ -150,11 +150,6 @@ export const routes: Route[] = [
     load: () => read("messages_page"),
   },
   {
-    path: "/rankings", page: () => import("./pages/Rankings"), prefetchData: true, instant: true,
-    layout: { route: "/rankings", title: "Rankings" },
-    load: () => read("rankings"),
-  },
-  {
     path: "/account", page: () => import("./pages/Account"),
     layout: { route: "/account", title: "Settings" },
     load: () => read("settings_page"),

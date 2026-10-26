@@ -93,7 +93,6 @@ function PowerRankings({ data, me }: { data: PastData; me: string }) {
             </button>
           )
           : <span />}
-        <a href="/rankings" class="text-gray-400 hover:text-gray-800">Daily chart ›</a>
       </div>
     </section>
   );
