@@ -147,18 +147,21 @@ function finish(id: number, opts: NavOpts, url: URL, next: Current) {
   emit();
 }
 
+const isFile = (path: string) => /\.[a-z0-9]+$/i.test(path);
+
 export function startRouter() {
   addEventListener("popstate", () => void navigate(location.pathname + location.search, { pop: true, replace: true }));
   document.addEventListener("click", (e) => {
     if (e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     const a = (e.target as Element).closest?.("a");
     if (!a || a.target || a.hasAttribute("download") || a.origin !== location.origin) return;
+    if (isFile(a.pathname)) return; // /static/promo.mp4, /privacy.html: real files, not app routes
     e.preventDefault();
     void navigate(a.pathname + a.search);
   });
   const hover = (e: Event) => {
     const a = (e.target as Element).closest?.("a");
-    if (a && a.origin === location.origin) prefetch(a.href);
+    if (a && a.origin === location.origin && !isFile(a.pathname)) prefetch(a.href);
   };
   document.addEventListener("pointerover", hover, { passive: true });
   document.addEventListener("touchstart", hover, { passive: true });

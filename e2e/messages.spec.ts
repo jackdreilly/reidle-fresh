@@ -77,3 +77,11 @@ test("chat notifications are opt-in from the Messages page", async ({ page }) =>
   await page.goto("/weekly");
   await expect(page.getByRole("button", { name: /Notify me/ })).toHaveCount(0);
 });
+
+test("a chat link to a file on this site opens the file, not an app route", async ({ page }) => {
+  sql(`insert into messages (name, message) values ('carol', 'policy http://127.0.0.1:3000/privacy.html')`);
+  await signIn(page, "dave", "/messages");
+  await page.getByRole("link", { name: /privacy\.html/ }).click();
+  await expect(page).toHaveURL(/\/privacy\.html$/);
+  await expect(page.getByText("Not found")).toHaveCount(0);
+});
