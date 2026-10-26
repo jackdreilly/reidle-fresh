@@ -42,5 +42,5 @@ ffmpeg -loglevel error -y -loop 1 -framerate 30 -i gfx/end.png -vf "fade=in:st=0
 bash "$HERE/build.sh"
 VO_DIR=vo bash "$HERE/mixaudio.sh"
 ffmpeg -loglevel error -y -f concat -safe 0 -i all.txt -i mix.wav -map 0:v -map 1:a -c:v libx264 -crf 23 -preset veryslow -tune animation \
-  -pix_fmt yuv420p -c:a aac -b:a 128k -movflags +faststart -shortest "$ROOT/public/static/promo.mp4"
-echo "wrote public/static/promo.mp4"
+  -pix_fmt yuv420p -c:a aac -b:a 128k -movflags +faststart -shortest "${OUT_FILE:-$ROOT/public/static/promo.mp4}"
+echo "wrote ${OUT_FILE:-public/static/promo.mp4}"

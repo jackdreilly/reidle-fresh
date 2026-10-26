@@ -1,6 +1,6 @@
 const { chromium } = require('playwright');
 (async () => {
-  const b = await chromium.launch();
+  const b = await chromium.launch(require('./browser.cjs').launchOptions());
   for (const n of process.argv.slice(2)) {
     const page = await (await b.newContext({ baseURL: 'http://127.0.0.1:3000' })).newPage();
     await page.goto('/sign-in?redirect=/');

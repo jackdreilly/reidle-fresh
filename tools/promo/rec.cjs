@@ -24,7 +24,7 @@ async function type(page, w, gap = 110) { for (const c of w) { await page.keyboa
 
 (async () => {
   const which = process.argv.slice(2);
-  const b = await chromium.launch();
+  const b = await chromium.launch(require('./browser.cjs').launchOptions());
   const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, baseURL: 'http://127.0.0.1:3000' });
   const page = await ctx.newPage();
   await page.goto('/sign-in?redirect=/');

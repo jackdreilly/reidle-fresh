@@ -35,7 +35,7 @@ for (let n = 0; n <= 6; n++) scenes[`title_${n}`] = `<div class="center">${tiles
 scenes.title_7 = `<div class="center">${tiles(6)}<div class="big">Wordle, but<br>it's a <span class="y">race.</span></div>${tqr}</div>`;
 scenes.end = `<div class="center" style="justify-content:flex-start;padding-top:330px">${tiles(6)}<div class="big" style="margin-top:60px">Start a league.<br>Race your <span class="g">friends.</span></div><div style="margin-top:70px;background:#fff;padding:28px;border-radius:36px;width:420px;height:420px;box-shadow:0 20px 60px rgba(0,0,0,.5)">${qr.replace('<svg', '<svg width="364" height="364"')}</div><div class="pill" style="margin-top:56px">reidle.reillybrothers.net</div><div class="small">Free · plays in your browser</div></div>`;
 (async () => {
-  const b = await chromium.launch();
+  const b = await chromium.launch(require('./browser.cjs').launchOptions());
   const p = await b.newPage({ viewport: { width: 1080, height: 1920 } });
   for (const [k, html] of Object.entries(scenes)) {
     await p.setContent(`<style>${css}</style>${html}`); await p.waitForTimeout(50);
@@ -47,7 +47,7 @@ scenes.end = `<div class="center" style="justify-content:flex-start;padding-top:
   await b.close();
 })();
 (async () => {
-  const b = await chromium.launch(); const p = await b.newPage();
+  const b = await chromium.launch(require('./browser.cjs').launchOptions()); const p = await b.newPage();
   for (const [w, h] of [[960, 1354], [854, 1450]]) {
     await p.setViewportSize({ width: w, height: h });
     await p.setContent(`<style>body{margin:0;background:transparent}</style><div style="width:${w}px;height:${h}px;border-radius:44px;background:#fff"></div>`);
