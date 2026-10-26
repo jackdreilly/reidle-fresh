@@ -46,7 +46,8 @@ self.addEventListener("fetch", (e) => {
   } else if (STATIC.includes(url.pathname)) {
     // network-first: the files can change in place; the cached copy is the offline fallback
     e.respondWith(fetch(request).catch(async () => (await caches.match(url.pathname)) ?? Response.error()));
-  } else if (request.mode === "navigate") {
+  } else if (request.mode === "navigate" && !/\.[a-z0-9]+$/i.test(url.pathname)) {
+    // (opened files, like /static/promo.mp4, go straight to the network)
     e.respondWith((async () => {
       const c = await caches.open(CACHE);
       try {

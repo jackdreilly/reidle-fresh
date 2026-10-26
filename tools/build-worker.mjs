@@ -9,6 +9,7 @@ const TYPES = {
   ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8",
   ".csv": "text/csv; charset=utf-8", ".json": "application/json", ".webmanifest": "application/manifest+json",
   ".png": "image/png", ".webp": "image/webp", ".ico": "image/x-icon", ".svg": "image/svg+xml", ".txt": "text/plain; charset=utf-8",
+  ".mp4": "video/mp4",
 };
 const TEXT = new Set([".html", ".js", ".css", ".csv", ".json", ".webmanifest", ".svg", ".txt"]);
 
@@ -48,6 +49,17 @@ export default {
       "cache-control": path.startsWith("/assets/") ? "public, max-age=31536000, immutable" : "no-cache",
       "x-content-type-options": "nosniff",
     };
+    // byte ranges for binary files: Safari won't play a <video> (or an opened .mp4) without them
+    const range = file.bin && /^bytes=(\\d*)-(\\d*)$/.exec(request.headers.get("range") ?? "");
+    if (file.bin) headers["accept-ranges"] = "bytes";
+    if (range) {
+      const b = body(path), size = b.length;
+      const start = range[1] ? +range[1] : Math.max(0, size - +range[2]);
+      const end = range[1] && range[2] ? Math.min(+range[2], size - 1) : size - 1;
+      if (start > end || start >= size) return new Response(null, { status: 416, headers: { "content-range": \`bytes */\${size}\` } });
+      headers["content-range"] = \`bytes \${start}-\${end}/\${size}\`;
+      return new Response(request.method === "HEAD" ? null : b.subarray(start, end + 1), { status: 206, headers });
+    }
     return new Response(request.method === "HEAD" ? null : body(path), { headers });
   },
 };
