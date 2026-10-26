@@ -48,7 +48,9 @@ test("player page renders charts", async ({ page }) => {
 
 test("player page compares other players on the charts", async ({ page }) => {
   await page.goto("/players/alice");
-  await page.getByRole("button", { name: "+ bob" }).click();
+  // which rivals get a one-tap chip shifts with the seed's dates, so pick bob by name
+  await page.getByLabel("Compare with player").fill("bob");
+  await page.getByLabel("Compare with player").press("Enter");
   await expect(page).toHaveURL(/\/players\/alice\?vs=bob$/);
   await expect(page.getByRole("columnheader", { name: "bob" })).toBeVisible();
   await expect(page.getByRole("img", { name: "Rolling median solve time" }).locator("polyline")).toHaveCount(2);
