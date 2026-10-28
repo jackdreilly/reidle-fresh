@@ -3,7 +3,9 @@
 // the app's x-league header: ask_begin runs as the player (PostgREST checks the token, the daily cap and the league),
 // so this function needs no service key and keeps verify_jwt = false (config.toml). The Gemini key is the function
 // secret GEMINI_API_KEY (set by CI from the GitHub secret); GEMINI_MODEL overrides the model.
+// Reidog can look things up with read-only tools (tools.ts), also as the player; the answer streams once it has them.
 import { SYSTEM_PROMPT } from "./prompt.ts";
+import { DECLARATIONS, runTool, type ToolLog } from "./tools.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const GEMINI_KEY = Deno.env.get("GEMINI_API_KEY") ?? "";
@@ -18,21 +20,24 @@ type Turn = { role: "user" | "model"; text: string };
 type Who = {
   id: number; name: string; account: string; played_today: boolean; leagues: number;
   league: {
-    name?: string; tz?: string; reset_hour?: number; is_public?: boolean; open_invite?: boolean; members?: number;
+    name?: string; tz?: string; reset_hour?: number; today?: string; is_public?: boolean; open_invite?: boolean; members?: number;
     role?: string | null; scoring?: { mode: string; points?: number[]; no_show?: number; best_of?: number | null };
   } | null;
 };
 
 const fail = (status: number, message: string) => Response.json({ message }, { status, headers: CORS });
 
-// As the player: the same headers the app sends to PostgREST.
-async function rpc<T>(req: Request, fn: string, args: Record<string, unknown>): Promise<T> {
+// As the player: the same headers the app sends to PostgREST. GET runs the function in a read-only transaction.
+async function rpc<T>(req: Request, fn: string, args: Record<string, unknown>, method: "GET" | "POST" = "POST"): Promise<T> {
   const headers: Record<string, string> = {
     apikey: req.headers.get("apikey") ?? "", authorization: req.headers.get("authorization") ?? "", "content-type": "application/json",
   };
   const league = req.headers.get("x-league");
   if (league) headers["x-league"] = league;
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, { method: "POST", headers, body: JSON.stringify(args) });
+  const url = `${SUPABASE_URL}/rest/v1/rpc/${fn}`;
+  const res = method === "GET"
+    ? await fetch(`${url}?${new URLSearchParams(Object.entries(args).map(([k, v]) => [k, String(v)]))}`, { headers, signal: AbortSignal.timeout(5000) })
+    : await fetch(url, { method, headers, body: JSON.stringify(args), signal: AbortSignal.timeout(5000) });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw Object.assign(new Error(body.message ?? `HTTP ${res.status}`), { status: res.status });
@@ -55,7 +60,7 @@ function context(w: Who, page: string | null) {
   return [
     "[Player context]",
     `Nickname: ${w.name}. Account: ${w.account === "guest" ? "guest (not saved yet)" : w.account === "legacy" ? "old name-only account (needs Google or email linked)" : "saved (Google or email)"}.`,
-    l ? `Current league: ${l.name}${l.is_public ? " (public)" : ""}, ${l.members ?? "?"} members, ${l.role === "commissioner" ? "they are a commissioner" : "regular player"}. New word every day at ${at} ${(l.tz ?? "UTC").replace(/_/g, " ")}. Scoring: ${scoring(l.scoring)}. Invite link visible to ${l.open_invite === false ? "commissioners only" : "every player"}.` : "Not in a league yet.",
+    l ? `Current league: ${l.name}${l.is_public ? " (public)" : ""}, ${l.members ?? "?"} members, ${l.role === "commissioner" ? "they are a commissioner" : "regular player"}. New word every day at ${at} ${(l.tz ?? "UTC").replace(/_/g, " ")}. Today's date there: ${l.today ?? "?"}. Scoring: ${scoring(l.scoring)}. Invite link visible to ${l.open_invite === false ? "commissioners only" : "every player"}.` : "Not in a league yet.",
     `In ${w.leagues} league${w.leagues === 1 ? "" : "s"}. Played today's daily: ${w.played_today ? "yes" : "no"}.`,
     page ? `They opened this chat from: ${page}.` : "",
   ].filter(Boolean).join("\n");
@@ -84,55 +89,80 @@ Deno.serve(async (req) => {
     return fail(status === 401 || status === 403 ? 401 : 400, (e as Error).message);
   }
 
-  const contents = turns.map((t, i) => ({
+  // deno-lint-ignore no-explicit-any
+  const contents: any[] = turns.map((t, i) => ({
     role: t.role,
     parts: i === 0 ? [{ text: context(who, typeof body.page === "string" ? body.page.slice(0, 100) : null) }, { text: t.text }] : [{ text: t.text }],
   }));
   const started = Date.now();
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:streamGenerateContent?alt=sse`, {
+  const tools: ToolLog[] = [];
+  const ask = (final: boolean) => fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:streamGenerateContent?alt=sse`, {
     method: "POST",
     headers: { "x-goog-api-key": GEMINI_KEY, "content-type": "application/json" },
     body: JSON.stringify({
       systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
       contents,
+      tools: [{ functionDeclarations: DECLARATIONS }],
+      // after a few rounds of lookups, answer with what it has
+      toolConfig: { functionCallingConfig: { mode: final ? "NONE" : "AUTO" } },
       generationConfig: { temperature: 0.4, maxOutputTokens: 700 },
     }),
   });
-  if (!res.ok || !res.body) {
-    console.error("gemini", res.status, await res.text().catch(() => ""));
+  const first = await ask(false);
+  if (!first.ok || !first.body) {
+    console.error("gemini", first.status, await first.text().catch(() => ""));
     return fail(502, "Reidog couldn't think of an answer just now. Try again in a moment!");
   }
 
-  // Gemini's server-sent events -> the answer's text, as it arrives
+  // Gemini's server-sent events -> the answer's text, as it arrives. When the model asks for tools instead, run them
+  // (as the player), hand back the results and stream the next round.
   let answer = "";
   const enc = new TextEncoder();
   const stream = new ReadableStream<Uint8Array>({
     async start(out) {
-      const reader = res.body!.pipeThrough(new TextDecoderStream()).getReader();
-      let buf = "";
       try {
-        for (;;) {
-          const { value, done } = await reader.read();
-          if (done) break;
-          buf += value;
-          let nl;
-          while ((nl = buf.indexOf("\n")) >= 0) {
-            const line = buf.slice(0, nl).trim();
-            buf = buf.slice(nl + 1);
-            if (!line.startsWith("data:")) continue;
-            try {
-              const chunk = JSON.parse(line.slice(5));
-              const text = (chunk.candidates?.[0]?.content?.parts ?? []).map((p: { text?: string }) => p.text ?? "").join("");
-              if (text) { answer += text; out.enqueue(enc.encode(text)); }
-            } catch { /* partial or non-JSON line */ }
+        let res: Response = first;
+        for (let round = 0; ; round++) {
+          // deno-lint-ignore no-explicit-any
+          const parts: any[] = [];
+          const reader = res.body!.pipeThrough(new TextDecoderStream()).getReader();
+          let buf = "";
+          for (;;) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            buf += value;
+            let nl;
+            while ((nl = buf.indexOf("\n")) >= 0) {
+              const line = buf.slice(0, nl).trim();
+              buf = buf.slice(nl + 1);
+              if (!line.startsWith("data:")) continue;
+              try {
+                const chunk = JSON.parse(line.slice(5));
+                for (const p of chunk.candidates?.[0]?.content?.parts ?? []) {
+                  parts.push(p); // kept whole (thought signatures too): the next round sends them back
+                  if (p.text && !p.thought) { answer += p.text; out.enqueue(enc.encode(p.text)); }
+                }
+              } catch { /* partial or non-JSON line */ }
+            }
           }
+          const calls = parts.filter((p) => p.functionCall);
+          if (!calls.length) break;
+          contents.push({ role: "model", parts });
+          const results = await Promise.all(calls.map((p) => runTool((fn, args, method) => rpc(req, fn, args, method), p.functionCall.name, p.functionCall.args ?? {})));
+          tools.push(...results.map((r) => r.log));
+          contents.push({
+            role: "user",
+            parts: calls.map((p, i) => ({ functionResponse: { name: p.functionCall.name, ...(p.functionCall.id ? { id: p.functionCall.id } : {}), response: { result: results[i].result } } })),
+          });
+          res = await ask(round >= 2);
+          if (!res.ok || !res.body) { console.error("gemini", res.status, await res.text().catch(() => "")); break; }
         }
       } catch (e) {
         console.error("stream", e);
       } finally {
         if (!answer) out.enqueue(enc.encode("Woof, I lost my train of thought. Could you ask that again?"));
         out.close();
-        await rpc(req, "ask_finish", { p_id: who.id, p_answer: answer || "(no answer)", p_ms: Date.now() - started, p_model: MODEL })
+        await rpc(req, "ask_finish", { p_id: who.id, p_answer: answer || "(no answer)", p_ms: Date.now() - started, p_model: MODEL, p_tools: tools })
           .catch((e) => console.error("ask_finish", e));
       }
     },

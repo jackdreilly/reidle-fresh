@@ -50,7 +50,10 @@ export type AdminData = {
   recent: Ev[];
   growth: Growth;
   speed?: Speed;
-  asks?: { name: string; question: string; answer: string | null; ms: number | null; at: string }[];
+  asks?: {
+    name: string; question: string; answer: string | null; ms: number | null; at: string;
+    tools: { name: string; args?: Record<string, unknown>; ms?: number; error?: string }[] | null;
+  }[];
   asks_7d?: number;
 };
 type Growth = {
@@ -744,7 +747,14 @@ export default function Admin({ data }: PageProps<AdminData>) {
             <details class="ad-visit" key={i}>
               <summary style={{ cursor: "pointer" }}>
                 <span class="ad-muted">{when(a.at)} · </span><b>{a.name}</b>: {a.question}
+                {a.tools?.length ? <span class="ad-muted"> · looked up {[...new Set(a.tools.map((t) => t.name))].join(", ")}</span> : null}
               </summary>
+              {a.tools?.map((t, j) => (
+                <div key={j} class="ad-muted" style={{ fontFamily: "ui-monospace, monospace", fontSize: "12px", whiteSpace: "pre-wrap", marginTop: "4px" }}>
+                  {t.name}{t.args && Object.keys(t.args).length ? ` ${Object.values(t.args).join(", ")}` : ""}
+                  {t.ms != null ? ` · ${ms(t.ms)}` : ""}{t.error ? ` · ✗ ${t.error}` : ""}
+                </div>
+              ))}
               <p style={{ whiteSpace: "pre-wrap", color: "var(--ad-sub)", marginTop: "4px" }}>{a.answer ?? "(no answer)"}</p>
               {a.ms != null && <p class="ad-muted">{ms(a.ms)}</p>}
             </details>

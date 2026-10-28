@@ -107,7 +107,7 @@ export default function Help() {
       </Section>
 
       <Section id="ask" title="Ask Reidog">
-        <p>Still stuck? <A href="/ask?from=/help">Ask Reidog</A> (also in the menu), our AI help dog. It knows how everything here works and answers in seconds. It's an AI, so it can get things wrong now and then.</p>
+        <p>Still stuck? <A href="/ask?from=/help">Ask Reidog</A> (also in the menu), our AI help dog. It knows how everything here works, can look up your league's results, stats, standings and challenges, and answers in seconds. It's an AI, so it can get things wrong now and then.</p>
       </Section>
     </div>
   );
