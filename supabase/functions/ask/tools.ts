@@ -10,15 +10,15 @@ export type ToolLog = { name: string; args?: Record<string, unknown>; ms: number
 
 const SCHEMA = `Views (all already limited to the asking player's own leagues; join on league_id):
 - me(name, current_league_id, joined_reidle, leagues): the asking player
-- leagues(league_id, name, is_public, tz, reset_hour, scoring jsonb, open_invite, created_by, created_at, today date, my_role, is_current, members)
+- leagues(league_id, league_name, is_public, tz, reset_hour, scoring jsonb, open_invite, created_by, created_at, today date, my_role, is_current, members)
 - members(league_id, name, role 'commissioner'|'member', joined_at)
-- daily_results(submission_id, league_id, day date, name, time, penalty, rank, played_at, answer, paste): one row per daily game. time = final seconds including penalties; penalty = the seconds of penalties in it; rank 1 = fastest that day. answer is null for today's word (never revealed). paste = colour grid (null when hidden).
-- challenges(challenge_id, league_id, day, created_at, starting_word, answer, set_by, players): answer is null unless the asking player has played it
+- daily_results(submission_id, league_id, day date, name, time, penalty, rank, played_at, days_ago, current_league, answer, paste): one row per daily game. days_ago: 0 = today, 1 = yesterday (in that league). current_league: true for the league the player is in right now; filter on it unless they ask about another league. time = final seconds including penalties; penalty = the seconds of penalties in it; rank 1 = fastest that day. answer is null for today's word (never revealed). paste = colour grid (null when hidden).
+- challenges(challenge_id, league_id, day, days_ago, current_league, created_at, starting_word, answer, set_by, players): answer is null unless the asking player has played it
 - challenge_results(submission_id, challenge_id, league_id, name, time, penalty, rank, played_at)
 - weekly_winners(league_id, week date (Monday), name)
 - messages(message_id, league_id, name, message, likes int, created_at): the league chat
 Functions: week_standings(any_date_in_week date, league_id bigint default current) -> jsonb array in standings order of {name, results: {days: [{day, time, score, counted}], totals: {time, score}}} (score = points that day; totals.score = the week's points).
-Postgres SQL, read-only, max 50 rows, 3 second limit. Today in a league is leagues.today, not current_date. Prefer aggregates (count, avg, min, percentile_cont) over listing rows.`;
+Postgres SQL, read-only, max 50 rows, 3 second limit. Use days_ago or leagues.today for dates, not current_date. Qualify columns when joining (several views have name). Prefer aggregates (count, avg, min, percentile_cont) over listing rows.`;
 
 export const DECLARATIONS = [
   {
