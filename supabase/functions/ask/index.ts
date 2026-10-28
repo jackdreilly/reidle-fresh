@@ -10,6 +10,10 @@ import { DECLARATIONS, label, runTool, type ToolLog } from "./tools.ts";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const GEMINI_KEY = Deno.env.get("GEMINI_API_KEY") ?? "";
 const MODEL = Deno.env.get("GEMINI_MODEL") || "gemini-flash-latest";
+// Flash now and then takes far too long: a round that stalls past ROUND_MS starts over on Flash Lite, which is quick.
+const FALLBACK = Deno.env.get("GEMINI_FALLBACK_MODEL") || "gemini-flash-lite-latest";
+const THINKING = Deno.env.get("GEMINI_THINKING") || "minimal";
+const ROUND_MS = 15000;
 const CORS = {
   "access-control-allow-origin": "*",
   "access-control-allow-headers": "authorization, apikey, content-type, x-client-info, x-league",
@@ -96,7 +100,10 @@ Deno.serve(async (req) => {
   }));
   const started = Date.now();
   const tools: ToolLog[] = [];
-  const ask = (final: boolean) => fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:streamGenerateContent?alt=sse`, {
+  const base = [...contents];
+  let model = MODEL;
+  const ask = (final: boolean) => fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`, {
+    signal: AbortSignal.timeout(ROUND_MS),
     method: "POST",
     headers: { "x-goog-api-key": GEMINI_KEY, "content-type": "application/json" },
     body: JSON.stringify({
@@ -105,46 +112,65 @@ Deno.serve(async (req) => {
       tools: [{ functionDeclarations: DECLARATIONS }],
       // after a few rounds of lookups, answer with what it has
       toolConfig: { functionCallingConfig: { mode: final ? "NONE" : "AUTO" } },
-      // Gemini 3: no temperature (its default is tuned); low thinking keeps answers quick. The cap counts thinking too.
-      generationConfig: { maxOutputTokens: 2000, thinkingConfig: { thinkingLevel: "low" } },
+      // Gemini 3: no temperature (its default is tuned); minimal thinking keeps answers quick. The cap counts thinking too.
+      generationConfig: model === MODEL
+        ? { maxOutputTokens: 2000, thinkingConfig: { thinkingLevel: THINKING } }
+        : { temperature: 0.4, maxOutputTokens: 700 },
     }),
   });
-  const first = await ask(false);
-  if (!first.ok || !first.body) {
-    console.error("gemini", first.status, await first.text().catch(() => ""));
-    return fail(502, "Reidog couldn't think of an answer just now. Try again in a moment!");
+  /** Flash didn't answer in time (or failed) before saying anything: start over on the fallback model. */
+  const fallBack = () => {
+    if (model === FALLBACK || answer) return false;
+    console.error("falling back to", FALLBACK);
+    model = FALLBACK;
+    contents.splice(0, contents.length, ...base);
+    return true;
+  };
+  let answer = "";
+  let first: Response | null = await ask(false).catch((e) => { console.error("gemini", e); return null; });
+  if (!first?.ok || !first.body) {
+    console.error("gemini", first?.status, await first?.text().catch(() => ""));
+    fallBack();
+    first = await ask(false).catch(() => null);
+    if (!first?.ok || !first.body) return fail(502, "Reidog couldn't think of an answer just now. Try again in a moment!");
   }
 
   // Gemini's server-sent events -> the answer's text, as it arrives. When the model asks for tools instead, run them
   // (as the player), hand back the results and stream the next round.
-  let answer = "";
   const enc = new TextEncoder();
   const stream = new ReadableStream<Uint8Array>({
     async start(out) {
       try {
-        let res: Response = first;
-        for (let round = 0; ; round++) {
+        let res: Response | null = first;
+        for (let round = 0; round < 6; round++) {
           // deno-lint-ignore no-explicit-any
           const parts: any[] = [];
-          const reader = res.body!.pipeThrough(new TextDecoderStream()).getReader();
           let buf = "";
-          for (;;) {
-            const { value, done } = await reader.read();
-            if (done) break;
-            buf += value;
-            let nl;
-            while ((nl = buf.indexOf("\n")) >= 0) {
-              const line = buf.slice(0, nl).trim();
-              buf = buf.slice(nl + 1);
-              if (!line.startsWith("data:")) continue;
-              try {
-                const chunk = JSON.parse(line.slice(5));
-                for (const p of chunk.candidates?.[0]?.content?.parts ?? []) {
-                  parts.push(p); // kept whole (thought signatures too): the next round sends them back
-                  if (p.text && !p.thought) { answer += p.text; out.enqueue(enc.encode(p.text)); }
-                }
-              } catch { /* partial or non-JSON line */ }
+          try {
+            if (!res?.ok || !res.body) throw new Error(`HTTP ${res?.status}: ${await res?.text().catch(() => "")}`);
+            const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
+            for (;;) {
+              const { value, done } = await reader.read();
+              if (done) break;
+              buf += value;
+              let nl;
+              while ((nl = buf.indexOf("\n")) >= 0) {
+                const line = buf.slice(0, nl).trim();
+                buf = buf.slice(nl + 1);
+                if (!line.startsWith("data:")) continue;
+                try {
+                  const chunk = JSON.parse(line.slice(5));
+                  for (const p of chunk.candidates?.[0]?.content?.parts ?? []) {
+                    parts.push(p); // kept whole (thought signatures too): the next round sends them back
+                    if (p.text && !p.thought) { answer += p.text; out.enqueue(enc.encode(p.text)); }
+                  }
+                } catch { /* partial or non-JSON line */ }
+              }
             }
+          } catch (e) {
+            console.error("gemini", model, e);
+            if (fallBack()) { res = await ask(false).catch(() => null); continue; }
+            break;
           }
           const calls = parts.filter((p) => p.functionCall);
           if (!calls.length) break;
@@ -157,15 +183,14 @@ Deno.serve(async (req) => {
             role: "user",
             parts: calls.map((p, i) => ({ functionResponse: { name: p.functionCall.name, ...(p.functionCall.id ? { id: p.functionCall.id } : {}), response: { result: results[i].result } } })),
           });
-          res = await ask(round >= 2);
-          if (!res.ok || !res.body) { console.error("gemini", res.status, await res.text().catch(() => "")); break; }
+          res = await ask(round >= 2).catch(() => null);
         }
       } catch (e) {
         console.error("stream", e);
       } finally {
         if (!answer) out.enqueue(enc.encode("Woof, I lost my train of thought. Could you ask that again?"));
         out.close();
-        await rpc(req, "ask_finish", { p_id: who.id, p_answer: answer || "(no answer)", p_ms: Date.now() - started, p_model: MODEL, p_tools: tools })
+        await rpc(req, "ask_finish", { p_id: who.id, p_answer: answer || "(no answer)", p_ms: Date.now() - started, p_model: model, p_tools: tools })
           .catch((e) => console.error("ask_finish", e));
       }
     },
