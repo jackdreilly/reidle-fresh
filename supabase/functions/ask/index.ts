@@ -9,7 +9,7 @@ import { DECLARATIONS, label, runTool, type ToolLog } from "./tools.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const GEMINI_KEY = Deno.env.get("GEMINI_API_KEY") ?? "";
-const MODEL = Deno.env.get("GEMINI_MODEL") || "gemini-flash-lite-latest";
+const MODEL = Deno.env.get("GEMINI_MODEL") || "gemini-3.8-flash";
 const CORS = {
   "access-control-allow-origin": "*",
   "access-control-allow-headers": "authorization, apikey, content-type, x-client-info, x-league",
@@ -105,7 +105,8 @@ Deno.serve(async (req) => {
       tools: [{ functionDeclarations: DECLARATIONS }],
       // after a few rounds of lookups, answer with what it has
       toolConfig: { functionCallingConfig: { mode: final ? "NONE" : "AUTO" } },
-      generationConfig: { temperature: 0.4, maxOutputTokens: 700 },
+      // Gemini 3: no temperature (its default is tuned); low thinking keeps answers quick. The cap counts thinking too.
+      generationConfig: { maxOutputTokens: 2000, thinkingConfig: { thinkingLevel: "low" } },
     }),
   });
   const first = await ask(false);
