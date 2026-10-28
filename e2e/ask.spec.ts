@@ -14,7 +14,7 @@ test("Ask Reidog: starter question, a streamed answer with links, follow-up keep
       headers: { "access-control-allow-origin": "*" },
       body: bodies.length === 1
         ? "Woof! Each day's place earns points:\n- **1st** gets 40\n- 2nd gets 20\n\nSee [the week](/stats/this_week)."
-        : "Open [Invite & league](/league) and share the link.",
+        : '\u001e{"tool":"your league"}\nOpen [Invite & league](/league) and share the link.',
     });
   });
   await signIn(page, "dave", "/stats/today");
@@ -30,6 +30,7 @@ test("Ask Reidog: starter question, a streamed answer with links, follow-up keep
   await page.getByRole("textbox", { name: "Your question" }).fill("And inviting friends?");
   await page.keyboard.press("Enter");
   await expect(convo.getByRole("link", { name: "Invite & league" })).toBeVisible();
+  await expect(convo.getByText("Looked up your league")).toBeVisible(); // a lookup marker, not part of the answer
   expect(bodies[1].messages.map((m) => m.role)).toEqual(["user", "model", "user"]);
   await page.screenshot({ path: "test-results/ask.png" });
 
