@@ -85,17 +85,18 @@ is public (invite code `global`) and is where guests and brand-new name-only pla
 `src/components/Tour.tsx`: a 5-card walkthrough shown over normal pages (never in a game or before a league is picked)
 while `bootstrap().tour_seen` is false. Closing it any way calls `dismiss_tour()`, which flips `players.tour_seen`,
 so it stays gone on every device (guests are players too). Accounts from before the tour start with it seen.
-`/help` (`src/pages/Help.tsx`) explains the basics and can replay the tour. Keep both in step with features.
+`/help` (`src/pages/Help.tsx`) explains the basics and can replay the tour. Keep both (and Reidog's prompt) in step with features.
 
-## Contact Jack
+## Ask Reidog
 
-A private conversation per player with the owner (migration `*_contact.sql`): `feedback` (one row per message,
-`from_jack` for replies) and `feedback_threads` (read marks for both sides, `done`, optional email). Players write
-from `/contact` (menu item + Help card + tour); `send_feedback` pushes every `admins` row, `admin_reply` pushes the
-player. `bootstrap()` carries `contact_unread` (menu dot + `ContactBanner.tsx`, one banner per reply) and, for admins,
-`inbox` (unread conversations, a counted "Inbox" menu item). The owner's Inbox is a card on `/admin`
-(`admin_page().inbox`); one conversation is `/admin/inbox/:name` (`AdminInbox.tsx`, admin.css like Admin.tsx).
-Uses `me()`, not `require_me()`, so a locked-out name-only account can still ask for help. Max 20 messages a day.
+`/ask` (`src/pages/Ask.tsx`, menu + Help + tour): an AI help chat. The `ask` edge function (`supabase/functions/ask`,
+`verify_jwt = false`) calls `ask_begin` **as the player** (their token + x-league, so PostgREST checks auth, the 50/day
+cap and the league), then streams Gemini (`GEMINI_MODEL`, default `gemini-flash-lite-latest`) back as plain text and
+stores the answer with `ask_finish`. `ask_log` feeds the "Asked Reidog" card on /admin. The system prompt
+(`supabase/functions/ask/prompt.ts`) is identical for everyone (Gemini's implicit cache reuses it); per-player facts go
+in a `[Player context]` part of the first user turn. **Keep prompt.ts in step with features**, like Help and the tour.
+Key: GitHub secret `GEMINI_API_KEY`, copied to the function secret by db.yml (staging) and Deploy prod. Locally (no
+edge runtime) the page's request fails; E2E mocks the function.
 
 ## Chat push notifications
 

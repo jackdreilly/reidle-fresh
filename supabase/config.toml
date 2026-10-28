@@ -417,3 +417,6 @@ enabled = true
 # Chat push sender: called by the browser after posting a message; claims each message once, so no auth.
 [functions.push]
 verify_jwt = false
+
+[functions.ask]
+verify_jwt = false

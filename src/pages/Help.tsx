@@ -21,7 +21,7 @@ const A = ({ href, children }: { href: string; children: ComponentChildren }) =>
 const TOPICS: [string, string][] = [
   ["rules", "How a game works"], ["daily", "The daily"], ["scoring", "Points and the week"],
   ["challenges", "Challenges"], ["battles", "Battles"], ["practice", "Practice"],
-  ["leagues", "Leagues and invites"], ["account", "Your account"], ["extras", "Chat, alerts and the app"], ["contact", "Contact Jack"],
+  ["leagues", "Leagues and invites"], ["account", "Your account"], ["extras", "Chat, alerts and the app"], ["ask", "Ask Reidog"],
 ];
 
 /** The basics of the site, one card per part. Linked from the menu and the first-visit tour. */
@@ -106,8 +106,8 @@ export default function Help() {
         </ul>
       </Section>
 
-      <Section id="contact" title="Contact Jack">
-        <p>Questions, bugs, ideas, or just hello? Jack made Reidle and reads every message. <A href="/contact?from=/help">Write to him</A> (it's also in the menu), and his reply shows up on that page, with a dot in the menu and a notification if you've turned them on.</p>
+      <Section id="ask" title="Ask Reidog">
+        <p>Still stuck? <A href="/ask?from=/help">Ask Reidog</A> (also in the menu), our AI help dog. It knows how everything here works and answers in seconds. It's an AI, so it can get things wrong now and then.</p>
       </Section>
     </div>
   );

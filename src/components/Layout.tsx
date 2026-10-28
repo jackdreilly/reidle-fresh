@@ -4,9 +4,8 @@ import { useSession } from "@/lib/session";
 import { useInstall } from "@/lib/pwa";
 import { STAGING } from "@/components/StagingTag";
 
-function AllNotification({ on }: { on?: boolean }) {
+function AllNotification() {
   const { unread } = useSession();
-  if (on !== undefined) return on ? <span class="relative inline-flex rounded-full h-3 w-3 bg-[#0ea5e9]" /> : null;
   return (
     <span class={"m-1 relative h-3 w-3 " + (unread ? "inline-flex" : "hidden")}>
       <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#38bdf8] opacity-75"></span>
@@ -59,8 +58,7 @@ export default function Layout(
     fullPage?: boolean;
   },
 ) {
-  const { played_today: playedToday, name, unread, pending_challenges: pending = 0, league, leagues, account, tour_seen, reminder_prompt,
-    contact_unread: replied, inbox } = useSession();
+  const { played_today: playedToday, name, unread, pending_challenges: pending = 0, league, leagues, account, tour_seen, reminder_prompt } = useSession();
   const [open, setOpen] = useState(false);
   // never over a game in progress, nor before they've picked a league
   const Tour = useLazy(tour_seen === false && !fullPage && !!league, () => import("@/components/Tour"));
@@ -69,8 +67,6 @@ export default function Layout(
   // new players, once they've finished a game (never with the tour up, in a game or on Settings itself)
   const Reminder = useLazy(!!(reminder_prompt && playedToday && tour_seen) && !fullPage && route !== "/account",
     () => import("@/components/Remind"));
-  // Jack answered on /contact: a one-time banner (and the menu dot until it's read)
-  const Replied = useLazy(!!replied && route !== "/contact", () => import("@/components/ContactBanner"));
   // name-only and guest accounts keep the dot until they link Google or an email
   const dot = useSettingsDot(route) || account === "legacy" || account === "guest";
   const install = useInstall();
@@ -96,7 +92,7 @@ export default function Layout(
                 class="relative inline-flex items-center p-2 text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 "
               >
                 <span class="sr-only">Open sidebar</span>
-                {(dot || replied || !!inbox) && newDot({ position: "absolute", top: "4px", right: "4px", width: "9px", height: "9px" })}
+                {dot && newDot({ position: "absolute", top: "4px", right: "4px", width: "9px", height: "9px" })}
                 <svg
                   class="w-6 h-6"
                   aria-hidden="true"
@@ -189,10 +185,8 @@ export default function Layout(
                 end={<span class="inline-flex items-center justify-center"><AllNotification /></span>}>Messages</NavItem>
               <NavItem href="/league" bold={route === "/league"} icon={<Icon d={PEOPLE} />}>Invite &amp; league</NavItem>
               <NavItem href="/help" bold={route === "/help"} icon={<Icon d={HELP} />}>Help</NavItem>
-              <NavItem href={`/contact?from=${route}`} bold={route === "/contact"} icon={<Icon d={MAIL} />}
-                end={<AllNotification on={!!replied} />}>Contact Jack</NavItem>
-              {inbox != null && <NavItem href="/admin" bold={route === "/admin"} icon={<Icon d={MAIL} />}
-                end={inbox ? <CountBadge n={inbox} /> : null}>Inbox</NavItem>}
+              <NavItem href={`/ask?from=${route}`} bold={route === "/ask"}
+                icon={<img src="/android-chrome-96x96.webp" alt="" width="24" height="24" class="h-6 w-6 shrink-0 rounded-full" />}>Ask Reidog</NavItem>
               {install && (
                 <NavItem href="/account#install" bold={false} icon={<Icon d={DOWNLOAD} />}
                   onClick={(e) => { if (install.kind === "prompt") { e.preventDefault(); void install.install(); } }}>Install app</NavItem>
@@ -213,7 +207,6 @@ export default function Layout(
         >
           {Banner && <Banner route={route} fullPage={fullPage} />}
           {Reminder && <Reminder />}
-          {Replied && <Replied at={replied!} />}
           {children}
         </div>
         {Tour && <Tour />}
@@ -283,7 +276,6 @@ function Icon({ d, fill }: { d: string; fill?: string }) {
 const TROPHY = "M10 1c-1.828 0-3.623.149-5.371.435a.75.75 0 00-.629.74v.387c-.827.157-1.642.345-2.445.564a.75.75 0 00-.552.698 5 5 0 004.503 5.152 6 6 0 002.946 1.822A6.451 6.451 0 017.768 13H7.5A1.5 1.5 0 006 14.5V17h-.75C4.56 17 4 17.56 4 18.25c0 .414.336.75.75.75h10.5a.75.75 0 00.75-.75c0-.69-.56-1.25-1.25-1.25H14v-2.5a1.5 1.5 0 00-1.5-1.5h-.268a6.453 6.453 0 01-.684-2.202 6 6 0 002.946-1.822 5 5 0 004.503-5.152.75.75 0 00-.552-.698A31.804 31.804 0 0016 2.562v-.387a.75.75 0 00-.629-.74A33.227 33.227 0 0010 1zM2.525 4.422C3.012 4.3 3.504 4.19 4 4.09V5c0 .74.134 1.448.38 2.103a3.503 3.503 0 01-1.855-2.68zm14.95 0a3.503 3.503 0 01-1.854 2.68C15.866 6.449 16 5.74 16 5v-.91c.496.099.988.21 1.475.332z";
 const PEOPLE = "M10 9a3 3 0 100-6 3 3 0 000 6zM6 8a2 2 0 11-4 0 2 2 0 014 0zM1.49 15.326a.78.78 0 01-.358-.442 3 3 0 014.308-3.516 6.484 6.484 0 00-1.905 3.959c-.023.222-.014.442.025.654a4.97 4.97 0 01-2.07-.655zM16.44 15.98a4.97 4.97 0 002.07-.654.78.78 0 00.357-.442 3 3 0 00-4.308-3.517 6.484 6.484 0 011.907 3.96 2.32 2.32 0 01-.026.654zM18 8a2 2 0 11-4 0 2 2 0 014 0zM5.304 16.19a.844.844 0 01-.277-.71 5 5 0 019.947 0 .843.843 0 01-.277.71A6.975 6.975 0 0110 18a6.974 6.974 0 01-4.696-1.81z";
 const HELP = "M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0ZM8.94 6.94a.75.75 0 1 1-1.06-1.06 3 3 0 1 1 2.87 5.02c-.2.07-.35.22-.35.4v.2a.75.75 0 0 1-1.5 0v-.2c0-.88.6-1.6 1.38-1.85a1.5 1.5 0 1 0-1.34-2.51ZM10 15a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z";
-const MAIL = "M3 4a2 2 0 0 0-2 2v1.161l8.441 4.221a1.25 1.25 0 0 0 1.118 0L19 7.162V6a2 2 0 0 0-2-2H3ZM19 8.839l-7.77 3.885a2.75 2.75 0 0 1-2.46 0L1 8.839V14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8.839Z";
 const DOWNLOAD = "M10.75 2.75a.75.75 0 0 0-1.5 0v8.69L6.28 8.47a.75.75 0 0 0-1.06 1.06l4.25 4.25a.75.75 0 0 0 1.06 0l4.25-4.25a.75.75 0 1 0-1.06-1.06l-2.97 2.97V2.75ZM3.5 12.75a.75.75 0 0 0-1.5 0v2.5A2.75 2.75 0 0 0 4.75 18h10.5A2.75 2.75 0 0 0 18 15.25v-2.5a.75.75 0 0 0-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5Z";
 const BELL = "M10 2a6 6 0 0 0-6 6c0 1.887-.454 3.665-1.257 5.234a.75.75 0 0 0 .515 1.076 32.91 32.91 0 0 0 3.256.508 3.5 3.5 0 0 0 6.972 0 32.903 32.903 0 0 0 3.256-.508.75.75 0 0 0 .515-1.076A11.448 11.448 0 0 1 16 8a6 6 0 0 0-6-6ZM8.05 14.943a33.54 33.54 0 0 0 3.9 0 2 2 0 0 1-3.9 0Z";
 

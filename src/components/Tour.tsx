@@ -102,7 +102,7 @@ export default function Tour() {
           {account === "guest" && (
             <p class="rounded-lg bg-gray-50 p-2">You're playing as a guest. <b>Save your account</b> in Settings to keep your stats on any device and join friends' leagues.</p>
           )}
-          <p>Stuck, or have an idea? <b>Contact Jack</b> in the menu: he made Reidle and reads every message.</p>
+          <p>Any questions? <b>Ask Reidog</b> in the menu: our dog knows how everything works.</p>
         </>
       ),
     },

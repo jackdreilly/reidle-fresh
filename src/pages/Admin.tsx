@@ -50,9 +50,9 @@ export type AdminData = {
   recent: Ev[];
   growth: Growth;
   speed?: Speed;
-  inbox: InboxRow[];
+  asks?: { name: string; question: string; answer: string | null; ms: number | null; at: string }[];
+  asks_7d?: number;
 };
-export type InboxRow = { name: string; last_at: string; done: boolean; email: string | null; body: string; from_jack: boolean; unread: number; login: string };
 type Growth = {
   today: string; days_span: number;
   league_kpis: {
@@ -307,33 +307,6 @@ function PlayerSheet({ name, close }: { name: string; close: () => void }) {
         )}
       </div>
     </div>
-  );
-}
-
-/* ---------- inbox (Contact Jack) ---------- */
-
-function Inbox({ rows }: { rows: InboxRow[] }) {
-  const [done, setDone] = useState(false);
-  const open = rows.filter((r) => !r.done), shown = done ? rows : open;
-  if (!rows.length) return <p class="ad-muted">No messages yet. Players write from Contact Jack in the menu or the Help page.</p>;
-  return (
-    <>
-      {!shown.length && <p class="ad-muted">All caught up.</p>}
-      <ul class="ad-inbox">
-        {shown.map((r) => (
-          <li key={r.name} class={r.unread ? "unread" : r.done ? "done" : ""}>
-            <a href={`/admin/inbox/${encodeURIComponent(r.name)}`}>
-              <span class="who">{r.name}{r.unread ? <span class="ad-count">{r.unread}</span> : null}</span>
-              <span class="ad-muted">{r.login} · {ago(r.last_at)}{r.done ? " · done" : !r.from_jack ? " · waiting on you" : ""}</span>
-              <span class="body">{r.from_jack ? "You: " : ""}{r.body}</span>
-            </a>
-          </li>
-        ))}
-      </ul>
-      {rows.length > open.length && (
-        <button type="button" class="ad-pill" onClick={() => setDone(!done)}>{done ? "Hide done" : `Show ${rows.length - open.length} done`}</button>
-      )}
-    </>
   );
 }
 
@@ -624,8 +597,8 @@ function Funnels({ g, open }: { g: Growth; open: (name: string) => void }) {
 
 const PERIODS = [7, 30, 90];
 const SECTIONS: [string, string][] = [
-  ["inbox", "Inbox"], ["overview", "Overview"], ["leagues", "Leagues"], ["funnel", "Funnel"], ["usage", "Usage"], ["pages", "Pages"], ["speed", "Speed"],
-  ["players", "Players"], ["retention", "Retention"], ["errors", "Errors"], ["activity", "Activity"],
+  ["overview", "Overview"], ["leagues", "Leagues"], ["funnel", "Funnel"], ["usage", "Usage"], ["pages", "Pages"], ["speed", "Speed"],
+  ["players", "Players"], ["retention", "Retention"], ["asks", "Reidog"], ["errors", "Errors"], ["activity", "Activity"],
 ];
 const LENGTHS: [string, string][] = [["under_1m", "under 1 min"], ["1_3m", "1–3 min"], ["3_10m", "3–10 min"], ["10_30m", "10–30 min"], ["over_30m", "30+ min"]];
 
@@ -645,10 +618,6 @@ export default function Admin({ data }: PageProps<AdminData>) {
       <nav class="ad-nav" aria-label="Sections">
         {SECTIONS.map(([id, l]) => <a key={id} href={`#${id}`} onClick={(e) => { e.preventDefault(); document.getElementById(id)?.scrollIntoView({ behavior: "smooth" }); }}>{l}</a>)}
       </nav>
-
-      <Card id="inbox" title="Inbox" note="Contact Jack, from the menu">
-        <Inbox rows={data.inbox} />
-      </Card>
 
       <div id="overview" class="ad-kpis">
         <Kpi label="active today" value={n(k.dau)} />
@@ -768,6 +737,20 @@ export default function Admin({ data }: PageProps<AdminData>) {
           </table>
         </div>
       </Card>
+
+      {data.asks && (
+        <Card id="asks" title="Asked Reidog" note={`${n(data.asks_7d)} questions in 7 days · latest 100`}>
+          {!data.asks.length ? <p class="ad-muted">Nobody has asked yet.</p> : data.asks.map((a, i) => (
+            <details class="ad-visit" key={i}>
+              <summary style={{ cursor: "pointer" }}>
+                <span class="ad-muted">{when(a.at)} · </span><b>{a.name}</b>: {a.question}
+              </summary>
+              <p style={{ whiteSpace: "pre-wrap", color: "var(--ad-sub)", marginTop: "4px" }}>{a.answer ?? "(no answer)"}</p>
+              {a.ms != null && <p class="ad-muted">{ms(a.ms)}</p>}
+            </details>
+          ))}
+        </Card>
+      )}
 
       <Card id="errors" title="Browser errors" note="grouped by message">
         {!data.errors.length ? <p class="ad-muted">None in this period.</p> : (

@@ -156,16 +156,7 @@ export const routes: Route[] = [
   },
   { path: "/settings", redirect: () => "/account" },
   { path: "/help", page: () => import("./pages/Help"), layout: { route: "/help", title: "Help" } },
-  {
-    path: "/contact", page: () => import("./pages/Contact"),
-    layout: { route: "/contact", title: "Contact Jack" },
-    load: () => read("contact_page"), // marks Jack's replies read: never prefetched
-  },
-  {
-    path: "/admin/inbox/:name", page: () => import("./pages/AdminInbox"),
-    layout: { route: "/admin", title: "Inbox" },
-    load: (p) => read("admin_feedback", { p_name: p.name }),
-  },
+  { path: "/ask", page: () => import("./pages/Ask"), layout: { route: "/ask", title: "Ask Reidog" } },
   {
     path: "/admin", page: () => import("./pages/Admin"),
     layout: { route: "/admin", title: "Admin" },
