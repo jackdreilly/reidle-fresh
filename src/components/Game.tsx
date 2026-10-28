@@ -665,8 +665,9 @@ export default function Game(
           onKeepPlaying={() => setKeepPlaying(true)}
         />
         {/* The board area is a size container between the status bar and the keyboard: the grid is
-            always sized to FIT it (6 rows reserved from the start; 7..10+ rows shrink the cells),
-            so the board can never run under the keyboard. */}
+            always sized to FIT it (6 rows reserved from the start), so the board can never run under
+            the keyboard. The width is always the 6-row width; 7..10+ rows only shrink the cells'
+            height, so a long game doesn't make the board narrower. */}
         <div
           class="flex justify-center items-center flex-grow min-h-0 overflow-hidden m-2 p-2 font-bold text-center"
           style={{ containerType: "size" }}
@@ -675,10 +676,12 @@ export default function Game(
             data-testid="board"
             class="relative"
             style={{
-              "--w": `min(100cqw, calc(100cqh * 5 / ${numRows}), 20.8rem)`,
+              "--w": "min(100cqw, calc(100cqh * 5 / 6), 20.8rem)",
+              "--h": `min(100cqh, calc(var(--w) * ${numRows} / 5))`,
               width: "var(--w)",
-              aspectRatio: `5 / ${numRows}`,
-              fontSize: "calc(var(--w) * 0.13)",
+              height: "var(--h)",
+              // letters fit the shorter of the cell's width and its (possibly squished) height
+              fontSize: `calc(min(var(--w), var(--h) * 5 / ${numRows}) * 0.13)`,
             } as Record<string, string>}
           >
             <div class="absolute bottom-[50%] right-[50%] h-full w-full">

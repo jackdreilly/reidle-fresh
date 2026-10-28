@@ -2,7 +2,8 @@ import { expect, test, type Page } from "@playwright/test";
 import { signIn, sql } from "./helpers";
 
 // The board must never run under the keyboard: 6 rows are reserved from the start and the grid
-// shrinks to fit when a game stretches to 7..10 guesses.
+// shrinks to fit when a game stretches to 7..10 guesses. Only the cells' height shrinks: the board
+// keeps its 6-row width, so a long game doesn't make it narrower.
 const VIEWPORTS = [
   { width: 375, height: 667 }, // iPhone SE-ish
   { width: 360, height: 560 }, // small Android with browser chrome
@@ -23,11 +24,13 @@ const geometry = (page: Page) =>
       if (r + 1 < rects.length) minRowGap = Math.min(minRowGap, rects[r + 1][c].top - rects[r][c].bottom);
       if (c + 1 < 5) minColGap = Math.min(minColGap, rects[r][c + 1].left - rects[r][c].right);
     }
-    return { boardTop: board.top, boardBottom: board.bottom, keyTop: keys.top, rows: rows.length, cellW: cell.width, cellH: cell.height, minRowGap, minColGap };
+    return { boardTop: board.top, boardBottom: board.bottom, boardW: board.width, keyTop: keys.top, rows: rows.length, cellW: cell.width, cellH: cell.height, minRowGap, minColGap };
   });
 
+const sixRowWidth = new Map<number, number>(); // viewport index -> board width with 6 rows
+
 async function expectFits(page: Page, rows: number) {
-  for (const vp of VIEWPORTS) {
+  for (const [i, vp] of VIEWPORTS.entries()) {
     await page.setViewportSize(vp);
     await page.waitForTimeout(120);
     const g = await geometry(page);
@@ -36,7 +39,13 @@ async function expectFits(page: Page, rows: number) {
     expect(g.boardBottom, `board overlaps keyboard: ${where}`).toBeLessThanOrEqual(g.keyTop + 1);
     expect(g.boardTop, `board above viewport: ${where}`).toBeGreaterThanOrEqual(0);
     expect(g.cellH, `cells too small: ${where}`).toBeGreaterThanOrEqual(14);
-    expect(Math.abs(g.cellW - g.cellH), `cells not square: ${where}`).toBeLessThan(8);
+    if (rows === 6) {
+      sixRowWidth.set(i, g.boardW);
+      expect(Math.abs(g.cellW - g.cellH), `cells not square: ${where}`).toBeLessThan(8);
+    } else {
+      expect(Math.abs(g.boardW - sixRowWidth.get(i)!), `board got narrower: ${where}`).toBeLessThan(1);
+      expect(g.cellH, `cells taller than wide: ${where}`).toBeLessThanOrEqual(g.cellW + 1);
+    }
     // clean white separation between boxes in BOTH directions (colour must never bleed across cells)
     expect(g.minRowGap, `no white gap between rows: ${where}`).toBeGreaterThanOrEqual(2);
     expect(g.minColGap, `no white gap between columns: ${where}`).toBeGreaterThanOrEqual(2);
