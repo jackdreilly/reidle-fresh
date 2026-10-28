@@ -105,8 +105,9 @@ export default function Join({ params, query, data }: PageProps<Preview>) {
                       {nameOpen && <a href={`/sign-in?redirect=${encodeURIComponent(back)}`} class="block text-xs text-gray-500 underline">Played before leagues? Sign in with your name</a>}
                     </div>
                     <p class="border-t border-gray-200 pt-3 text-center text-sm text-gray-500">
-                      <button type="button" disabled={busy} onClick={() => void guest()} class="underline hover:text-gray-700 disabled:opacity-60">
-                        {data.is_public ? "Not ready? Try it as a guest" : "Not ready? Play as a guest in Reidle Global"}
+                      <span class="mb-2 block">Not ready to sign in?</span>
+                      <button type="button" disabled={busy} onClick={() => void guest()} class="rounded-full border border-gray-200 bg-white px-5 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-100 disabled:opacity-60">
+                        {data.is_public ? "Try it as a guest" : "Play as a guest in Reidle Global"}
                       </button>
                       {!data.is_public && <span class="mt-1 block text-xs">You can join {data.name} later by saving your account.</span>}
                     </p>
@@ -122,7 +123,7 @@ export default function Join({ params, query, data }: PageProps<Preview>) {
                       <p class="text-xs text-gray-500">Already have a Reidle login? <a href={`/sign-out?redirect=${encodeURIComponent(here)}`} onClick={(e) => keepGuest(e, here)} class="underline">Log out</a>, then sign in here.</p>
                     </div>
                     <p class="border-t border-gray-200 pt-3 text-center text-sm text-gray-500">
-                      <button type="button" disabled={busy} onClick={() => void run(() => enter("global"))} class="underline hover:text-gray-700 disabled:opacity-60">Keep playing as a guest in Reidle Global</button>
+                      <button type="button" disabled={busy} onClick={() => void run(() => enter("global"))} class="rounded-full border border-gray-200 bg-white px-5 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-100 disabled:opacity-60">Keep playing as a guest in Reidle Global</button>
                     </p>
                   </>
                 )

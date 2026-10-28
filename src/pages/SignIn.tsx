@@ -58,9 +58,10 @@ export default function SignIn({ query }: { query: URLSearchParams }) {
           <LoginOptions after={to} onDone={() => done(true)} />
         </section>
         <p class="text-center text-sm text-gray-500">
-          <button type="button" disabled={busy} onClick={playAsGuest} class="underline hover:text-gray-700 disabled:opacity-60">
+          <button type="button" disabled={busy} onClick={playAsGuest} class="rounded-full border border-gray-200 bg-white px-5 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-100 disabled:opacity-60">
             {guest ? `Continue as ${guest.name} (guest)` : "Not ready? Try it as a guest"}
           </button>
+          <span class="mt-1 block text-xs">{guest ? "Back to the guest you played as on this device." : "No sign-up. Save your account any time to keep your stats."}</span>
         </p>
         <ol class={card + " space-y-3 text-sm text-gray-700"}>
           <Step n={1} title="Find the word">Everyone gets the same five-letter word each day. Green and yellow tiles tell you how close you are.</Step>

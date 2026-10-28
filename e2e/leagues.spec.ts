@@ -44,7 +44,7 @@ test("create a league, invite by link, join, commissioner scoring", async ({ pag
   // the sign-in options are right on the invite; guests are pointed at Reidle Global instead
   await expect(friend.getByRole("heading", { name: "Sign in to join Nina Pals" })).toBeVisible();
   await expect(friend.getByRole("button", { name: "Email me a link" })).toBeVisible();
-  await expect(friend.getByRole("button", { name: "Not ready? Play as a guest in Reidle Global" })).toBeVisible();
+  await expect(friend.getByRole("button", { name: "Play as a guest in Reidle Global" })).toBeVisible();
   await friend.screenshot({ path: "test-results/invite-signed-out.png", fullPage: true });
   // back from signing in, it joins by itself
   await friend.getByRole("link", { name: "Played before leagues? Sign in with your name" }).click();
@@ -110,7 +110,7 @@ test("guest: try it in Reidle Global, then save the account", async ({ page }) =
 
 test("signed out on a private invite: play as a guest in Reidle Global instead", async ({ page }) => {
   await page.goto("/join/bookclub");
-  await page.getByRole("button", { name: "Not ready? Play as a guest in Reidle Global" }).click();
+  await page.getByRole("button", { name: "Play as a guest in Reidle Global" }).click();
   await expect(page).toHaveURL(/\/stats\/daily\//);
   await page.getByRole("dialog").getByRole("button", { name: "Skip" }).click(); // the new-player tour
   await expect(page.getByRole("link", { name: /League Reidle Global/ })).toBeVisible();
