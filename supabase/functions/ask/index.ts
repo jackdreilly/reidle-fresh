@@ -14,6 +14,8 @@ const MODEL = Deno.env.get("GEMINI_MODEL") || "gemini-flash-latest";
 const FALLBACK = Deno.env.get("GEMINI_FALLBACK_MODEL") || "gemini-flash-lite-latest";
 const THINKING = Deno.env.get("GEMINI_THINKING") || "low";
 const ROUND_MS = 15000;
+// After Flash says "quota exceeded" (429), this instance goes straight to the fallback for a while.
+let flashResting = 0;
 const CORS = {
   "access-control-allow-origin": "*",
   "access-control-allow-headers": "authorization, apikey, content-type, x-client-info, x-league",
@@ -101,7 +103,7 @@ Deno.serve(async (req) => {
   const started = Date.now();
   const tools: ToolLog[] = [];
   const base = [...contents];
-  let model = MODEL;
+  let model = Date.now() < flashResting ? FALLBACK : MODEL;
   const ask = (final: boolean) => fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`, {
     signal: AbortSignal.timeout(ROUND_MS),
     method: "POST",
@@ -130,6 +132,7 @@ Deno.serve(async (req) => {
   let first: Response | null = await ask(false).catch((e) => { console.error("gemini", e); return null; });
   if (!first?.ok || !first.body) {
     console.error("gemini", first?.status, await first?.text().catch(() => ""));
+    if (first?.status === 429) flashResting = Date.now() + 10 * 60_000;
     fallBack();
     first = await ask(false).catch(() => null);
     if (!first?.ok || !first.body) return fail(502, "Reidog couldn't think of an answer just now. Try again in a moment!");
