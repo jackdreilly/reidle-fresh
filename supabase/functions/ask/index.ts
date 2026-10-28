@@ -5,7 +5,7 @@
 // secret GEMINI_API_KEY (set by CI from the GitHub secret); GEMINI_MODEL overrides the model.
 // Reidog can look things up with read-only tools (tools.ts), also as the player; the answer streams once it has them.
 import { SYSTEM_PROMPT } from "./prompt.ts";
-import { DECLARATIONS, runTool, type ToolLog } from "./tools.ts";
+import { DECLARATIONS, label, runTool, type ToolLog } from "./tools.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const GEMINI_KEY = Deno.env.get("GEMINI_API_KEY") ?? "";
@@ -147,6 +147,8 @@ Deno.serve(async (req) => {
           }
           const calls = parts.filter((p) => p.functionCall);
           if (!calls.length) break;
+          // tell the chat what's being looked up: a record-separator line it strips from the answer (Ask.tsx)
+          for (const p of calls) out.enqueue(enc.encode(`\u001e${JSON.stringify({ tool: label(p.functionCall.name, p.functionCall.args ?? {}) })}\n`));
           contents.push({ role: "model", parts });
           const results = await Promise.all(calls.map((p) => runTool((fn, args, method) => rpc(req, fn, args, method), p.functionCall.name, p.functionCall.args ?? {})));
           tools.push(...results.map((r) => r.log));

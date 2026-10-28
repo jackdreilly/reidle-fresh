@@ -53,6 +53,18 @@ export const DECLARATIONS = [
   },
 ];
 
+/** What the chat shows while a tool runs ("Looked up ..."). */
+export function label(name: string, args: Record<string, unknown>): string {
+  switch (name) {
+    case "my_league": return "your league";
+    case "player_stats": return `${String(args.name ?? "a player").slice(0, 20)}'s stats`;
+    case "challenges": return "challenges";
+    case "challenge": return `challenge #${Number(args.id) || "?"}`;
+    case "battles": return "battles";
+    default: return "game records";
+  }
+}
+
 /** Keeps a tool result small enough for a fast answer. */
 function trim(name: string, v: unknown): unknown {
   if (!v || typeof v !== "object") return v;

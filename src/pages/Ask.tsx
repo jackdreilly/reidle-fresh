@@ -6,14 +6,25 @@ import { leagueId } from "@/lib/league";
 
 // Ask Reidog: an AI help chat about how Reidle works. The `ask` edge function (supabase/functions/ask) streams
 // Gemini's answer back as plain text. The conversation lives in this tab (sessionStorage), so following one of
-// Reidog's links and coming back keeps it.
+// Reidog's links and coming back keeps it. While Reidog looks things up (its read-only tools), the stream carries
+// lines like "\u001e{"tool":"your league"}" before the answer: shown as "Looked up ..." above it.
 
-type Turn = { role: "user" | "model"; text: string };
+type Turn = { role: "user" | "model"; text: string; looked?: string[] };
 const KEY = "reidle:ask";
 const SIGNED_OUT = "You've been signed out on this device.";
 const STARTERS = [
   "How does scoring work?", "How do I invite friends?", "What are challenges?", "Why don't I get notifications?",
 ];
+
+/** The raw stream so far -> answer text + what was looked up (an unfinished marker at the end is dropped). */
+function parse(raw: string): { text: string; looked: string[] } {
+  const looked: string[] = [];
+  const text = raw.replace(/\u001e([^\n]*)\n/g, (_, j: string) => {
+    try { const t = JSON.parse(j).tool; if (typeof t === "string" && !looked.includes(t)) looked.push(t); } catch { /* ignore */ }
+    return "";
+  }).replace(/\u001e[^\n]*$/, "");
+  return { text: text.replace(/^\s+/, ""), looked };
+}
 
 const load = (): Turn[] => { try { return JSON.parse(sessionStorage.getItem(KEY) ?? "[]"); } catch { return []; } };
 const save = (t: Turn[]) => { try { sessionStorage.setItem(KEY, JSON.stringify(t)); } catch { /* ignore */ } };
@@ -88,9 +99,9 @@ export default function Ask({ query }: PageProps) {
         const { value, done } = await reader.read();
         if (done) break;
         answer += value;
-        setTurns([...history, { role: "model", text: answer }]);
+        setTurns([...history, { role: "model", ...parse(answer) }]);
       }
-      save([...history, { role: "model", text: answer }]);
+      save([...history, { role: "model", ...parse(answer) }]);
     } catch (e) {
       // keep the question in the box so nothing is lost
       setTurns(turns);
@@ -138,6 +149,7 @@ export default function Ask({ query }: PageProps) {
             <li key={i} class="flex items-start gap-2">
               <Dog />
               <div class="min-w-0 max-w-[85%] break-words rounded-2xl bg-gray-100 px-3 py-2 text-[15px] leading-snug text-gray-900">
+                {!!t.looked?.length && <p class="mb-1 text-xs text-gray-500">🔎 Looked up {t.looked.join(", ")}</p>}
                 {t.text ? <Answer text={t.text} /> : <span class="text-gray-500">Sniffing around…</span>}
               </div>
             </li>
