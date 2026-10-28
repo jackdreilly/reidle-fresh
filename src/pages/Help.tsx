@@ -84,8 +84,8 @@ export default function Help() {
       <Section id="leagues" title="Leagues and invites">
         <p>A league is your group: its own daily word, leaderboard, challenges and chat. You can be in several and switch between them from the menu.</p>
         <ul class="list-disc space-y-1 pl-5">
-          <li><b>Invite people</b>: open <A href="/league">Invite &amp; league</A> and share the link. Anyone who opens it can join.</li>
-          <li><b>Start your own</b>: <A href="/leagues/new">create a league</A> for family, friends or work. You become its commissioner and can set its name, reset time and scoring.</li>
+          <li><b>Invite people</b>: open <A href="/league">Invite &amp; league</A> and share the link. Anyone who opens it can join. A commissioner can keep the link to commissioners only.</li>
+          <li><b>Start your own</b>: <A href="/leagues/new">create a league</A> for family, friends or work. You become its commissioner and can set its name, reset time, scoring and who can invite.</li>
           <li><b>Reidle Global</b> is open to everyone, and is where guests start out.</li>
         </ul>
       </Section>

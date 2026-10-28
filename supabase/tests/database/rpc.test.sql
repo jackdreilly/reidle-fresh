@@ -1,5 +1,5 @@
 begin;
-select plan(100);
+select plan(105);
 
 -- Fixture: isolated players, no seed dependence.
 truncate submissions, checkpoints, messages, message_reads, winners, week_snapshots, challenges, players restart identity cascade;
@@ -249,6 +249,16 @@ select is((weekly_page(current_date) -> 'players' -> 0 #>> '{results,totals,scor
 select throws_ok($$select update_league('{"scoring":{"mode":"weird"}}')$$, '22023', null, 'scoring is validated');
 select throws_ok($$select update_league('{"tz":"Mars/Base"}')$$, '22023', null, 'timezone is validated');
 select is(update_league('{"name":"Pals II"}') ->> 'name', 'Pals II', 'commissioner renames the league');
+select is(league_page() ->> 'open_invite', 'true', 'open invite by default');
+select act_in('ben', (select id from pals));
+select ok(league_page() ->> 'invite_code' is not null, 'open invite: members see the link');
+select act_in('ann', (select id from pals));
+select is(update_league('{"open_invite":false}') ->> 'open_invite', 'false', 'commissioner closes invites');
+select ok(league_page() ->> 'invite_code' is not null, 'closed: the commissioner still sees the link');
+select act_in('ben', (select id from pals));
+select is(league_page() ->> 'invite_code', null, 'closed: members don''t get the link');
+select act_in('ann', (select id from pals));
+select update_league('{"open_invite":true}');
 select is(jsonb_array_length(leagues_page()), 2, 'dashboard lists every league');
 select is((select (j ->> 'played')::boolean from jsonb_array_elements(leagues_page()) j where (j ->> 'id')::bigint = 1),
   false, 'dashboard: still to play in the founding league');

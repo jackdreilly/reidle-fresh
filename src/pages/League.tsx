@@ -8,7 +8,7 @@ import type { LeagueBrief, Scoring } from "@/lib/types";
 import { describeScoring, inviteUrl, presetOf, PRESETS, shareInvite, tzChoices } from "@/lib/leagues";
 
 type Member = { name: string; role: "commissioner" | "member"; joined_at: string };
-type Data = LeagueBrief & { invite_code: string; created_by: string | null; members: Member[]; banned?: string[] | null };
+type Data = LeagueBrief & { invite_code: string | null; open_invite: boolean; created_by: string | null; members: Member[]; banned?: string[] | null };
 
 const GLOBAL = 2; // Reidle Global, everyone's public league (leagues migration)
 const card = "rounded-2xl border border-gray-200 bg-white p-4 shadow-sm";
@@ -48,13 +48,16 @@ export default function League({ data: initial, query }: PageProps<Data>) {
 
       <section class={card}>
         <h2 class="font-semibold">Invite friends</h2>
+        {data.invite_code === null ? (
+          <p class="mt-1 text-sm text-gray-600">Only the commissioner can invite people to {data.name}. Ask them for the link.</p>
+        ) : (<>
         <p class="mt-1 text-sm text-gray-600">Anyone with this link can join {data.name}.</p>
         <div class="mt-3 flex items-center gap-2">
-          <input readOnly value={inviteUrl(data.invite_code)} aria-label="Invite link" class={"min-w-0 flex-1 " + field}
+          <input readOnly value={inviteUrl(data.invite_code!)} aria-label="Invite link" class={"min-w-0 flex-1 " + field}
             onFocus={(e) => (e.target as HTMLInputElement).select()} />
           <button type="button" class="shrink-0 rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white"
             onClick={async () => {
-              const r = await shareInvite(data.name, data.invite_code);
+              const r = await shareInvite(data.name, data.invite_code!);
               setNote(r === "copied" ? "Invite link copied." : r === "failed" ? "Couldn't share. Copy the link instead." : null);
             }}>
             Share
@@ -66,6 +69,7 @@ export default function League({ data: initial, query }: PageProps<Data>) {
             Reset link
           </button>
         )}
+        </>)}
       </section>
 
       {boss && <Settings data={data} save={save} />}
@@ -158,6 +162,7 @@ function Settings({ data, save }: { data: Data; save: (fn: string, args: Record<
   const [custom, setCustom] = useState((data.scoring.points ?? []).join(", "));
   const [noShow, setNoShow] = useState(data.scoring.no_show ?? 0);
   const [bestOf, setBestOf] = useState<number | null>(data.scoring.best_of ?? null);
+  const [openInvite, setOpenInvite] = useState(data.open_invite);
 
   const scoring = (): Scoring => {
     const base = preset === "custom"
@@ -171,7 +176,7 @@ function Settings({ data, save }: { data: Data; save: (fn: string, args: Record<
       <h2 class="font-semibold">Commissioner settings</h2>
       <form class="mt-3 space-y-3 text-sm" onSubmit={(e) => {
         e.preventDefault();
-        void save("update_league", { p: { name, tz, reset_hour: hour, scoring: scoring() } }, "Saved.");
+        void save("update_league", { p: { name, tz, reset_hour: hour, scoring: scoring(), open_invite: openInvite } }, "Saved.");
       }}>
         <label class="block">
           <span class="block font-medium text-gray-900">Name</span>
@@ -221,6 +226,21 @@ function Settings({ data, save }: { data: Data; save: (fn: string, args: Record<
             </select>
           </label>
         </div>
+        {!data.is_public && (
+          <div>
+            <span class="block font-medium text-gray-900">Who can invite</span>
+            <div class="mt-1 space-y-1">
+              <label class="flex items-start gap-2">
+                <input type="radio" name="invite" checked={openInvite} onChange={() => setOpenInvite(true)} style={{ marginTop: 3 }} />
+                <span><b class="font-medium">Open invite</b> <span class="text-xs text-gray-500">Every player sees the invite link</span></span>
+              </label>
+              <label class="flex items-start gap-2">
+                <input type="radio" name="invite" checked={!openInvite} onChange={() => setOpenInvite(false)} style={{ marginTop: 3 }} />
+                <span><b class="font-medium">Commissioners only</b> <span class="text-xs text-gray-500">Players don't see the link</span></span>
+              </label>
+            </div>
+          </div>
+        )}
         <button type="submit" class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white">Save</button>
       </form>
     </section>

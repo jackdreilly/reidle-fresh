@@ -77,6 +77,8 @@ is public (invite code `global`) and is where guests and brand-new name-only pla
   foreign keys plus the plain-text copies (likes, winners, outbox, week_snapshots, leagues.created_by).
 - Pages: `/` (one league -> its stats, several -> `/leagues` dashboard, none -> `/welcome`), `/league`
   (invite link, members, commissioner settings), `/leagues/new`, `/join/:code` (works signed out).
+- **Who can invite**: `leagues.open_invite` (default true: every member sees the link). Off, `league_page()` returns
+  `invite_code` null to non-commissioners. Public leagues always show it.
 
 ## New-player tour and Help
 

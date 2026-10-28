@@ -28,7 +28,7 @@ test("create a league, invite by link, join, commissioner scoring", async ({ pag
   await page.getByRole("button", { name: "Create league" }).click();
   await expect(page).toHaveURL(/\/league\?created=1$/);
   await expect(page.getByText("Your league is ready")).toBeVisible();
-  const link = await page.getByLabel("Invite link").inputValue();
+  const link = await page.getByLabel("Invite link", { exact: true }).inputValue();
   expect(link).toMatch(/\/join\/[0-9a-f]{10}$/);
 
   // commissioner: Formula 1 points
@@ -53,6 +53,17 @@ test("create a league, invite by link, join, commissioner scoring", async ({ pag
   // the owner's invite funnel: opened signed out, then again as omar, in the same tab
   await expect.poll(() => sql(`select string_agg(coalesce(e.name, '-'), ',' order by e.at) from events e join leagues l using (league_id)
                                where e.kind = 'invite_open' and l.name = 'Nina Pals'`)).toBe("-,omar");
+
+  // open invite by default: omar sees the link; once Nina keeps it to commissioners, he doesn't
+  await friend.goto("/league");
+  await expect(friend.getByLabel("Invite link", { exact: true })).toHaveValue(link);
+  await page.getByLabel(/Commissioners only/).check();
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page.getByText("Saved.")).toBeVisible();
+  await expect(page.getByLabel("Invite link", { exact: true })).toHaveValue(link);
+  await friend.reload();
+  await expect(friend.getByText("Only the commissioner can invite people")).toBeVisible();
+  await expect(friend.getByLabel("Invite link", { exact: true })).toHaveCount(0);
 });
 
 test("no league yet: pick one", async ({ page }) => {
