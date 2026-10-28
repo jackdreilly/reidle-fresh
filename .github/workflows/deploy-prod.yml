@@ -30,7 +30,7 @@ jobs:
       # Google's own sign-in button (popup names reidle.reillybrothers.net, src/lib/google.ts); public OAuth client id
       VITE_GOOGLE_CLIENT_ID: 372463177232-kt3mgeb46b4mtvk5iijq6jnl8c8i0pmo.apps.googleusercontent.com
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: npm }
       - run: npm ci
