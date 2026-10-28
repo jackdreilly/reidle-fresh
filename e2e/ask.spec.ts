@@ -53,3 +53,11 @@ test("Ask Reidog: an error keeps the question", async ({ page }) => {
   await expect(page.getByText("Reidog needs a nap")).toBeVisible();
   await expect(page.getByRole("textbox", { name: "Your question" })).toHaveValue("hello?");
 });
+
+test("Ask Reidog: signed out on this device (a failed token refresh) says so instead of a database error", async ({ page }) => {
+  await signIn(page, "erin", "/ask");
+  await page.evaluate(() => localStorage.removeItem("reidle:auth"));
+  await page.reload();
+  await expect(page).toHaveURL(/sign-in/); // a reload notices; the in-page check covers a tab that hasn't reloaded
+});
+

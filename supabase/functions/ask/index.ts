@@ -64,6 +64,8 @@ function context(w: Who, page: string | null) {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: CORS });
   if (req.method !== "POST") return fail(405, "POST a question");
+  // a signed-in player sends their JWT; the bare publishable key means the app has no login on this device
+  if (!/^Bearer ey/.test(req.headers.get("authorization") ?? "")) return fail(401, "You've been signed out on this device.");
   if (!GEMINI_KEY) return fail(503, "Reidog is asleep right now (no API key yet). Try again later!");
 
   let body: { messages?: Turn[]; page?: string };

@@ -10,6 +10,7 @@ import { leagueId } from "@/lib/league";
 
 type Turn = { role: "user" | "model"; text: string };
 const KEY = "reidle:ask";
+const SIGNED_OUT = "You've been signed out on this device.";
 const STARTERS = [
   "How does scoring work?", "How do I invite friends?", "What are challenges?", "Why don't I get notifications?",
 ];
@@ -70,11 +71,13 @@ export default function Ask({ query }: PageProps) {
     setError("");
     let answer = "";
     try {
+      const token = await accessToken();
+      if (!token) throw new Error(SIGNED_OUT); // the login ran out on this device (a failed token refresh)
       const league = leagueId();
       const res = await fetch(`${config.URL}/functions/v1/ask`, {
         method: "POST",
         headers: {
-          apikey: config.KEY, authorization: `Bearer ${(await accessToken()) ?? config.KEY}`, "content-type": "application/json",
+          apikey: config.KEY, authorization: `Bearer ${token}`, "content-type": "application/json",
           ...(league ? { "x-league": String(league) } : {}),
         },
         body: JSON.stringify({ messages: history, page: from.current }),
@@ -142,7 +145,11 @@ export default function Ask({ query }: PageProps) {
       </ul>
 
       <form class="sticky bottom-0 -mx-4 bg-white px-4 pt-2 pb-[max(1rem,env(safe-area-inset-bottom))]" onSubmit={(e) => { e.preventDefault(); void ask(text); }}>
-        {error && <p class="mb-2 rounded-lg bg-rose-50 px-3 py-1.5 text-xs text-rose-700 ring-1 ring-rose-200">{error}</p>}
+        {error && (
+          <p class="mb-2 rounded-lg bg-rose-50 px-3 py-1.5 text-xs text-rose-700 ring-1 ring-rose-200">
+            {error}{error === SIGNED_OUT && <> <a href="/sign-in?redirect=/ask" class="font-medium underline">Sign in again</a> to ask Reidog.</>}
+          </p>
+        )}
         <div class="flex items-end gap-2 rounded-2xl border border-gray-200 bg-white p-2 shadow-sm focus-within:border-sky-300 focus-within:ring-2 focus-within:ring-sky-100">
           <label for="ask-text" class="sr-only">Your question</label>
           <textarea
