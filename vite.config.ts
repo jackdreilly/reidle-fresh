@@ -118,8 +118,8 @@ const chunkCss = (): Plugin => {
       return { code: ast.toString(), map: null };
     },
     generateBundle(_, bundle) {
-      // (Admin.tsx is styled by its own plain admin.css)
-      const left = new Set(notFiles().filter((f) => !f.endsWith("Admin.tsx")).map((f) => resolve(root, "src", f)));
+      // (Admin.tsx and AdminInbox.tsx are styled by their own plain admin.css)
+      const left = new Set(notFiles().filter((f) => !/Admin(Inbox)?\.tsx$/.test(f)).map((f) => resolve(root, "src", f)));
       for (const c of Object.values(bundle)) {
         if (c.type !== "chunk" || !c.moduleIds.some((m) => left.has(m))) continue;
         const css = (c as { viteMetadata?: { importedCss: Set<string> } }).viteMetadata?.importedCss ?? new Set();

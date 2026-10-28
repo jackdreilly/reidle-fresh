@@ -60,5 +60,9 @@ export type Bootstrap = {
   tour_seen?: boolean;
   /** true for a new player who has finished a game and hasn't answered the daily-reminder card (stored per player) */
   reminder_prompt?: boolean;
+  /** when Jack's newest unread reply on /contact was sent (null: nothing new) */
+  contact_unread?: string | null;
+  /** admins only: conversations in the Contact Jack inbox with unread messages */
+  inbox?: number | null;
   league?: LeagueBrief | null; leagues: { id: number; name: string }[];
 };

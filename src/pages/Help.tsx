@@ -21,7 +21,7 @@ const A = ({ href, children }: { href: string; children: ComponentChildren }) =>
 const TOPICS: [string, string][] = [
   ["rules", "How a game works"], ["daily", "The daily"], ["scoring", "Points and the week"],
   ["challenges", "Challenges"], ["battles", "Battles"], ["practice", "Practice"],
-  ["leagues", "Leagues and invites"], ["account", "Your account"], ["extras", "Chat, alerts and the app"],
+  ["leagues", "Leagues and invites"], ["account", "Your account"], ["extras", "Chat, alerts and the app"], ["contact", "Contact Jack"],
 ];
 
 /** The basics of the site, one card per part. Linked from the menu and the first-visit tour. */
@@ -104,6 +104,10 @@ export default function Help() {
           <li>Turn on notifications in <A href="/account">Settings</A> and pick what you hear about: chat, someone beating your time, new challenges, the new word, a weekly recap, and a daily reminder before the word resets on days you haven't played.</li>
           <li>Add Reidle to your home screen from <A href="/account#install">Settings</A>: it opens full screen and starts instantly. On iPhone, notifications only work from the home-screen app.</li>
         </ul>
+      </Section>
+
+      <Section id="contact" title="Contact Jack">
+        <p>Questions, bugs, ideas, or just hello? Jack made Reidle and reads every message. <A href="/contact?from=/help">Write to him</A> (it's also in the menu), and his reply shows up on that page, with a dot in the menu and a notification if you've turned them on.</p>
       </Section>
     </div>
   );

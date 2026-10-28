@@ -5,6 +5,7 @@
 /* Parts with a stylesheet of their own, loaded with their chunk, so they add nothing to the first-load CSS:
    the owner dashboard (pages/admin.css) and the game (components/game.chunk.css). */
 @source not "./pages/Admin.tsx";
+@source not "./pages/AdminInbox.tsx";
 @source not "./components/Game.tsx";
 @source not "./components/ErrorBar.tsx";
 @source not "./components/PartyChat.tsx";

@@ -38,11 +38,11 @@ select is(
   (select array_agg(p.proname::text order by p.proname) from pg_proc p
     where p.pronamespace = 'public'::regnamespace and p.proname not in ('act_as', 'act_in', 'reset_role', 'uid_of')
       and has_function_privilege('authenticated', p.oid, 'execute')),
-  array['admin_growth','admin_page','admin_player','admin_stats','battle_get','battle_home','battle_restart','bootstrap','challenge_next','challenge_page',
-        'challenge_play','challenges_page','create_league','daily_page','delete_message','dismiss_reminder_prompt','dismiss_tour','get_playback',
+  array['admin_feedback','admin_feedback_done','admin_growth','admin_page','admin_player','admin_reply','admin_stats','battle_get','battle_home','battle_restart','bootstrap','challenge_next','challenge_page',
+        'challenge_play','challenges_page','contact_page','create_league','daily_page','delete_message','dismiss_reminder_prompt','dismiss_tour','get_playback',
         'join_league','league_page','league_preview','leagues_page','leave_league','like_message','log_error','log_invite','log_visit',
         'messages_page','name_sign_in_open','new_battle','nickname_free','past_page','past_winners','play_state','player_stats',
-        'post_message','push_subscribe','push_unsubscribe','save_checkpoint','set_member',
+        'post_message','push_subscribe','push_unsubscribe','save_checkpoint','send_feedback','set_member',
         'set_nickname','set_notify_prefs','settings_page','start_play','submit_challenge','submit_daily',
         'update_league','weekly_page']::text[],
   'authenticated can execute exactly the RPC allowlist');

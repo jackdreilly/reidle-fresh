@@ -157,6 +157,16 @@ export const routes: Route[] = [
   { path: "/settings", redirect: () => "/account" },
   { path: "/help", page: () => import("./pages/Help"), layout: { route: "/help", title: "Help" } },
   {
+    path: "/contact", page: () => import("./pages/Contact"),
+    layout: { route: "/contact", title: "Contact Jack" },
+    load: () => read("contact_page"), // marks Jack's replies read: never prefetched
+  },
+  {
+    path: "/admin/inbox/:name", page: () => import("./pages/AdminInbox"),
+    layout: { route: "/admin", title: "Inbox" },
+    load: (p) => read("admin_feedback", { p_name: p.name }),
+  },
+  {
     path: "/admin", page: () => import("./pages/Admin"),
     layout: { route: "/admin", title: "Admin" },
     load: (_, q) => read("admin_page", { p_days: q.get("days") }), // admin_stats + admin_growth; null = 30, the server clamps it

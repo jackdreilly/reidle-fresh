@@ -85,6 +85,16 @@ while `bootstrap().tour_seen` is false. Closing it any way calls `dismiss_tour()
 so it stays gone on every device (guests are players too). Accounts from before the tour start with it seen.
 `/help` (`src/pages/Help.tsx`) explains the basics and can replay the tour. Keep both in step with features.
 
+## Contact Jack
+
+A private conversation per player with the owner (migration `*_contact.sql`): `feedback` (one row per message,
+`from_jack` for replies) and `feedback_threads` (read marks for both sides, `done`, optional email). Players write
+from `/contact` (menu item + Help card + tour); `send_feedback` pushes every `admins` row, `admin_reply` pushes the
+player. `bootstrap()` carries `contact_unread` (menu dot + `ContactBanner.tsx`, one banner per reply) and, for admins,
+`inbox` (unread conversations, a counted "Inbox" menu item). The owner's Inbox is a card on `/admin`
+(`admin_page().inbox`); one conversation is `/admin/inbox/:name` (`AdminInbox.tsx`, admin.css like Admin.tsx).
+Uses `me()`, not `require_me()`, so a locked-out name-only account can still ask for help. Max 20 messages a day.
+
 ## Chat push notifications
 
 Opt-in per browser from the Messages page (`src/lib/push.ts`, bell button). Subscriptions live in the closed
