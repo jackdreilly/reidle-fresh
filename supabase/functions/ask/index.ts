@@ -12,7 +12,7 @@ const GEMINI_KEY = Deno.env.get("GEMINI_API_KEY") ?? "";
 const MODEL = Deno.env.get("GEMINI_MODEL") || "gemini-flash-latest";
 // Flash now and then takes far too long: a round that stalls past ROUND_MS starts over on Flash Lite, which is quick.
 const FALLBACK = Deno.env.get("GEMINI_FALLBACK_MODEL") || "gemini-flash-lite-latest";
-const THINKING = Deno.env.get("GEMINI_THINKING") || "minimal";
+const THINKING = Deno.env.get("GEMINI_THINKING") || "low";
 const ROUND_MS = 15000;
 const CORS = {
   "access-control-allow-origin": "*",
@@ -112,7 +112,7 @@ Deno.serve(async (req) => {
       tools: [{ functionDeclarations: DECLARATIONS }],
       // after a few rounds of lookups, answer with what it has
       toolConfig: { functionCallingConfig: { mode: final ? "NONE" : "AUTO" } },
-      // Gemini 3: no temperature (its default is tuned); minimal thinking keeps answers quick. The cap counts thinking too.
+      // Gemini 3: no temperature (its default is tuned); low thinking (its lowest) keeps answers quick. The cap counts thinking too.
       generationConfig: model === MODEL
         ? { maxOutputTokens: 2000, thinkingConfig: { thinkingLevel: THINKING } }
         : { temperature: 0.4, maxOutputTokens: 700 },
