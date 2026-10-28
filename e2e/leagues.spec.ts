@@ -40,12 +40,17 @@ test("create a league, invite by link, join, commissioner scoring", async ({ pag
   // a friend opens the link signed out, signs in, joins
   const friend = await (await browser.newContext()).newPage();
   await friend.goto(new URL(link).pathname);
-  await expect(friend.getByRole("heading", { name: "Nina Pals" })).toBeVisible();
-  await friend.getByRole("link", { name: "Sign in to join" }).click();
+  await expect(friend.getByRole("heading", { name: "Nina Pals", exact: true })).toBeVisible();
+  // the sign-in options are right on the invite; guests are pointed at Reidle Global instead
+  await expect(friend.getByRole("heading", { name: "Sign in to join Nina Pals" })).toBeVisible();
+  await expect(friend.getByRole("button", { name: "Email me a link" })).toBeVisible();
+  await expect(friend.getByRole("button", { name: "Not ready? Play as a guest in Reidle Global" })).toBeVisible();
+  await friend.screenshot({ path: "test-results/invite-signed-out.png", fullPage: true });
+  // back from signing in, it joins by itself
+  await friend.getByRole("link", { name: "Played before leagues? Sign in with your name" }).click();
   await friend.getByText("Played before leagues?").click();
   await friend.getByPlaceholder("Your name").fill("omar");
   await friend.locator('input[type="submit"]').click();
-  await friend.getByRole("button", { name: "Join Nina Pals" }).click();
   await expect(friend).toHaveURL(/\/stats\/daily\//);
   await expect.poll(() => sql("select string_agg(l.name, ',' order by l.name) from league_members m join leagues l using (league_id) where m.name = 'omar'"))
     .toBe("Nina Pals,Reidle Global");
@@ -78,7 +83,7 @@ test("no league yet: pick one", async ({ page }) => {
 
 test("guest: try it in Reidle Global, then save the account", async ({ page }) => {
   await page.goto("/sign-in");
-  await page.getByRole("button", { name: "Play now" }).click();
+  await page.getByRole("button", { name: "Not ready? Try it as a guest" }).click();
   await expect(page).toHaveURL(/\/stats\/daily\//);
   await page.getByRole("dialog").getByRole("button", { name: "Skip" }).click(); // the new-player tour (onboarding.spec)
   await expect(page.getByRole("link", { name: /League Reidle Global/ })).toBeVisible();
@@ -86,10 +91,13 @@ test("guest: try it in Reidle Global, then save the account", async ({ page }) =
   await expect(page.getByRole("link", { name: "▶ Play today's word" })).toBeVisible();
   // private leagues ask a guest to save their account first
   await page.goto("/join/bookclub");
-  await expect(page.getByRole("link", { name: "Save your account to join" })).toBeVisible();
-  await page.getByRole("link", { name: "Save your account to join" }).click();
-  await expect(page.getByRole("heading", { name: "Save your account" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Save your account to join Book Club" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Link Google" })).toBeVisible();
+  await expect(page.getByLabel("Link an email")).toBeVisible();
+  await page.screenshot({ path: "test-results/invite-guest.png", fullPage: true });
+  await page.getByRole("button", { name: "Keep playing as a guest in Reidle Global" }).click();
+  await expect(page.getByRole("link", { name: /League Reidle Global/ })).toBeVisible();
+  await page.goto("/account");
   // nickname: auto-assigned, changeable
   await page.getByRole("link", { name: "Change" }).click();
   await page.getByLabel("Nickname").fill("guesty");
@@ -98,6 +106,14 @@ test("guest: try it in Reidle Global, then save the account", async ({ page }) =
   await expect(page).toHaveURL(/\/account$/);
   await expect(page.getByText("Nickname: guesty")).toBeVisible();
   await page.screenshot({ path: "test-results/guest-account.png", fullPage: true });
+});
+
+test("signed out on a private invite: play as a guest in Reidle Global instead", async ({ page }) => {
+  await page.goto("/join/bookclub");
+  await page.getByRole("button", { name: "Not ready? Play as a guest in Reidle Global" }).click();
+  await expect(page).toHaveURL(/\/stats\/daily\//);
+  await page.getByRole("dialog").getByRole("button", { name: "Skip" }).click(); // the new-player tour
+  await expect(page.getByRole("link", { name: /League Reidle Global/ })).toBeVisible();
 });
 
 test("back from Google or an email link: the tokens in the URL hash sign you in", async ({ page, request }) => {
@@ -149,7 +165,7 @@ test("the commissioner bans a player: out, and the invite link won't let them ba
 
 test("a guest who logs out gets the same guest back on this device", async ({ page }) => {
   await page.goto("/sign-in");
-  await page.getByRole("button", { name: "Play now" }).click();
+  await page.getByRole("button", { name: "Not ready? Try it as a guest" }).click();
   await expect(page).toHaveURL(/\/stats\/daily\//);
   await page.getByRole("dialog").getByRole("button", { name: "Skip" }).click(); // the new-player tour
   const name = (await page.getByText(/You're playing as a guest/).innerText()).match(/\((.+)\)/)![1];

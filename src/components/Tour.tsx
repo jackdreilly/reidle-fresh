@@ -100,7 +100,7 @@ export default function Tour() {
         <>
           <p>A league is your group: its own daily word, leaderboard, challenges and chat. Bring friends in from <b>Invite &amp; league</b> in the menu, or start a new league for family or work.</p>
           {account === "guest" && (
-            <p class="rounded-lg bg-gray-50 p-2">You're playing as a guest. <b>Save your account</b> in Settings to keep your stats on any device and join friends' leagues.</p>
+            <p class="rounded-lg bg-gray-50 p-2">You're playing as a guest. <b>Save your account</b> in Settings (Google or email) to keep your stats on any device. Friends' private leagues need it: their invite links ask you to sign in.</p>
           )}
           <p>Any questions? <b>Ask Reidog</b> in the menu: our dog knows how everything works.</p>
         </>

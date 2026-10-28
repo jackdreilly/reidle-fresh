@@ -183,11 +183,12 @@ export const routes: Route[] = [
   {
     path: "/sign-out",
     public: true,
-    redirect: async () => {
+    redirect: async (_, q) => {
       await signOut();
       setSignedIn(false);
       clearSession();
-      return "/sign-in";
+      const to = q.get("redirect"); // e.g. back to an invite link, to sign in to another account there
+      return to?.startsWith("/") && !to.startsWith("//") ? to : "/sign-in";
     },
   },
 ];

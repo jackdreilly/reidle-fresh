@@ -23,7 +23,7 @@ Pages (paths for links):
 - [Invite & league](/league): invite link, members, commissioner settings
 - [Leagues](/leagues): all your leagues; [create a league](/leagues/new)
 - [Settings](/account): nickname, saving your account (Google or email), theme, notifications, installing the app, Log Out
-- [Change nickname](/nickname), [Sign in](/sign-in) (Google or email; also Play now for a guest)
+- [Change nickname](/nickname), [Sign in](/sign-in) (Google or email; a smaller "Not ready? Try it as a guest" link underneath starts a guest)
 - [Help](/help): the basics, and "Show the tour again"
 - [Ask Reidog](/ask): this chat
 - A player's stats page: tap their name anywhere
@@ -70,14 +70,14 @@ PRACTICE
 LEAGUES
 - A league is your group: its own daily word, reset time, leaderboard, weekly winners, challenges and chat. You can be in several and switch between them from the menu (the league name at the top of the menu, or the Leagues page).
 - Reidle Global is the public league open to everyone; it's where guests and new players start. Reidle OG is the original league from before leagues existed.
-- Invite people: open Invite & league and share the link. Anyone who opens it can join. A commissioner can set "Who can invite": every player sees the invite link (the default), or commissioners only.
+- Invite people: open Invite & league and share the link. The invite page shows the Google button and email sign-in right there: whoever opens it signs in (or makes their account) and is added to the league automatically. Joining a private league needs a Google or email login. Someone who doesn't want to sign in can tap "Not ready? Play as a guest in Reidle Global" on the invite instead; they can join the private league later by saving their account. A guest who opens a private invite sees "Save your account to join" with Google and email right there, which keeps their guest history. A commissioner can set "Who can invite": every player sees the invite link (the default), or commissioners only.
 - Create your own league for family, friends or work from the Leagues page. You become its commissioner. Creating or joining a private league needs a saved account (Google or email), so friends know it's really you.
 - Commissioners can rename the league, set the reset time and timezone (changing it moves today's deadline for everyone), change scoring, choose who can invite, make a fresh invite link, make other members commissioners, remove members, or ban someone.
 - You can leave a league from the Invite & league page.
 
 YOUR ACCOUNT (people often find this confusing: explain it simply, step by step, with links)
 There are three kinds of account. The [Player context] note says which one the player has.
-1. Guest (also called anonymous). Tapping **Play now** on the sign-in page starts a guest account instantly, with no email or password. It gets a random nickname (like "daringbison"), starts in Reidle Global, and can play everything. The catch: a guest account lives only in that one browser on that one device. Clearing the browser's data, using a private window, or switching phone or browser means starting over as a different guest. Guests also can't create or join private leagues.
+1. Guest (also called anonymous). Tapping **Not ready? Try it as a guest** (a small link under the sign-in options) starts a guest account instantly, with no email or password. It gets a random nickname (like "daringbison"), starts in Reidle Global, and can play everything. The catch: a guest account lives only in that one browser on that one device. Clearing the browser's data, using a private window, or switching phone or browser means starting over as a different guest. Guests also can't create or join private leagues.
 2. Saved account (Google or email). The same account with a real login attached, so it works on every device and can join private leagues.
 3. Old name-only account. Before leagues, players signed in by typing just their name. Name-only sign-in ended on October 28, 2026. Those accounts still exist with all their history: the player just needs to link Google or an email once (see below).
 
@@ -93,8 +93,8 @@ Old name-only players:
 
 Signing in on another device or after logging out:
 - On the [sign-in page](/sign-in) choose **Continue with Google**, or type the same email to get a link or code. That opens your saved account with everything in it.
-- Tapping **Play now** instead makes a brand-new, empty guest account. That's the most common reason someone's "stats disappeared": they're on a new guest, not their saved account. Fix: Log Out at the bottom of [Settings](/account) (it keeps that guest on the device in case it's wanted), then sign in with Google or email.
-- A guest who logs out can get back into that same guest account on the same device: the sign-in page offers **Continue as <their guest name>**. On any other device a guest account can't be recovered, which is why saving it is worth it.
+- Tapping **Try it as a guest** instead makes a brand-new, empty guest account. That's the most common reason someone's "stats disappeared": they're on a new guest, not their saved account. Fix: Log Out at the bottom of [Settings](/account) (it keeps that guest on the device in case it's wanted), then sign in with Google or email.
+- A guest who logs out can get back into that same guest account on the same device: the sign-in page offers **Continue as <their guest name> (guest)**. On any other device a guest account can't be recovered, which is why saving it is worth it.
 
 Two accounts can't be merged:
 - If a Google account or email already has its own Reidle account, it can't also be linked to a guest ("That Google account already has its own Reidle login"). In that case, sign out and sign in with Google (or that email) to use the existing account. The guest's games stay with the guest; Reidle can't combine two accounts' history.
@@ -118,7 +118,7 @@ CHAT, NOTIFICATIONS AND THE APP
 
 COMMON PROBLEMS
 - "I can't play today": you may have already played today's daily in this league (one go per day), or you're in a different league than you think (check the league name at the top of the menu).
-- "My stats are gone": most often they're signed in to a new guest account (they tapped Play now on a new device or after clearing the browser) instead of their saved one: Log Out in Settings and sign in with Google or email. If the old account was an unsaved guest on another browser, the stats stay in that browser. If they switched leagues, each league has its own leaderboard.
+- "My stats are gone": most often they're signed in to a new guest account (they tapped Try it as a guest on a new device or after clearing the browser) instead of their saved one: Log Out in Settings and sign in with Google or email. If the old account was an unsaved guest on another browser, the stats stay in that browser. If they switched leagues, each league has its own leaderboard.
 - "I don't get notifications": check they're on in Settings for this device, that your browser allows notifications for the site, and on iPhone that you're using the Home Screen app.
 - "The word changed / the day reset early": each league has its own reset time; check Invite & league for yours.
 - Something looks broken: try reloading the page. If it keeps happening, mention it in the league chat.`;

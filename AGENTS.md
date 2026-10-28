@@ -134,8 +134,11 @@ Docker daemon may need `dockerd &` first in the sandbox.
 
 ## Logins
 
-Sign-in page (also the signed-out landing page: dog, what Reidle is, 3 steps): big "Play now" guest button (Supabase anonymous sign-in, starts in Reidle
-Global), then Google, a 6-digit email code, and the old name-only form (folded away). Guests and name-only players **link** Google or an email from
+Sign-in page (also the signed-out landing page: dog, what Reidle is, 3 steps): sign-in is the main path (Google's button, then
+email), with a quieter "Not ready? Try it as a guest" link (Supabase anonymous sign-in, starts in Reidle Global) and the old
+name-only form (folded away). **Invite links** (`/join/:code`, `Join.tsx`) carry the same login options inline: private leagues
+need a login (guests see "Save your account to join", which links), and a returning `?join=1` joins by itself; anyone not
+signing in gets a quiet "play as a guest in Reidle Global" link. Guest helpers live in `src/lib/guest.ts`. Guests and name-only players **link** Google or an email from
 Settings (same auth user, same history); after linking, `finishLink()` replaces the name-derived password so the
 name can't be typed in any more. Hand-rolled in `src/lib/supabase.ts` (`auth.*`) and `src/lib/auth.ts`; OAuth
 uses the implicit flow back to `/auth/callback`. New logins get an auto nickname (`pick_nickname`) and are sent

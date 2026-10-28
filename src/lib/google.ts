@@ -35,7 +35,7 @@ export async function renderGoogleButton(el: HTMLElement, text: "continue_with" 
   const nonce = hex(crypto.getRandomValues(new Uint8Array(16)).buffer);
   const hashed = hex(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(nonce)));
   gsi.initialize({ client_id: CLIENT_ID!, nonce: hashed, callback: (r) => onToken(r.credential, nonce), ux_mode: "popup", itp_support: true });
-  gsi.renderButton(el, { type: "standard", theme: "outline", size: "large", shape: "rectangular", text, logo_alignment: "center", width: Math.min(400, el.clientWidth || 320) });
+  gsi.renderButton(el, { type: "standard", theme: "filled_blue", size: "large", shape: "pill", text, logo_alignment: "center", width: Math.min(400, el.clientWidth || 320) });
 }
 
 /** Trade Google's ID token for a Supabase session, or (`link`) add Google to the signed-in account. */

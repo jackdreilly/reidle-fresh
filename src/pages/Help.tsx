@@ -84,7 +84,7 @@ export default function Help() {
       <Section id="leagues" title="Leagues and invites">
         <p>A league is your group: its own daily word, leaderboard, challenges and chat. You can be in several and switch between them from the menu.</p>
         <ul class="list-disc space-y-1 pl-5">
-          <li><b>Invite people</b>: open <A href="/league">Invite &amp; league</A> and share the link. Anyone who opens it can join. A commissioner can keep the link to commissioners only.</li>
+          <li><b>Invite people</b>: open <A href="/league">Invite &amp; league</A> and share the link. Whoever opens it signs in with Google or email right there and joins (private leagues need a login). Anyone not ready to sign in can play as a guest in Reidle Global instead. A commissioner can keep the link to commissioners only.</li>
           <li><b>Start your own</b>: <A href="/leagues/new">create a league</A> for family, friends or work. You become its commissioner and can set its name, reset time, scoring and who can invite.</li>
           <li><b>Reidle Global</b> is open to everyone, and is where guests start out.</li>
         </ul>
@@ -93,7 +93,7 @@ export default function Help() {
       <Section id="account" title="Your account">
         {account === "guest"
           ? <p>You're playing as a <b>guest</b>. Your stats live on this device's sign-in only. <A href="/account#login">Save your account</A> with Google or email to keep them on any device and to join private leagues.</p>
-          : <p>Sign in with Google or email to keep your stats on every device. Guests can try everything, then save their account later without losing anything.</p>}
+          : <p>Sign in with Google or email to keep your stats on every device. Not ready to sign in? Try it as a guest in Reidle Global, then save your account later without losing anything.</p>}
         <p>Change your nickname, theme (light or dark) and notifications in <A href="/account">Settings</A>.</p>
         <p>To keep improving Reidle, the site notes which pages and invite links you open, how long they're on screen, and anything that breaks. It never records what you type in chat. More in our <a href="/privacy" target="_blank" class="underline">privacy policy</a> and <a href="/tos" target="_blank" class="underline">terms</a>.</p>
       </Section>

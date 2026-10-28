@@ -3,8 +3,7 @@ import { auth } from "@/lib/auth-api";
 import { expectAuth, viaProvider } from "@/lib/auth";
 import { renderGoogleButton, signInWithGoogleToken } from "@/lib/google";
 
-const quiet = "rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100";
-const field = "min-w-0 flex-1 rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm";
+const field = "min-w-0 flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm";
 
 /**
  * Google + email code. `link`: add them to the signed-in account (a guest saving their progress, a name-only
@@ -34,18 +33,21 @@ export default function LoginOptions({ after, link = false, onDone }: { after: s
     })).catch(() => setGsi(false)); // Google's script didn't load: fall back to the redirect
   }, [gsi, link]);
   return (
-    <div class="space-y-3">
+    <div class="space-y-4">
       {gsi
         ? <div ref={slot} class="flex w-full justify-center" style={{ minHeight: 44 }} />
         : (
-          <button type="button" disabled={busy} class={"flex w-full items-center justify-center gap-2 " + quiet}
+          <button type="button" disabled={busy} class="flex w-full items-center justify-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-3 text-base font-medium text-gray-800 shadow-sm hover:bg-gray-100"
             onClick={() => void run(() => viaProvider("google", after, link))}>
             <GoogleG /> {link ? "Link Google" : "Continue with Google"}
           </button>
         )}
+      <div class="flex items-center gap-3 text-xs text-gray-400" aria-hidden="true">
+        <span class="h-px flex-1 bg-gray-200" />or<span class="h-px flex-1 bg-gray-200" />
+      </div>
       {!sent
         ? (
-          <form class="flex gap-2" onSubmit={(e) => {
+          <form class="space-y-2" onSubmit={(e) => {
             e.preventDefault();
             void run(async () => {
               const back = `${location.origin}/auth/callback`;
@@ -54,9 +56,10 @@ export default function LoginOptions({ after, link = false, onDone }: { after: s
               setSent(true);
             });
           }}>
-            <input type="email" required class={field} placeholder="you@example.com" aria-label="Email" value={email}
+            <label class="block text-sm font-medium text-gray-700" for="login-email">{link ? "Link an email" : "Use your email"}</label>
+            <input id="login-email" type="email" required class={"w-full " + field} placeholder="you@example.com" value={email}
               onInput={(e) => setEmail((e.target as HTMLInputElement).value)} />
-            <button type="submit" disabled={busy} class={"shrink-0 " + quiet}>Email me a link</button>
+            <button type="submit" disabled={busy} class="w-full rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-60">Email me a link</button>
           </form>
         )
         : (

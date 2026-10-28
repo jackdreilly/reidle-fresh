@@ -3,7 +3,7 @@ import { signIn, sql } from "./helpers";
 
 test("new players get a tour once; closing it sticks to the player, not the device", async ({ page, browser }) => {
   await page.goto("/sign-in");
-  await page.getByRole("button", { name: "Play now" }).click();
+  await page.getByRole("button", { name: "Not ready? Try it as a guest" }).click();
   const tour = page.getByRole("dialog");
   await expect(tour.getByRole("heading", { name: /Welcome to Reidle/ })).toBeVisible();
   await expect(tour).toContainText("Reidle Global");
