@@ -9,13 +9,10 @@ import { DECLARATIONS, label, runTool, type ToolLog } from "./tools.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const GEMINI_KEY = Deno.env.get("GEMINI_API_KEY") ?? "";
-const MODEL = Deno.env.get("GEMINI_MODEL") || "gemini-flash-latest";
-// Flash now and then takes far too long: a round that stalls past ROUND_MS starts over on Flash Lite, which is quick.
-const FALLBACK = Deno.env.get("GEMINI_FALLBACK_MODEL") || "gemini-flash-lite-latest";
-const THINKING = Deno.env.get("GEMINI_THINKING") || "low";
+const MODEL = Deno.env.get("GEMINI_MODEL") || "gemini-flash-lite-latest";
 const ROUND_MS = 15000;
-// After Flash says "quota exceeded" (429), this instance goes straight to the fallback for a while.
-let flashResting = 0;
+// Gemini now and then answers 503 "high demand" (or 429/500): try again after these pauses before giving up.
+const RETRY_MS = [400, 1200, 2500];
 const CORS = {
   "access-control-allow-origin": "*",
   "access-control-allow-headers": "authorization, apikey, content-type, x-client-info, x-league",
@@ -102,9 +99,7 @@ Deno.serve(async (req) => {
   }));
   const started = Date.now();
   const tools: ToolLog[] = [];
-  const base = [...contents];
-  let model = Date.now() < flashResting ? FALLBACK : MODEL;
-  const ask = (final: boolean) => fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`, {
+  const request = (final: boolean) => fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:streamGenerateContent?alt=sse`, {
     signal: AbortSignal.timeout(ROUND_MS),
     method: "POST",
     headers: { "x-goog-api-key": GEMINI_KEY, "content-type": "application/json" },
@@ -114,29 +109,23 @@ Deno.serve(async (req) => {
       tools: [{ functionDeclarations: DECLARATIONS }],
       // after a few rounds of lookups, answer with what it has
       toolConfig: { functionCallingConfig: { mode: final ? "NONE" : "AUTO" } },
-      // Gemini 3: no temperature (its default is tuned); low thinking (its lowest) keeps answers quick. The cap counts thinking too.
-      generationConfig: model === MODEL
-        ? { maxOutputTokens: 2000, thinkingConfig: { thinkingLevel: THINKING } }
-        : { temperature: 0.4, maxOutputTokens: 700 },
+      generationConfig: { temperature: 0.4, maxOutputTokens: 700 },
     }),
   });
-  /** Flash didn't answer in time (or failed) before saying anything: start over on the fallback model. */
-  const fallBack = () => {
-    if (model === FALLBACK || answer) return false;
-    console.error("falling back to", FALLBACK);
-    model = FALLBACK;
-    contents.splice(0, contents.length, ...base);
-    return true;
+  /** One round, retried while Gemini is busy. null = it never answered. */
+  const ask = async (final: boolean): Promise<Response | null> => {
+    for (let i = 0; ; i++) {
+      const res = await request(final).catch((e) => { console.error("gemini", e); return null; });
+      if (res?.ok && res.body) return res;
+      const status = res?.status ?? 0;
+      console.error("gemini", status, await res?.text().catch(() => ""));
+      if (i >= RETRY_MS.length || (status && status !== 429 && status < 500)) return null;
+      await new Promise((r) => setTimeout(r, RETRY_MS[i]));
+    }
   };
   let answer = "";
-  let first: Response | null = await ask(false).catch((e) => { console.error("gemini", e); return null; });
-  if (!first?.ok || !first.body) {
-    console.error("gemini", first?.status, await first?.text().catch(() => ""));
-    if (first?.status === 429) flashResting = Date.now() + 10 * 60_000;
-    fallBack();
-    first = await ask(false).catch(() => null);
-    if (!first?.ok || !first.body) return fail(502, "Reidog couldn't think of an answer just now. Try again in a moment!");
-  }
+  const first = await ask(false);
+  if (!first) return fail(502, "Reidog couldn't think of an answer just now. Try again in a moment!");
 
   // Gemini's server-sent events -> the answer's text, as it arrives. When the model asks for tools instead, run them
   // (as the player), hand back the results and stream the next round.
@@ -150,7 +139,7 @@ Deno.serve(async (req) => {
           const parts: any[] = [];
           let buf = "";
           try {
-            if (!res?.ok || !res.body) throw new Error(`HTTP ${res?.status}: ${await res?.text().catch(() => "")}`);
+            if (!res?.body) throw new Error("Gemini didn't answer");
             const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
             for (;;) {
               const { value, done } = await reader.read();
@@ -171,8 +160,7 @@ Deno.serve(async (req) => {
               }
             }
           } catch (e) {
-            console.error("gemini", model, e);
-            if (fallBack()) { res = await ask(false).catch(() => null); continue; }
+            console.error("gemini", e);
             break;
           }
           const calls = parts.filter((p) => p.functionCall);
@@ -186,14 +174,14 @@ Deno.serve(async (req) => {
             role: "user",
             parts: calls.map((p, i) => ({ functionResponse: { name: p.functionCall.name, ...(p.functionCall.id ? { id: p.functionCall.id } : {}), response: { result: results[i].result } } })),
           });
-          res = await ask(round >= 2).catch(() => null);
+          res = await ask(round >= 2);
         }
       } catch (e) {
         console.error("stream", e);
       } finally {
         if (!answer) out.enqueue(enc.encode("Woof, I lost my train of thought. Could you ask that again?"));
         out.close();
-        await rpc(req, "ask_finish", { p_id: who.id, p_answer: answer || "(no answer)", p_ms: Date.now() - started, p_model: model, p_tools: tools })
+        await rpc(req, "ask_finish", { p_id: who.id, p_answer: answer || "(no answer)", p_ms: Date.now() - started, p_model: MODEL, p_tools: tools })
           .catch((e) => console.error("ask_finish", e));
       }
     },
