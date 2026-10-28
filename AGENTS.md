@@ -91,7 +91,7 @@ so it stays gone on every device (guests are players too). Accounts from before 
 
 `/ask` (`src/pages/Ask.tsx`, menu + Help + tour): an AI help chat. The `ask` edge function (`supabase/functions/ask`,
 `verify_jwt = false`) calls `ask_begin` **as the player** (their token + x-league, so PostgREST checks auth, the 50/day
-cap and the league), then streams Gemini (`GEMINI_MODEL`, default `gemini-3.8-flash`) back as plain text and
+cap and the league), then streams Gemini (`GEMINI_MODEL`, default `gemini-flash-latest`) back as plain text and
 stores the answer with `ask_finish`. `ask_log` feeds the "Asked Reidog" card on /admin. The system prompt
 (`supabase/functions/ask/prompt.ts`) is identical for everyone (Gemini's implicit cache reuses it); per-player facts go
 in a `[Player context]` part of the first user turn. **Keep prompt.ts in step with features**, like Help and the tour.

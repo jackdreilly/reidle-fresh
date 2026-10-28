@@ -9,7 +9,7 @@ import { DECLARATIONS, label, runTool, type ToolLog } from "./tools.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const GEMINI_KEY = Deno.env.get("GEMINI_API_KEY") ?? "";
-const MODEL = Deno.env.get("GEMINI_MODEL") || "gemini-3.8-flash";
+const MODEL = Deno.env.get("GEMINI_MODEL") || "gemini-flash-latest";
 const CORS = {
   "access-control-allow-origin": "*",
   "access-control-allow-headers": "authorization, apikey, content-type, x-client-info, x-league",
