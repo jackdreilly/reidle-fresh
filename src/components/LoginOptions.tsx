@@ -24,6 +24,7 @@ export default function LoginOptions({ after, link = false, onDone }: { after: s
     setBusy(false);
   };
   const [gsi, setGsi] = useState(!!import.meta.env.VITE_GOOGLE_CLIENT_ID); // Google's own button (src/lib/google.ts)
+  // Google's button is an iframe: a light color-scheme keeps its frame transparent on the dark theme (no white box)
   const slot = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!gsi || !slot.current) return;
@@ -35,7 +36,7 @@ export default function LoginOptions({ after, link = false, onDone }: { after: s
   return (
     <div class="space-y-4">
       {gsi
-        ? <div ref={slot} class="flex w-full justify-center" style={{ minHeight: 44 }} />
+        ? <div ref={slot} class="flex w-full justify-center" style={{ minHeight: 44, colorScheme: "light" }} />
         : (
           <button type="button" disabled={busy} class="flex w-full items-center justify-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-3 text-base font-medium text-gray-800 shadow-sm hover:bg-gray-100"
             onClick={() => void run(() => viaProvider("google", after, link))}>
