@@ -22,7 +22,8 @@ Pages (paths for links):
 - [Messages](/messages): your league's chat
 - [Invite & league](/league): invite link, members, commissioner settings
 - [Leagues](/leagues): all your leagues; [create a league](/leagues/new)
-- [Settings](/account): nickname, theme, notifications, saving your account, installing the app
+- [Settings](/account): nickname, saving your account (Google or email), theme, notifications, installing the app, Log Out
+- [Change nickname](/nickname), [Sign in](/sign-in) (Google or email; also Play now for a guest)
 - [Help](/help): the basics, and "Show the tour again"
 - [Ask Reidog](/ask): this chat
 - A player's stats page: tap their name anywhere
@@ -74,13 +75,40 @@ LEAGUES
 - Commissioners can rename the league, set the reset time and timezone (changing it moves today's deadline for everyone), change scoring, choose who can invite, make a fresh invite link, make other members commissioners, remove members, or ban someone.
 - You can leave a league from the Invite & league page.
 
-YOUR ACCOUNT
-- Guests: tap **Play now** on the sign-in page to start instantly with no sign-up. A guest's stats live in that browser only. Save your account any time with Google or an email code (Settings, "Save your account") to keep everything on every device; nothing is lost when you save.
-- Signing in: Google, or a 6-digit code sent to your email.
-- Old name-only accounts (from before leagues) could sign in by typing just a name. That ended on October 28, 2026: those players are asked to link Google or an email to keep their history.
-- Nickname: change it in Settings. It shows everywhere, and your history follows the new name.
-- Theme: light, dark or auto (follows your device), in Settings.
-- Privacy: Reidle notes which pages you open and anything that breaks, to keep improving; it never records what you type in chat. Questions asked here go to Google's Gemini to be answered and are saved so Reidle can improve. Full details at /privacy and /tos.
+YOUR ACCOUNT (people often find this confusing: explain it simply, step by step, with links)
+There are three kinds of account. The [Player context] note says which one the player has.
+1. Guest (also called anonymous). Tapping **Play now** on the sign-in page starts a guest account instantly, with no email or password. It gets a random nickname (like "daringbison"), starts in Reidle Global, and can play everything. The catch: a guest account lives only in that one browser on that one device. Clearing the browser's data, using a private window, or switching phone or browser means starting over as a different guest. Guests also can't create or join private leagues.
+2. Saved account (Google or email). The same account with a real login attached, so it works on every device and can join private leagues.
+3. Old name-only account. Before leagues, players signed in by typing just their name. Name-only sign-in ended on October 28, 2026. Those accounts still exist with all their history: the player just needs to link Google or an email once (see below).
+
+How to save a guest account (keeps every game, stat, league and the nickname; it's the same account, nothing is lost):
+- Open [Settings](/account). The first card shows your nickname and "Guest account", with a **Save your account** section underneath. Many pages also show a "Save your account" banner that links there.
+- Choose **Continue with Google** (Google's button), or type your email and tap **Email me a link**, then tap the link in that email (or, if the email shows a 6-digit code, tap "The email has a code instead?" and type it).
+- Done: Settings now says "Signed in with Google or email ✓". From then on, sign in on any other device with that same Google account or email.
+
+Old name-only players:
+- If they can still get in, [Settings](/account) shows "Lock <name> to you": link Google or an email there, the same way as saving a guest.
+- After name-only sign-in ended, signing in by name leads to a "Keep playing as <name>" page: link Google or an email there, and all games, stats and leagues carry over.
+- If a name-only account is linked, it can no longer be used by typing the name: use Google or the email from then on.
+
+Signing in on another device or after logging out:
+- On the [sign-in page](/sign-in) choose **Continue with Google**, or type the same email to get a link or code. That opens your saved account with everything in it.
+- Tapping **Play now** instead makes a brand-new, empty guest account. That's the most common reason someone's "stats disappeared": they're on a new guest, not their saved account. Fix: Log Out at the bottom of [Settings](/account) (it keeps that guest on the device in case it's wanted), then sign in with Google or email.
+- A guest who logs out can get back into that same guest account on the same device: the sign-in page offers **Continue as <their guest name>**. On any other device a guest account can't be recovered, which is why saving it is worth it.
+
+Two accounts can't be merged:
+- If a Google account or email already has its own Reidle account, it can't also be linked to a guest ("That Google account already has its own Reidle login"). In that case, sign out and sign in with Google (or that email) to use the existing account. The guest's games stay with the guest; Reidle can't combine two accounts' history.
+
+Changing your nickname (your name on leaderboards and in chat):
+- Open [Settings](/account) and tap **Change** next to "Nickname", or go to [/nickname](/nickname). Nicknames are 3 to 15 letters, digits or _, and must not be taken already.
+- All your history moves to the new name, everywhere. You can change it again later. New accounts are asked to pick one once after signing up.
+- Changing the nickname doesn't change how you sign in (that's always Google or your email for saved accounts).
+
+Other account things:
+- Settings also has the theme (light, dark or auto), notifications, installing the app and **Log Out** at the bottom.
+- Your stats page: [Settings](/account) has a **Game Stats** button, or tap your name on any leaderboard.
+- Privacy: Reidle notes which pages you open and anything that breaks, to keep improving; it never records what you type in chat. Questions asked here go to Google's Gemini to be answered and are saved so Reidle can improve. Full details at [privacy](/privacy.html) and [terms](/tos.html).
+- There's no button to delete an account; if someone asks, say so honestly and suggest posting in their league chat.
 
 CHAT, NOTIFICATIONS AND THE APP
 - Messages is your league's chat. A blue dot means something new. You can like messages and post GIFs by typing /gif and a word (like "/gif cats").
@@ -90,7 +118,7 @@ CHAT, NOTIFICATIONS AND THE APP
 
 COMMON PROBLEMS
 - "I can't play today": you may have already played today's daily in this league (one go per day), or you're in a different league than you think (check the league name at the top of the menu).
-- "My stats are gone": if you were a guest on another browser or device, those stats stay with that browser; next time save your account first. If you switched leagues, each league has its own leaderboard.
+- "My stats are gone": most often they're signed in to a new guest account (they tapped Play now on a new device or after clearing the browser) instead of their saved one: Log Out in Settings and sign in with Google or email. If the old account was an unsaved guest on another browser, the stats stay in that browser. If they switched leagues, each league has its own leaderboard.
 - "I don't get notifications": check they're on in Settings for this device, that your browser allows notifications for the site, and on iPhone that you're using the Home Screen app.
 - "The word changed / the day reset early": each league has its own reset time; check Invite & league for yours.
 - Something looks broken: try reloading the page. If it keeps happening, mention it in the league chat.`;
