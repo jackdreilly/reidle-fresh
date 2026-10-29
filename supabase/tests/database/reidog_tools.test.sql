@@ -49,7 +49,7 @@ end $$;
 
 select is(pg_temp.q('00000000-0000-0000-0000-0000000000b1', 'select name from me') -> 0 ->> 'name', 'rt1', 'me is the asking player');
 select is(pg_temp.q('00000000-0000-0000-0000-0000000000b1',
-  $$select answer, paste from daily_results where name = 'rt1' order by day desc$$),
+  $$select answer, paste from daily_results where name = 'rt1' and days_ago < 10 order by day desc$$),
   '[{"answer": null, "paste": "grid-today"}, {"answer": "REBUT", "paste": "grid-old"}]', 'today''s answer is never shown; past answers are');
 select is(pg_temp.q('00000000-0000-0000-0000-0000000000b2',
   $$select paste from daily_results where name = 'rt1' and answer is null$$) -> 0 ->> 'paste', null,
