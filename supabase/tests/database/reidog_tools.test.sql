@@ -1,5 +1,5 @@
 begin;
-select plan(16);
+select plan(20);
 
 -- Reidog's catch-all lookup (ask_query): one read-only SELECT over the reidog views, as the asking player.
 update app_flags set legacy_until = 'infinity';
@@ -8,8 +8,14 @@ values ('00000000-0000-0000-0000-0000000000b1', '00000000-0000-0000-0000-0000000
        ('00000000-0000-0000-0000-0000000000b2', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'rt2@players.reidle.app', '{"name":"rt2"}');
 -- rt1 plays in league 1 and has played today; rt2 is in league 1 too but hasn't played today
 insert into league_members (league_id, name) values (1, 'rt1'), (1, 'rt2');
-insert into submissions (league_id, day, name, "time", word, paste)
-values (1, league_day(1), 'rt1', 50, 'cigar', 'grid-today'), (1, league_day(1) - 3, 'rt1', 60, 'rebut', 'grid-old');
+insert into submissions (league_id, day, name, "time", word, paste, playback)
+values (1, league_day(1), 'rt1', 50, 'cigar', 'grid-today',
+        '{"events": [{"time": 30, "score": [{"letter": "C", "score": 0}, {"letter": "R", "score": 1}, {"letter": "A", "score": 2}, {"letter": "N", "score": 2}, {"letter": "E", "score": 2}]},
+                     {"time": 900, "letter": "C"}, {"time": 950, "letter": "X"}, {"time": 960, "backspace": true}, {"time": 970, "letter": "I"},
+                     {"time": 980, "letter": "Q"}, {"time": 990, "letter": "Z"}, {"time": 995, "letter": "Z"},
+                     {"time": 1500, "error": {"message": "Not a word", "penalty": 5}}, {"time": 1600, "clear": true},
+                     {"time": 4000, "score": [{"letter": "C", "score": 0}, {"letter": "I", "score": 0}, {"letter": "G", "score": 0}, {"letter": "A", "score": 0}, {"letter": "R", "score": 0}]}]}'),
+       (1, league_day(1) - 3, 'rt1', 60, 'rebut', 'grid-old', default);
 -- a league neither of them is in
 insert into leagues (league_id, name) values (901, 'Secret');
 insert into league_members (league_id, name) values (901, 'alice');
@@ -70,6 +76,19 @@ select matches(pg_temp.q_err('00000000-0000-0000-0000-0000000000b1', 'select pub
 select matches(pg_temp.q_err('00000000-0000-0000-0000-0000000000b1', $$select "set_config"('role', 'service_role', true)$$), 'isn''t available', 'no changing role or settings');
 select matches(pg_temp.q_err('00000000-0000-0000-0000-0000000000b1', 'select 1; delete from players'), 'One statement', 'one statement only');
 select matches(pg_temp.q_err('00000000-0000-0000-0000-0000000000b1', 'delete from players'), 'Only a single SELECT', 'only SELECT');
+
+select is(pg_temp.q('00000000-0000-0000-0000-0000000000b1',
+  $$select step, guess, tiles, penalty, penalty_reason from guesses where name = 'rt1' and days_ago = 0 order by step$$),
+  '[{"step": 1, "guess": "CRANE", "tiles": "🟩🟨⬛⬛⬛", "penalty": null, "penalty_reason": null},
+    {"step": 2, "guess": "CIQZZ", "tiles": null, "penalty": 5, "penalty_reason": "not a word"},
+    {"step": 3, "guess": null, "tiles": "🟩🟩🟩🟩🟩", "penalty": null, "penalty_reason": null}]',
+  'guesses replays a game, penalties included, without today''s solving word');
+select is(pg_temp.q('00000000-0000-0000-0000-0000000000b2',
+  $$select count(*) from guesses where name = 'rt1'$$) -> 0 ->> 'count', '0', 'today''s guesses stay hidden until you have played');
+select is(pg_temp.q('00000000-0000-0000-0000-0000000000b1',
+  $$select count(*) from guesses where league_id = 901$$) -> 0 ->> 'count', '0', 'no guesses from other leagues');
+select is(jsonb_typeof(pg_temp.q('00000000-0000-0000-0000-0000000000b1', 'select * from week_table(current_date)')), 'array',
+  'week_table gives the week as rows');
 
 -- even past the text checks, inside reidog.run a role switch is refused (security definer owned by reidog_reader)
 select throws_ok($$select reidog.run('select set_config(''role'', ''postgres'', true)', 1)$$, '42501', null,
