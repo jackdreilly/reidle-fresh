@@ -17,8 +17,9 @@ const SCHEMA = `Views (all already limited to the asking player's own leagues; j
 - challenge_results(submission_id, challenge_id, league_id, name, time, penalty, rank, played_at)
 - weekly_winners(league_id, week date (Monday), name)
 - messages(message_id, league_id, name, message, likes int, created_at): the league chat
-Functions: week_standings(any_date_in_week date, league_id bigint default current) -> jsonb array in standings order of {name, results: {days: [{day, time, score, counted}], totals: {time, score}}} (score = points that day; totals.score = the week's points). power_rankings(league_id bigint default current) -> jsonb (the Past tab's ranking).
-Postgres SQL, read-only, max 50 rows, 3 second limit. Never hardcode a league id: use current_league = true, leagues.is_current or (select current_league_id from me). Use days_ago or leagues.today for dates, never current_date or now(). A player plays at most once a day per league, so across leagues count distinct day for "days played". Qualify columns when joining (several views have name). Prefer aggregates (count, avg, min, percentile_cont) over listing rows.`;
+- guesses(submission_id, league_id, challenge_id, day, days_ago, current_league, name, step, at_seconds, guess, tiles, penalty, penalty_reason): every guess and penalty in a game, in order (step 1 is the starting word the game filled in). challenge_id null = the daily. tiles like '🟩🟨⬛⬛🟩' (null for a penalty). A penalty row has penalty seconds and penalty_reason ('not a word', or 'ignored a clue: Wrong S @ 5' etc.) and guess = what they typed. guess is null for the solving guess of today's daily. Only games the player may see the replay of. Always filter by name and day (or submission_id / challenge_id): it reads the replays. Good for counting across games (most common mistakes, average guesses).
+Functions: week_standings(any_date_in_week date, league_id bigint default current) -> jsonb array in standings order of {name, results: {days: [{day, time, score, counted}], totals: {time, score}}} (score = points that day; totals.score = the week's points). power_rankings(league_id bigint default current) -> jsonb (the Past tab's ranking). week_table(any_date_in_week date, league_id bigint default current) -> rows (place, name, points, total_time, days_played), use in FROM.
+Postgres SQL (not SQLite: use extract/date_trunc/to_char), read-only, max 50 rows, 3 second limit. Never hardcode a league id: use current_league = true, leagues.is_current or (select current_league_id from me). Use days_ago or leagues.today for dates, never current_date or now(). A player plays at most once a day per league, so across leagues count distinct day for "days played". Qualify columns when joining (several views have name). Prefer aggregates (count, avg, min, percentile_cont) over listing rows.`;
 
 export const DECLARATIONS = [
   {
@@ -66,7 +67,7 @@ export const DECLARATIONS = [
   },
   {
     name: "query",
-    description: `Catch-all: run one read-only SQL SELECT for anything the other tools don't cover (a past day's results, head-to-head records, streaks, averages, weekly standings, past winners, chat). ${SCHEMA}`,
+    description: `Catch-all: run one read-only SQL SELECT for anything the other tools don't cover (a past day's results, guesses and penalties across games, head-to-head records, streaks, averages, weekly standings, past winners, chat). ${SCHEMA}`,
     parameters: { type: "object", properties: { sql: { type: "string" } }, required: ["sql"] },
   },
 ];
