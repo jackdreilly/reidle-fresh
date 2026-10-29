@@ -23,7 +23,7 @@ type Turn = { role: "user" | "model"; text: string };
 type Who = {
   id: number; name: string; account: string; played_today: boolean; leagues: number;
   league: {
-    name?: string; tz?: string; reset_hour?: number; today?: string; is_public?: boolean; open_invite?: boolean; members?: number;
+    id?: number; name?: string; tz?: string; reset_hour?: number; today?: string; is_public?: boolean; open_invite?: boolean; members?: number;
     role?: string | null; scoring?: { mode: string; points?: number[]; no_show?: number; best_of?: number | null };
   } | null;
 };
@@ -63,7 +63,7 @@ function context(w: Who, page: string | null) {
   return [
     "[Player context]",
     `Nickname: ${w.name}. Account: ${w.account === "guest" ? "guest (not saved yet)" : w.account === "legacy" ? "old name-only account (needs Google or email linked)" : "saved (Google or email)"}.`,
-    l ? `Current league: ${l.name}${l.is_public ? " (public)" : ""}, ${l.members ?? "?"} members, ${l.role === "commissioner" ? "they are a commissioner" : "regular player"}. New word every day at ${at} ${(l.tz ?? "UTC").replace(/_/g, " ")}. Today's date there: ${l.today ?? "?"}. Scoring: ${scoring(l.scoring)}. Invite link visible to ${l.open_invite === false ? "commissioners only" : "every player"}.` : "Not in a league yet.",
+    l ? `Current league: ${l.name}${l.id ? ` (league_id ${l.id})` : ""}${l.is_public ? " (public)" : ""}, ${l.members ?? "?"} members, ${l.role === "commissioner" ? "they are a commissioner" : "regular player"}. New word every day at ${at} ${(l.tz ?? "UTC").replace(/_/g, " ")}. Today's date there: ${l.today ?? "?"}. Scoring: ${scoring(l.scoring)}. Invite link visible to ${l.open_invite === false ? "commissioners only" : "every player"}.` : "Not in a league yet.",
     `In ${w.leagues} league${w.leagues === 1 ? "" : "s"}. Played today's daily: ${w.played_today ? "yes" : "no"}.`,
     page ? `They opened this chat from: ${page}.` : "",
   ].filter(Boolean).join("\n");

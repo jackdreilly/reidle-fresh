@@ -22,3 +22,9 @@ html, body { height: 100%; }
   html, body { overscroll-behavior: none; }
 }
 html { -webkit-tap-highlight-color: transparent; }
+
+/* iOS Safari zooms the page into any text field under 16px when it gets focus. On touch screens,
+   keep fields at 16px or more so tapping a chat box doesn't zoom. Unlayered, so it beats text-sm/text-xs. */
+@media (pointer: coarse) {
+  input:not([type="checkbox"], [type="radio"], [type="range"]), textarea, select { font-size: max(16px, 1em); }
+}

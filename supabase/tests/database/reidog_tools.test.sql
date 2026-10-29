@@ -1,5 +1,5 @@
 begin;
-select plan(16);
+select plan(19);
 
 -- Reidog's catch-all lookup (ask_query): one read-only SELECT over the reidog views, as the asking player.
 update app_flags set legacy_until = 'infinity';
@@ -9,7 +9,8 @@ values ('00000000-0000-0000-0000-0000000000b1', '00000000-0000-0000-0000-0000000
 -- rt1 plays in league 1 and has played today; rt2 is in league 1 too but hasn't played today
 insert into league_members (league_id, name) values (1, 'rt1'), (1, 'rt2');
 insert into submissions (league_id, day, name, "time", word, paste)
-values (1, league_day(1), 'rt1', 50, 'cigar', 'grid-today'), (1, league_day(1) - 3, 'rt1', 60, 'rebut', 'grid-old');
+values (1, league_day(1), 'rt1', 50, 'cigar', 'grid-today'), (1, league_day(1) - 3, 'rt1', 60, 'rebut', 'grid-old'),
+       (1, league_day(1) - 14, 'rt1', 1, 'aback', 'grid-older');
 -- a league neither of them is in
 insert into leagues (league_id, name) values (901, 'Secret');
 insert into league_members (league_id, name) values (901, 'alice');
@@ -64,6 +65,14 @@ select is(pg_temp.q('00000000-0000-0000-0000-0000000000b1',
 select is(pg_temp.q('00000000-0000-0000-0000-0000000000b1', 'select current_user as u'), '[{"u": "reidog_reader"}]', 'the SQL runs as reidog_reader');
 select is(pg_temp.q('00000000-0000-0000-0000-0000000000b1', $$select current_setting('transaction_read_only') as ro$$), '[{"ro": "on"}]', 'in a read-only transaction');
 select is(jsonb_array_length(pg_temp.q('00000000-0000-0000-0000-0000000000b1', 'select * from generate_series(1, 500)')), 50, 'at most 50 rows');
+select is(pg_temp.q('00000000-0000-0000-0000-0000000000b1',
+  $$select r ->> 'name' as name, (r ->> 'weeks_played')::int > 0 as played from jsonb_array_elements(power_rankings() -> 'rankings') r where r ->> 'name' = 'rt1'$$),
+  '[{"name": "rt1", "played": true}]', 'power rankings work read-only');
+select is(pg_temp.q('00000000-0000-0000-0000-0000000000b1', 'select power_rankings(901) as r'), '[{"r": null}]',
+  'power rankings only for your own leagues');
+select is(pg_temp.q('00000000-0000-0000-0000-0000000000b1',
+  $$select jsonb_typeof(week_standings((select today from leagues where is_current) - 14)) as t$$), '[{"t": "array"}]',
+  'week standings for a past week');
 
 select matches(pg_temp.q_err('00000000-0000-0000-0000-0000000000b1', 'select * from public.daily_words'), 'permission denied', 'tables stay closed');
 select matches(pg_temp.q_err('00000000-0000-0000-0000-0000000000b1', 'select public.play_payload(''x'')'), 'permission denied', 'app functions stay closed');

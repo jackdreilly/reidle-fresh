@@ -95,6 +95,10 @@ cap and the league), then streams Gemini (`GEMINI_MODEL`, default `gemini-flash-
 stores the answer with `ask_finish`. `ask_log` feeds the "Asked Reidog" card on /admin. The system prompt
 (`supabase/functions/ask/prompt.ts`) is identical for everyone (Gemini's implicit cache reuses it); per-player facts go
 in a `[Player context]` part of the first user turn. **Keep prompt.ts in step with features**, like Help and the tour.
+Lookup tools (`supabase/functions/ask/tools.ts`, all as the player and read-only): page RPCs over GET, `week` /
+`rankings` (via `ask_query` + `reidog.week_standings` / `reidog.power_rankings`), `replay` (`get_playback`, decoded into
+guesses and penalties with what was typed; the winning guess is left out) and the `query` SQL catch-all. Review
+`ask_log` (the /admin card) now and then for questions it fumbled and add a tool or prompt line for them.
 Key: GitHub secret `GEMINI_API_KEY`, copied to the function secret by db.yml (staging) and Deploy prod. Locally (no
 edge runtime) the page's request fails; E2E mocks the function.
 
