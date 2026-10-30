@@ -596,12 +596,98 @@ function Funnels({ g, open }: { g: Growth; open: (name: string) => void }) {
   );
 }
 
+/* ---------- answer words ---------- */
+
+type Difficulty = Record<string, { z: number; rank?: number; why?: string; rude?: 1 }>;
+type Answer = { word: string; removed_at: string | null; days: number };
+const WORD_VIEWS: [string, string][] = [["hard", "Hardest first"], ["rude", "Rude"], ["removed", "Removed"], ["az", "A–Z"]];
+
+/** The answers pool: remove words so they're never drawn again (daily, challenges, battles), sorted by how obscure they are. */
+function AnswerWords() {
+  const [list, setList] = useState<Answer[] | null>(null);
+  const [active, setActive] = useState(0);
+  const [diff, setDiff] = useState<Difficulty>({});
+  const [view, setView] = useState("hard");
+  const [q, setQ] = useState("");
+  const [limit, setLimit] = useState(100);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [err, setErr] = useState("");
+  useEffect(() => {
+    rpc<{ active: number; words: Answer[] }>("admin_answers").then((r) => { setList(r.words); setActive(r.active); }, (e) => setErr(String(e.message ?? e)));
+    // scores ship in their own chunk (tools/gen-answer-difficulty.py), fetched only here
+    import("@/data/answer-difficulty.json").then((m) => setDiff(m.default as Difficulty));
+  }, []);
+  const info = (w: string) => diff[w.toLowerCase()];
+  const rows = useMemo(() => {
+    const s = q.trim().toLowerCase();
+    const r = (list ?? []).filter((a) => (!s || a.word.toLowerCase().includes(s))
+      && (view === "removed" ? !!a.removed_at : view === "rude" ? !!info(a.word)?.rude : true));
+    // hand-ranked 100 first, then rarest by word frequency
+    const key = (a: Answer) => { const d = info(a.word); return d?.rank ?? 100 + (d?.z ?? 0); };
+    return view === "az" ? r : [...r].sort((a, b) => key(a) - key(b));
+  }, [list, diff, view, q]);
+  async function toggle(a: Answer) {
+    setBusy(a.word); setErr("");
+    try {
+      const r = await rpc<{ removed_at: string | null; active: number }>("admin_set_answer", { p_word: a.word, p_removed: !a.removed_at });
+      setList((l) => l && l.map((x) => (x.word === a.word ? { ...x, removed_at: r.removed_at } : x)));
+      setActive(r.active);
+    } catch (e) { setErr(String((e as Error).message ?? e)); }
+    finally { setBusy(null); }
+  }
+  if (!list) return err ? <p class="ad-err">{err}</p> : <p class="ad-muted">Loading…</p>;
+  const removed = list.length - active;
+  return (
+    <>
+      <p class="ad-muted" style={{ marginBottom: "8px" }}>
+        {n(active)} words in the pool · {n(removed)} removed. Removed words are never picked again for dailies, challenges or battles
+        (today's word stays). Practice still uses the full list. Frequency is the Zipf score: 1 = very rare, 3 = uncommon, 5+ = everyday.
+      </p>
+      <div style={{ marginBottom: "8px" }}>
+        {WORD_VIEWS.map(([k, l]) => (
+          <button type="button" key={k} class={"ad-pill" + (k === view ? " on" : "")} onClick={() => { setView(k); setLimit(100); }}>{l}</button>
+        ))}
+        <input class="ad-search" type="search" placeholder="Find a word" aria-label="Find a word" value={q}
+          onInput={(e) => { setQ((e.target as HTMLInputElement).value); setLimit(100); }} />
+      </div>
+      {err && <p class="ad-err">{err}</p>}
+      {!rows.length ? <p class="ad-muted">No words here.</p> : (
+        <div class="ad-scroll">
+          <table class="ad-table">
+            <thead><tr><th>Word</th><th>Hard rank</th><th>Frequency</th><th>Times used</th><th style={{ textAlign: "left" }}>Why it's hard</th><th /></tr></thead>
+            <tbody>
+              {rows.slice(0, limit).map((a) => {
+                const d = info(a.word);
+                return (
+                  <tr key={a.word} class={a.removed_at ? "ad-gone" : ""}>
+                    <td class="ad-strong">{a.word.toUpperCase()}{d?.rude && <span class="ad-pill" style={{ marginLeft: "6px" }}>rude</span>}</td>
+                    <td>{d?.rank ?? "–"}</td>
+                    <td>{d ? d.z.toFixed(1) : "–"}</td>
+                    <td>{n(a.days)}</td>
+                    <td class="ad-names">{d?.why ?? ""}</td>
+                    <td>
+                      <button type="button" class={"ad-pill" + (a.removed_at ? "" : " ad-remove")} disabled={busy === a.word} onClick={() => toggle(a)}>
+                        {a.removed_at ? "Put back" : "Remove"}
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {rows.length > limit && <button type="button" class="ad-pill" onClick={() => setLimit(limit + 200)}>Show more ({n(rows.length - limit)} left)</button>}
+    </>
+  );
+}
+
 /* ---------- page ---------- */
 
 const PERIODS = [7, 30, 90];
 const SECTIONS: [string, string][] = [
   ["overview", "Overview"], ["leagues", "Leagues"], ["funnel", "Funnel"], ["usage", "Usage"], ["pages", "Pages"], ["speed", "Speed"],
-  ["players", "Players"], ["retention", "Retention"], ["asks", "Reidog"], ["errors", "Errors"], ["activity", "Activity"],
+  ["players", "Players"], ["retention", "Retention"], ["asks", "Reidog"], ["words", "Words"], ["errors", "Errors"], ["activity", "Activity"],
 ];
 const LENGTHS: [string, string][] = [["under_1m", "under 1 min"], ["1_3m", "1–3 min"], ["3_10m", "3–10 min"], ["10_30m", "10–30 min"], ["over_30m", "30+ min"]];
 
@@ -761,6 +847,10 @@ export default function Admin({ data }: PageProps<AdminData>) {
           ))}
         </Card>
       )}
+
+      <Card id="words" title="Answer words" note="the pool daily words are drawn from">
+        <AnswerWords />
+      </Card>
 
       <Card id="errors" title="Browser errors" note="grouped by message">
         {!data.errors.length ? <p class="ad-muted">None in this period.</p> : (

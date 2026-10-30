@@ -93,3 +93,7 @@ button.ad-pill { cursor: pointer; }
 .ad-table td.ad-muted { text-align: center; }
 .ad-strong { color: var(--ad-text); font-weight: 600; }
 .ad-funnel .bar.drop { background: #f59e0b; }
+.ad-table tr.ad-gone td { color: var(--ad-muted); text-decoration: line-through; }
+.ad-table tr.ad-gone td:last-child { text-decoration: none; }
+button.ad-remove { color: var(--ad-bad); }
+button.ad-pill:disabled { opacity: .5; cursor: default; }

@@ -33,6 +33,21 @@ test("visits, errors and the owner dashboard (admins with a saved login only)", 
   await page.locator("#usage").screenshot({ path: "test-results/admin-usage-phone.png" });
   await page.setViewportSize({ width: 1280, height: 720 });
 
+  // answer words: hardest first; Remove takes a word out of the pool, Put back returns it
+  const words = page.locator("#words");
+  await words.scrollIntoViewIfNeeded();
+  const first = words.locator("tbody tr").first();
+  await expect(first).toContainText("OUTGO");
+  await first.getByRole("button", { name: "Remove" }).click();
+  await expect(first.getByRole("button", { name: "Put back" })).toBeVisible();
+  expect(sql("select removed_at is not null from answers where lower(answer) = 'outgo'")).toBe("t");
+  await words.getByRole("button", { name: "Removed" }).click();
+  await expect(words.locator("tbody tr")).toHaveCount(1);
+  await words.screenshot({ path: "test-results/admin-words.png" });
+  await words.getByRole("button", { name: "Put back" }).click();
+  await expect(words.getByText("No words here.")).toBeVisible();
+  expect(sql("select removed_at is null from answers where lower(answer) = 'outgo'")).toBe("t");
+
   await page.locator("#players tr", { hasText: "alice" }).first().click();
   const sheet = page.getByRole("dialog", { name: "alice" });
   await expect(sheet).toContainText("Recent visits");
