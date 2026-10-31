@@ -1,5 +1,5 @@
 import type { ComponentChildren } from "preact";
-import { useEffect, useMemo, useState } from "preact/hooks";
+import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import type { PageProps } from "@/router";
 import { rpc } from "@/lib/supabase";
 // ?inline: the stylesheet ships inside this chunk (a separate CSS chunk would add its name to the first-load bundle)
@@ -599,85 +599,151 @@ function Funnels({ g, open }: { g: Growth; open: (name: string) => void }) {
 /* ---------- answer words ---------- */
 
 type Difficulty = Record<string, { z: number; rank?: number; why?: string; rude?: 1 }>;
-type Answer = { word: string; removed_at: string | null; days: number };
-const WORD_VIEWS: [string, string][] = [["hard", "Hardest first"], ["rude", "Rude"], ["removed", "Removed"], ["az", "A–Z"]];
+type Answer = { word: string; removed_at: string | null; reviewed_at: string | null; days: number };
+type Triage = "keep" | "remove" | "untriaged";
+const stateOf = (a: Answer): Triage => (a.removed_at ? "remove" : a.reviewed_at ? "keep" : "untriaged");
+const WORD_VIEWS: [string, string][] = [["todo", "To triage"], ["keep", "Kept"], ["remove", "Removed"], ["rude", "Rude"], ["all", "All"]];
+const PAST: Record<Triage, string> = { keep: "Kept", remove: "Removed", untriaged: "Untriaged" };
 
-/** The answers pool: remove words so they're never drawn again (daily, challenges, battles), sorted by how obscure they are. */
+/** The answers pool, built for fast triage: Keep or Remove each word (keys K / R, U to undo), hardest first.
+ *  Removed words are never drawn again (dailies, challenges, battles); kept ones just leave the "To triage" list. */
 function AnswerWords() {
   const [list, setList] = useState<Answer[] | null>(null);
-  const [active, setActive] = useState(0);
   const [diff, setDiff] = useState<Difficulty>({});
-  const [view, setView] = useState("hard");
+  const [view, setView] = useState("todo");
+  const [az, setAz] = useState(false);
   const [q, setQ] = useState("");
-  const [limit, setLimit] = useState(100);
-  const [busy, setBusy] = useState<string | null>(null);
+  const [cur, setCur] = useState(0);
+  const [limit, setLimit] = useState(60);
+  const [undo, setUndo] = useState<{ word: string; prev: Triage; did: Triage }[]>([]);
   const [err, setErr] = useState("");
   useEffect(() => {
-    rpc<{ active: number; words: Answer[] }>("admin_answers").then((r) => { setList(r.words); setActive(r.active); }, (e) => setErr(String(e.message ?? e)));
+    rpc<{ words: Answer[] }>("admin_answers").then((r) => setList(r.words), (e) => setErr(String(e.message ?? e)));
     // scores ship in their own chunk (tools/gen-answer-difficulty.py), fetched only here
     import("@/data/answer-difficulty.json").then((m) => setDiff(m.default as Difficulty));
   }, []);
   const info = (w: string) => diff[w.toLowerCase()];
   const rows = useMemo(() => {
     const s = q.trim().toLowerCase();
-    const r = (list ?? []).filter((a) => (!s || a.word.toLowerCase().includes(s))
-      && (view === "removed" ? !!a.removed_at : view === "rude" ? !!info(a.word)?.rude : true));
+    const r = (list ?? []).filter((a) => {
+      if (s && !a.word.toLowerCase().includes(s)) return false;
+      const st = stateOf(a);
+      return view === "all" || (view === "todo" ? st === "untriaged" : view === "rude" ? !!info(a.word)?.rude : st === view);
+    });
     // hand-ranked 100 first, then rarest by word frequency
     const key = (a: Answer) => { const d = info(a.word); return d?.rank ?? 100 + (d?.z ?? 0); };
-    return view === "az" ? r : [...r].sort((a, b) => key(a) - key(b));
-  }, [list, diff, view, q]);
-  async function toggle(a: Answer) {
-    setBusy(a.word); setErr("");
-    try {
-      const r = await rpc<{ removed_at: string | null; active: number }>("admin_set_answer", { p_word: a.word, p_removed: !a.removed_at });
-      setList((l) => l && l.map((x) => (x.word === a.word ? { ...x, removed_at: r.removed_at } : x)));
-      setActive(r.active);
-    } catch (e) { setErr(String((e as Error).message ?? e)); }
-    finally { setBusy(null); }
+    return az ? r : [...r].sort((a, b) => key(a) - key(b));
+  }, [list, diff, view, az, q]);
+  const at = Math.min(cur, Math.max(0, rows.length - 1));
+
+  function apply(word: string, state: Triage) {
+    const set = (st: Triage, iso: string | null) => setList((l) => l && l.map((x) => x.word !== word ? x
+      : { ...x, removed_at: st === "remove" ? x.removed_at ?? iso : null, reviewed_at: st === "untriaged" ? null : iso }));
+    const before = list?.find((x) => x.word === word);
+    set(state, new Date().toISOString()); // optimistic: the row updates (or leaves "To triage") right away
+    setErr("");
+    rpc<Answer>("admin_triage_answer", { p_word: word, p_state: state }).then(
+      (r) => setList((l) => l && l.map((x) => (x.word === word ? { ...x, removed_at: r.removed_at, reviewed_at: r.reviewed_at } : x))),
+      (e) => { if (before) setList((l) => l && l.map((x) => (x.word === word ? before : x))); setErr(`${word}: ${e.message ?? e}`); });
   }
+  function triage(a: Answer | undefined, state: Triage) {
+    if (!a || stateOf(a) === state) return;
+    setUndo((u) => [{ word: a.word, prev: stateOf(a), did: state }, ...u].slice(0, 20));
+    apply(a.word, state);
+    // in "To triage" the row drops out and the next word slides under the cursor; elsewhere step down
+    if (view !== "todo") setCur(Math.min(at + 1, rows.length - 1));
+  }
+  function undoLast() {
+    const [last, ...rest] = undo;
+    if (!last) return;
+    setUndo(rest);
+    apply(last.word, last.prev);
+  }
+
+  const keys = useRef({ rows, at, triage, undoLast });
+  keys.current = { rows, at, triage, undoLast };
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement;
+      if (e.metaKey || e.ctrlKey || e.altKey || t.closest("input, textarea, select")) return;
+      const { rows, at, triage, undoLast } = keys.current;
+      const k = e.key.toLowerCase();
+      if (k === "k" || k === "arrowright") triage(rows[at], "keep");
+      else if (k === "r" || k === "x" || k === "arrowleft") triage(rows[at], "remove");
+      else if (k === "u" || k === "z") undoLast();
+      else if (k === "j" || k === "arrowdown") setCur(Math.min(at + 1, rows.length - 1));
+      else if (k === "arrowup") setCur(Math.max(at - 1, 0));
+      else return;
+      e.preventDefault();
+    };
+    addEventListener("keydown", onKey);
+    return () => removeEventListener("keydown", onKey);
+  }, []);
+  useEffect(() => { document.querySelector(".aw-row.cur")?.scrollIntoView({ block: "nearest" }); }, [at, view]);
+
   if (!list) return err ? <p class="ad-err">{err}</p> : <p class="ad-muted">Loading…</p>;
-  const removed = list.length - active;
+  const done = list.filter((a) => a.reviewed_at || a.removed_at).length;
+  const removed = list.filter((a) => a.removed_at).length;
+  const pick = (k: string) => { setView(k); setCur(0); setLimit(60); };
   return (
     <>
-      <p class="ad-muted" style={{ marginBottom: "8px" }}>
-        {n(active)} words in the pool · {n(removed)} removed. Removed words are never picked again for dailies, challenges or battles
-        (today's word stays). Practice still uses the full list. Frequency is the Zipf score: 1 = very rare, 3 = uncommon, 5+ = everyday.
-      </p>
-      <div style={{ marginBottom: "8px" }}>
-        {WORD_VIEWS.map(([k, l]) => (
-          <button type="button" key={k} class={"ad-pill" + (k === view ? " on" : "")} onClick={() => { setView(k); setLimit(100); }}>{l}</button>
-        ))}
-        <input class="ad-search" type="search" placeholder="Find a word" aria-label="Find a word" value={q}
-          onInput={(e) => { setQ((e.target as HTMLInputElement).value); setLimit(100); }} />
+      <div class="aw-progress" aria-label="Triage progress">
+        <div><b>{n(done)}</b> of {n(list.length)} triaged · {n(removed)} removed · {n(list.length - removed)} in the pool</div>
+        <span class="track"><span class="fill" style={{ width: `${(done / Math.max(1, list.length)) * 100}%` }} /></span>
       </div>
+      <div class="aw-bar">
+        {WORD_VIEWS.map(([k, l]) => (
+          <button type="button" key={k} class={"ad-pill" + (k === view ? " on" : "")} onClick={() => pick(k)}>{l}</button>
+        ))}
+        <button type="button" class="ad-pill" onClick={() => { setAz(!az); setCur(0); }}>{az ? "A–Z" : "Hardest first"} ⇅</button>
+        <input class="ad-search" type="search" placeholder="Find a word" aria-label="Find a word" value={q}
+          onInput={(e) => { setQ((e.target as HTMLInputElement).value); setCur(0); }} />
+      </div>
+      <p class="ad-muted aw-keys">Keys: <kbd>K</kbd> or <kbd>→</kbd> keep · <kbd>R</kbd> or <kbd>←</kbd> remove · <kbd>U</kbd> undo · <kbd>↑</kbd> <kbd>↓</kbd> move. Removed words are never drawn again; today's word stays. Practice still uses the full list.</p>
       {err && <p class="ad-err">{err}</p>}
-      {!rows.length ? <p class="ad-muted">No words here.</p> : (
-        <div class="ad-scroll">
-          <table class="ad-table">
-            <thead><tr><th>Word</th><th>Hard rank</th><th>Frequency</th><th>Times used</th><th style={{ textAlign: "left" }}>Why it's hard</th><th /></tr></thead>
-            <tbody>
-              {rows.slice(0, limit).map((a) => {
-                const d = info(a.word);
-                return (
-                  <tr key={a.word} class={a.removed_at ? "ad-gone" : ""}>
-                    <td class="ad-strong">{a.word.toUpperCase()}{d?.rude && <span class="ad-pill" style={{ marginLeft: "6px" }}>rude</span>}</td>
-                    <td>{d?.rank ?? "–"}</td>
-                    <td>{d ? d.z.toFixed(1) : "–"}</td>
-                    <td>{n(a.days)}</td>
-                    <td class="ad-names">{d?.why ?? ""}</td>
-                    <td>
-                      <button type="button" class={"ad-pill" + (a.removed_at ? "" : " ad-remove")} disabled={busy === a.word} onClick={() => toggle(a)}>
-                        {a.removed_at ? "Put back" : "Remove"}
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+      {!rows.length ? <p class="ad-muted">{view === "todo" ? "All triaged. Nice." : "No words here."}</p> : (
+        <div class="aw-list" role="list">
+          {rows.slice(0, Math.max(limit, at + 10)).map((a, i) => {
+            const d = info(a.word), st = stateOf(a);
+            return (
+              <div role="listitem" key={a.word} class={`aw-row aw-${st}` + (i === at ? " cur" : "")} onClick={() => setCur(i)}>
+                <div class="aw-word">
+                  <b>{a.word.toUpperCase()}</b>
+                  {d?.rude && <span class="aw-tag rude">rude</span>}
+                  {st !== "untriaged" && <span class={`aw-tag ${st}`}>{PAST[st].toLowerCase()}</span>}
+                </div>
+                <div class="aw-meta">
+                  {d?.rank ? <span>#{d.rank} hardest</span> : null}
+                  <span title="Zipf word frequency: 1 very rare, 3 uncommon, 5+ everyday">freq {d ? d.z.toFixed(1) : "–"}</span>
+                  <span>{a.days ? `used ${a.days}×` : "never used"}</span>
+                  {d?.why && <span class="why">{d.why}</span>}
+                </div>
+                <div class="aw-act">
+                  {st === "untriaged" ? (
+                    <>
+                      <button type="button" class="aw-btn keep" onClick={(e) => { e.stopPropagation(); setCur(i); triage(a, "keep"); }}>Keep</button>
+                      <button type="button" class="aw-btn remove" onClick={(e) => { e.stopPropagation(); setCur(i); triage(a, "remove"); }}>Remove</button>
+                    </>
+                  ) : (
+                    <>
+                      <button type="button" class={`aw-btn ${st === "keep" ? "remove" : "keep"}`}
+                        onClick={(e) => { e.stopPropagation(); triage(a, st === "keep" ? "remove" : "keep"); }}>{st === "keep" ? "Remove" : "Keep"}</button>
+                      <button type="button" class="aw-btn" onClick={(e) => { e.stopPropagation(); triage(a, "untriaged"); }}>Reset</button>
+                    </>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
-      {rows.length > limit && <button type="button" class="ad-pill" onClick={() => setLimit(limit + 200)}>Show more ({n(rows.length - limit)} left)</button>}
+      {rows.length > Math.max(limit, at + 10) && <button type="button" class="ad-pill" onClick={() => setLimit(limit + 200)}>Show more ({n(rows.length - limit)} left)</button>}
+      {undo[0] && (
+        <div class="aw-toast" role="status">
+          {PAST[undo[0].did]} <b>{undo[0].word.toUpperCase()}</b>
+          <button type="button" onClick={undoLast}>Undo</button>
+        </div>
+      )}
     </>
   );
 }

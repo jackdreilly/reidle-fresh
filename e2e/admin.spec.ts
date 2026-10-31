@@ -33,20 +33,29 @@ test("visits, errors and the owner dashboard (admins with a saved login only)", 
   await page.locator("#usage").screenshot({ path: "test-results/admin-usage-phone.png" });
   await page.setViewportSize({ width: 1280, height: 720 });
 
-  // answer words: hardest first; Remove takes a word out of the pool, Put back returns it
+  // answer words triage: hardest first; Keep / Remove (buttons or K / R keys) drop a word out of "To triage", U undoes
   const words = page.locator("#words");
   await words.scrollIntoViewIfNeeded();
-  const first = words.locator("tbody tr").first();
-  await expect(first).toContainText("OUTGO");
-  await first.getByRole("button", { name: "Remove" }).click();
-  await expect(first.getByRole("button", { name: "Put back" })).toBeVisible();
-  expect(sql("select removed_at is not null from answers where lower(answer) = 'outgo'")).toBe("t");
-  await words.getByRole("button", { name: "Removed" }).click();
-  await expect(words.locator("tbody tr")).toHaveCount(1);
+  const rows = words.locator(".aw-row");
+  await expect(rows.first()).toContainText("OUTGO");
+  await rows.first().getByRole("button", { name: "Remove" }).click();
+  await expect(rows.first()).toContainText("CAPUT");
+  await expect.poll(() => sql("select removed_at is not null from answers where lower(answer) = 'outgo'")).toBe("t");
+  await page.keyboard.press("k"); // keeps CAPUT
+  await expect(rows.first()).toContainText("AXION");
+  await expect.poll(() => sql("select reviewed_at is not null and removed_at is null from answers where lower(answer) = 'caput'")).toBe("t");
+  await expect(words).toContainText("2 of");
   await words.screenshot({ path: "test-results/admin-words.png" });
-  await words.getByRole("button", { name: "Put back" }).click();
+  await page.setViewportSize({ width: 390, height: 800 });
+  await words.screenshot({ path: "test-results/admin-words-phone.png" });
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.keyboard.press("u"); // undo: CAPUT is back to triage
+  await expect(rows.first()).toContainText("CAPUT");
+  await words.getByRole("button", { name: "Removed" }).click();
+  await expect(rows).toHaveCount(1);
+  await rows.first().getByRole("button", { name: "Reset" }).click();
   await expect(words.getByText("No words here.")).toBeVisible();
-  expect(sql("select removed_at is null from answers where lower(answer) = 'outgo'")).toBe("t");
+  await expect.poll(() => sql("select count(*) from answers where reviewed_at is not null or removed_at is not null")).toBe("0");
 
   await page.locator("#players tr", { hasText: "alice" }).first().click();
   const sheet = page.getByRole("dialog", { name: "alice" });

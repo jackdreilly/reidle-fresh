@@ -55,7 +55,7 @@ tools/                 clone-db.sh, sync-auth-users.ts, gen-words-seed.mjs, chec
   version the repo doesn't. So don't use the MCP `apply_migration` tool or the SQL editor for schema changes
   (they record a different version and break the next run). Drift check (staging/prod vs a fresh local build,
   comments ignored): `node tools/db-migrate.mjs prod --dry-run --drift <local db url>`; prod runs it nightly.
-- Word tables are DATA, not migrations (prod has its own, UPPERCASE). Random answers always come from `random_answer()`, which skips words removed (`answers.removed_at`) from /admin's "Answer words" card (`admin_answers` / `admin_set_answer`); its difficulty scores are `src/data/answer-difficulty.json`, from `tools/gen-answer-difficulty.py`. Local/staging fixture words come from `supabase/seed/words.sql`, generated from `src/data/*.csv` via `npm run words`.
+- Word tables are DATA, not migrations (prod has its own, UPPERCASE). Random answers always come from `random_answer()`, which skips words removed (`answers.removed_at`) from /admin's "Answer words" triage card (`admin_answers` / `admin_triage_answer`; `reviewed_at` = triaged); its difficulty scores are `src/data/answer-difficulty.json`, from `tools/gen-answer-difficulty.py`. Local/staging fixture words come from `supabase/seed/words.sql`, generated from `src/data/*.csv` via `npm run words`.
 
 ## Leagues
 
