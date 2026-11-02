@@ -17,6 +17,42 @@ type Row = {
 const card = "rounded-2xl border border-gray-200 bg-white p-4 shadow-sm";
 const ord = (n: number) => n + (["th", "st", "nd", "rd"][(n % 100 > 10 && n % 100 < 14) || n % 10 > 3 ? 0 : n % 10]);
 
+type StatProps = { label: string; value: string; note: string };
+
+/** One tile of a league card's mini grid: small label, the headline, and a line of detail. */
+function Stat({ label, value, note }: StatProps) {
+  return (
+    <div class="min-w-0 rounded-lg bg-gray-50 px-2.5 py-2">
+      <div class="text-[10px] font-semibold uppercase tracking-wider text-gray-400">{label}</div>
+      <div class="truncate text-sm font-semibold text-gray-900 tabular-nums">{value}</div>
+      <div class="truncate text-xs text-gray-500">{note}</div>
+    </div>
+  );
+}
+
+function today(r: Row): Omit<StatProps, "label"> {
+  if (r.played) {
+    const rank = r.my_rank_today ?? 0;
+    const note = rank > 1 && r.leader_today ? `${r.leader_today.name} leads` : rank === 1 ? "you lead" : "";
+    return { value: `${ord(rank)} of ${r.players_today}`, note };
+  }
+  if (r.leader_today) return { value: r.leader_today.name, note: `${timerTime(r.leader_today.time)} · ${r.players_today} played` };
+  return { value: "—", note: "nobody yet" };
+}
+
+function week(r: Row): Omit<StatProps, "label"> {
+  const w = r.week;
+  if (w.my_place) return { value: `${ord(w.my_place)} of ${w.players}`, note: w.my_place === 1 ? "you lead" : w.leader ? `${w.leader} leads` : "" };
+  if (w.leader) return { value: w.leader, note: "leads" };
+  return { value: "—", note: "no games yet" };
+}
+
+function yesterday(r: Row): Omit<StatProps, "label"> {
+  const y = r.yesterday;
+  if (!y) return { value: "—", note: "no games" };
+  return { value: y.winner, note: y.my_rank === 1 ? "won · that's you" : y.my_rank ? `won · you ${ord(y.my_rank)}` : "won" };
+}
+
 /** Open a league at a page: switch first so the page loads with that league. */
 export async function openLeague(id: number, to: string) {
   await switchLeague(id);
@@ -41,16 +77,10 @@ export default function Leagues({ data }: PageProps<Row[]>) {
               <h2 class="truncate text-lg font-semibold text-gray-900">{r.name}</h2>
               <span class="shrink-0 text-xs text-gray-500">{r.members} {r.members === 1 ? "player" : "players"}</span>
             </div>
-            <div class="mt-1 text-sm text-gray-600">
-              {r.played
-                ? <>You're <b>{ord(r.my_rank_today ?? 0)}</b> of {r.players_today} today</>
-                : r.leader_today
-                ? <>{r.leader_today.name} leads in {timerTime(r.leader_today.time)} · {r.players_today} played</>
-                : <>Nobody has played yet today</>}
-            </div>
-            <div class="mt-1 text-xs text-gray-500">
-              {r.week.my_place ? <>Week: {ord(r.week.my_place)} of {r.week.players}{r.week.leader && r.week.my_place > 1 ? ` · ${r.week.leader} leads` : ""}</> : r.week.leader ? <>Week: {r.week.leader} leads</> : <>No games this week yet</>}
-              {r.yesterday && <> · Yesterday: {r.yesterday.winner} won{r.yesterday.my_rank ? `, you were ${ord(r.yesterday.my_rank)}` : ""}</>}
+            <div class="mt-3 grid grid-cols-3 gap-1.5">
+              <Stat label="Today" {...today(r)} />
+              <Stat label="Week" {...week(r)} />
+              <Stat label="Yesterday" {...yesterday(r)} />
             </div>
           </button>
           <div class="mt-3 flex flex-wrap gap-2">
