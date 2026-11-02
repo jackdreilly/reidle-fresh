@@ -83,7 +83,7 @@ export default function Leagues({ data }: PageProps<Row[]>) {
               <Stat label="Yesterday" {...yesterday(r)} />
             </div>
           </button>
-          <div class="mt-3 flex flex-wrap gap-2">
+          <div class="mt-3 flex flex-wrap gap-2 empty:hidden">
             {!r.played && (
               <button type="button" onClick={() => void openLeague(r.id, "/play")}
                 class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white">▶ Play</button>
