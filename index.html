@@ -28,8 +28,26 @@
       addEventListener("error", function (e) { (window.__errs = window.__errs || []).push(e.error || e.message); });
       addEventListener("unhandledrejection", function (e) { (window.__errs = window.__errs || []).push(e.reason); });
     </script>
+    <style>
+      /* Phones are portrait-only. The manifest asks for portrait, but iOS ignores that, so a phone
+         turned sideways (touch screen, short landscape viewport) gets this screen instead. Tablets
+         and desktops are taller than 500px in landscape and never see it. */
+      #rotate { display: none; }
+      @media (orientation: landscape) and (pointer: coarse) and (max-height: 500px) {
+        #rotate { display: flex; position: fixed; inset: 0; z-index: 2147483647; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: #fff; color: #111827; font: 600 18px/1.4 system-ui, -apple-system, sans-serif; text-align: center; padding: 24px; }
+        html[data-theme="dark"] #rotate { background: #0d1117; color: #e6edf3; }
+        #rotate svg { width: 56px; height: 56px; animation: rotate-hint 2s ease-in-out infinite; }
+        html, body { overflow: hidden; }
+      }
+      @keyframes rotate-hint { 0%, 30% { transform: rotate(-90deg); } 60%, 100% { transform: rotate(0deg); } }
+      @media (prefers-reduced-motion: reduce) { #rotate svg { animation: none; } }
+    </style>
   </head>
   <body>
+    <div id="rotate" role="alert">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
+      <div>Turn your phone upright to play Reidle.</div>
+    </div>
     <div id="app"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
