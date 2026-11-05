@@ -132,3 +132,30 @@ test("progress whose save never reached the server is kept on this device and re
   await page.reload();
   await expect.poll(() => sql("select penalty from checkpoints where name='mallory'")).toBe("5");
 });
+
+test("a double Enter or held Enter on a rejected guess shows one message, one shake, one penalty", async ({ page }) => {
+  await signIn(page, "grace", "/practice");
+  await expect(page.getByTestId("keyboard")).toBeVisible();
+  await expect(page.getByText("Loading...")).toHaveCount(0);
+  for (const ch of "ZZZZZ") await page.keyboard.press(ch);
+  // Two Enters back to back (a double tap), then a held Enter (auto-repeat events).
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("Enter");
+  await page.keyboard.down("Enter");
+  await page.evaluate(() => {
+    for (let i = 0; i < 3; i++) {
+      self.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", repeat: true }));
+    }
+  });
+  await page.keyboard.up("Enter");
+  await expect(page.getByText("Not a word")).toBeVisible();
+  await expect(page.getByText("Need 5 letters")).toHaveCount(0);
+  // One rejected guess = one shake (the row re-mounts once) and a single +5s penalty.
+  await expect(page.locator(".row-shake")).toHaveCount(1);
+  // Typing on the cleared row doesn't score letter by letter.
+  for (const ch of "AB") await page.keyboard.press(ch);
+  await expect(page.getByText("Need 5 letters")).toHaveCount(0);
+  // A short guess still says so.
+  await page.keyboard.press("Enter");
+  await expect(page.getByText("Need 5 letters")).toBeVisible();
+});

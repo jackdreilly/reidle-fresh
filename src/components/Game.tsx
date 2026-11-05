@@ -44,6 +44,8 @@ interface GameProperties {
   /** server clock minus client clock, in ms */
   clockOffset?: number;
 }
+/** A repeat of the same message inside this window (a double tap) doesn't flash or shake again. */
+const REPEAT_MS = 500;
 export default function Game(
   {
     word,
@@ -69,7 +71,9 @@ export default function Game(
   const [playback, setPlayback] = useState<Playback>({ events: [] });
   const [penalties, setPenalties] = useState(checkpoint?.penalty ?? 0);
   const [startTime, setStartTime] = useState(checkpointDate());
-  const [error, setErrorPrivatePrivate] = useState("");
+  // The status-bar message. Only report() writes it; the id remounts the fading text, so a message
+  // shows once per report (not again on unrelated re-renders like the battle penalty countdown).
+  const [notice, setNotice] = useState({ text: "", id: 0 });
   const [wordle, setWordle] = useState<Wordle>();
   const [currentWord, setCurrentWordPrivate] = useState(
     battle?.state?.history?.length ? "" : startingWord,
@@ -88,6 +92,10 @@ export default function Game(
   const [showPenaltyBox, setShowPenaltyBox] = useState(false);
   // Bumped on a rejected guess; the active row re-mounts with a shake.
   const [shake, setShake] = useState({ n: 0, row: -1 });
+  // Set synchronously on a win, so an Enter that lands before the re-render can't score again.
+  const doneRef = useRef(false);
+  const lastReport = useRef({ text: "", at: -Infinity });
+  const lastBattleMessage = useRef("");
   useEffect(() => {
     // Nothing to save before the first guess, and saving the still-empty board of a resumed game
     // would only race the restore below.
@@ -117,8 +125,14 @@ export default function Game(
       );
 
     if (incomingHistory.length > 0 && battle.state.message) {
-      if (isGameOver || battle.state.last_player !== name) {
-        setErrorPrivatePrivate(battle.state.message);
+      // This effect re-runs on every state push; show each battle message once.
+      const key = `${incomingHistory.length}|${battle.state.last_player}|${battle.state.message}`;
+      if (
+        (isGameOver || battle.state.last_player !== name) &&
+        key !== lastBattleMessage.current
+      ) {
+        lastBattleMessage.current = key;
+        report(battle.state.message, { record: false });
       }
     }
     if (!won && isGameOver) {
@@ -131,14 +145,16 @@ export default function Game(
           x.score !== Scoring.green
         ))
     ) {
+      doneRef.current = false;
       setWon(null);
       setStartTime(new Date());
       setCurrentWord(startingWord);
-      setErrorPrivatePrivate("");
+      report("");
     }
   }, [battle?.state, wordle, won]);
   useEffect(() => {
-    if (!previousWords.length && currentWord && wordle) {
+    // Auto-score the starting word, and only it: typing on an empty board must not score each letter.
+    if (!previousWords.length && currentWord && currentWord === startingWord && wordle) {
       if (battle) {
         if (battle.state?.history && battle.state.history.length > 0) {
           setPreviousWords(battle.state.history);
@@ -261,16 +277,35 @@ export default function Game(
     }
     helper();
   }, []);
-  function addError(error: string, penalty: number | undefined = undefined) {
-    setErrorPrivatePrivate(error);
+  /**
+   * The single path for every status-bar message (rejected guesses, penalty box, battle messages,
+   * submit failures). Penalties always count; what is coalesced is only the visible part: the same
+   * message reported again within REPEAT_MS doesn't re-flash or re-shake. "" clears the bar.
+   */
+  function report(
+    text: string,
+    { penalty = 0, shake: shakeRow = false, record = true }: {
+      penalty?: number;
+      shake?: boolean;
+      record?: boolean;
+    } = {},
+  ) {
     if (penalty) {
       setPenalties((p) => p + penalty);
-      if (battle) {
-        battle.broadcastPenalty?.(penalty);
-      }
+      battle?.broadcastPenalty?.(penalty);
     }
-    if (error) {
-      addPlayback({ e: { m: error, p: penalty ?? 0 } });
+    if (text && record) {
+      addPlayback({ e: { m: text, p: penalty } });
+    }
+    const now = performance.now();
+    const repeat = !!text && text === lastReport.current.text &&
+      now - lastReport.current.at < REPEAT_MS;
+    lastReport.current = { text, at: now };
+    if (repeat) return;
+    setNotice((n) => ({ text, id: n.id + 1 }));
+    if (shakeRow) {
+      const row = previousWordsRef.current.length;
+      setShake((s) => ({ n: s.n + 1, row }));
     }
   }
   useEffect(() => {
@@ -310,7 +345,7 @@ export default function Game(
     key: string,
     superPressed?: boolean,
   ) {
-    if (won) {
+    if (won || doneRef.current) {
       return;
     }
     if (!wordle) {
@@ -340,6 +375,8 @@ export default function Game(
     }
     event.preventDefault();
     const key = event.key.toUpperCase();
+    // A held Enter auto-repeats: one press is one guess.
+    if (key === "ENTER" && event.repeat) return;
     return onKeyDown(key, event.shiftKey || event.metaKey);
   }
   useEffect(() => {
@@ -379,10 +416,15 @@ export default function Game(
         if (res) patchSession({ pending_challenges: res.pending_challenges });
         flushPush();
       })
-      .catch((e: Error) =>
-        addError(/already played|duplicate/i.test(e.message) ? "You already played today" : "An error occurred, play again", 0)
-      );
+      .catch((e: Error) => {
+        setSubmitFailed(true);
+        report(
+          /already played|duplicate/i.test(e.message) ? "You already played today" : "An error occurred, play again",
+          { record: false },
+        );
+      });
   }, [won]);
+  const [submitFailed, setSubmitFailed] = useState(false);
   const activePenalties = useMemo(() => {
     if (!battle?.penaltiesMap) return [];
     const now = Date.now();
@@ -400,15 +442,21 @@ export default function Game(
     return scoreColor(keyboardLookup[c]) ?? "#d3d6da";
   }
   function scoreWord() {
-    if (!wordle) {
-      return;
-    }
-    if (battle && penalties > 0) {
-      setErrorPrivatePrivate("You're still in the penalty box!");
+    if (!wordle || doneRef.current) {
       return;
     }
     const currentWord = currentWordRef.current;
     const previousWords = previousWordsRef.current;
+    // An empty row has nothing to submit. It is almost always a second Enter/tap landing right
+    // after a guess (a rejected one clears the row), which used to flash "Need 5 letters" and
+    // shake again on top of the real message.
+    if (!currentWord) {
+      return;
+    }
+    if (battle && penalties > 0) {
+      report("You're still in the penalty box!", { record: false });
+      return;
+    }
     const wordScore = wordScorer({ wordle, currentWord, previousWords, word });
     if (wordScore instanceof Array) {
       if (battle) {
@@ -417,6 +465,7 @@ export default function Game(
       }
       setPreviousWords((s) => [...s, wordScore]);
       if (currentWord === word) {
+        doneRef.current = true;
         setWon(new Date());
         return;
       }
@@ -424,9 +473,7 @@ export default function Game(
       return;
     }
     setCurrentWord("");
-    setShake((s) => ({ n: s.n + 1, row: previousWords.length }));
-    const { error, penalty } = wordScore;
-    addError(error, penalty);
+    report(wordScore.error, { penalty: wordScore.penalty, shake: true });
   }
   const totalSeconds = penalties +
     ((won ?? new Date()).getTime() - startTime.getTime()) / 1000;
@@ -653,9 +700,10 @@ export default function Game(
             }
             : undefined}
           wordle={wordle}
-          penalty={penalties}
           winTime={won ? totalSeconds : null}
-          error={battle && won ? (battle.state.message || (battle.state.last_player ? `${battle.state.last_player} Won` : "Game Over")) : error}
+          error={battle && won ? (battle.state.message || (battle.state.last_player ? `${battle.state.last_player} Won` : "Game Over")) : notice.text}
+          errorId={notice.id}
+          submitFailed={submitFailed}
           challenge_id={challenge_id}
           lost={!!challenge_id && !!winnersTime && (totalSeconds > winnersTime)}
           leader={winner}

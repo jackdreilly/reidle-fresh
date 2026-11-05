@@ -8,7 +8,8 @@ export default function ErrorBar(
   {
     winTime,
     error,
-    penalty,
+    errorId,
+    submitFailed,
     battleCallback,
     wordle,
     isPractice,
@@ -23,7 +24,10 @@ export default function ErrorBar(
     isPractice: boolean;
     winTime: number | null;
     error: string | null;
-    penalty: number;
+    /** Bumped once per reported message: the fade replays only for a new report. */
+    errorId: number;
+    /** The finished game's submit failed: show that instead of the result. */
+    submitFailed?: boolean;
     wordle: Wordle | undefined;
     challenge_id?: number;
     lost?: boolean;
@@ -55,7 +59,9 @@ export default function ErrorBar(
       }
       `}
       </style>
-      {winTime
+      {winTime && submitFailed && !battleCallback
+        ? <div class="text-red-800 font-semibold">{error}</div>
+        : winTime
         ? (
           <div class="flex items-center justify-center gap-2 text-green-800">
             {battleCallback
@@ -109,7 +115,7 @@ export default function ErrorBar(
         : null}
       {error && !winTime && (
         <div
-          key={`${error} ${penalty}`}
+          key={errorId}
           class="text-red-800 opacity-0"
           style={{ animation: "fade-out 4s" }}
         >
