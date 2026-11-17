@@ -24,11 +24,11 @@ export async function signIn(page: Page, name: string, to = "/", { fresh = false
   if (!res.ok) res = await call("/signup", { ...creds, data: { name } });
   const t = await res.json();
   expect(t.access_token, `sign in as ${name}: ${JSON.stringify(t)}`).toBeTruthy();
+  // like coming back from Google: the callback page adopts the tokens, loads the session, then goes on to `to`
   await page.goto("/privacy.html"); // same origin, without booting the app
-  await page.evaluate((v) => localStorage.setItem("reidle:auth", v), JSON.stringify({
-    access_token: t.access_token, refresh_token: t.refresh_token, expires_at: Math.floor(Date.now() / 1000) + (t.expires_in ?? 3600),
-  }));
-  await page.goto(to);
+  await page.evaluate((v) => localStorage.setItem("reidle:after-auth", v), to);
+  await page.goto(`/auth/callback#access_token=${t.access_token}&refresh_token=${t.refresh_token}&expires_in=${t.expires_in ?? 3600}&token_type=bearer`);
+  await expect(page).not.toHaveURL(/auth\/callback/);
   await expect(page).not.toHaveURL(/sign-in/);
 }
 
