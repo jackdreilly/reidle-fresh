@@ -61,7 +61,14 @@ function meta() {
   let ref: string | undefined;
   try { ref = document.referrer && new URL(document.referrer).host !== location.host ? new URL(document.referrer).host : undefined; }
   catch { /* ignore */ }
+  // ad/referral tags: this visit's landing URL, and the first tagged visit of the last 30 days (index.html)
+  type Utm = { s?: string; m?: string | null; c?: string | null; t?: number };
+  const tag = (u: Utm | null | undefined) => u?.s ? [u.s, u.m, u.c].map((x) => x ?? "").join("/") : undefined;
+  let first: Utm | null = null;
+  try { first = JSON.parse(localStorage.getItem("reidle:utm") ?? "null"); if (first && Date.now() - (first.t ?? 0) > 2592e6) first = null; }
+  catch { /* ignore */ }
   return {
+    utm: tag((window as { __utm?: Utm }).__utm), first_utm: tag(first),
     device: device(), entry, ref, theme: document.documentElement.dataset.theme,
     pwa: matchMedia("(display-mode: standalone)").matches || (navigator as { standalone?: boolean }).standalone === true,
   };
@@ -124,6 +131,8 @@ document.addEventListener("visibilitychange", () => {
   if (hiddenAt && Date.now() - hiddenAt > IDLE) {
     // back after a long break: a new visit, starting on this page
     sid = newSid();
+    // the landing tags belonged to the old visit (the 30-day first tag still applies)
+    (window as { __utm?: unknown }).__utm = undefined;
     views = [];
     cur = { p: pattern(location.pathname), t: Date.now(), ms: 0 };
     entry = cur.p;

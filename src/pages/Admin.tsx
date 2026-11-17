@@ -50,11 +50,16 @@ export type AdminData = {
   recent: Ev[];
   growth: Growth;
   speed?: Speed;
+  campaigns?: Campaign[];
   asks?: {
     name: string; question: string; answer: string | null; ms: number | null; at: string;
     tools: { name: string; args?: Record<string, unknown>; ms?: number; error?: string }[] | null;
   }[];
   asks_7d?: number;
+};
+type Campaign = {
+  tag: string; clicks: number; later_visits: number; first_click: string; new_players: number; played: number;
+  next_day: number; could_next: number; existing_players: number; names: string[];
 };
 type Growth = {
   today: string; days_span: number;
@@ -748,11 +753,46 @@ function AnswerWords() {
   );
 }
 
+/* ---------- campaigns ---------- */
+
+/** Ad and referral links (utm tags): clicks, and the new players they brought in and how far those got. */
+function Campaigns({ rows, open }: { rows: Campaign[]; open: (name: string) => void }) {
+  if (!rows.length) return <p class="ad-muted">No tagged visits yet. Links like <code>?utm_source=instagram&amp;utm_medium=paid&amp;utm_campaign=launch</code> show up here.</p>;
+  return (
+    <>
+      <div class="ad-scroll">
+        <table class="ad-table">
+          <thead><tr><th>Source / medium / campaign</th><th>Clicks</th><th>Came back</th><th>New players</th><th>Finished a game</th><th>Next day</th><th>Already played</th></tr></thead>
+          <tbody>
+            {rows.map((c) => (
+              <tr key={c.tag}>
+                <td>{c.tag}</td><td>{n(c.clicks)}</td><td>{n(c.later_visits)}</td>
+                <td><b>{n(c.new_players)}</b>{c.clicks > 0 && <span class="ad-muted"> · {pct(c.new_players, c.clicks)}</span>}</td>
+                <td>{n(c.played)}</td>
+                <td>{c.could_next ? `${n(c.next_day)} of ${n(c.could_next)}` : "–"}</td>
+                <td>{n(c.existing_players)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {rows.some((c) => c.names.length > 0) && (
+        <p class="ad-muted" style={{ marginTop: "6px" }}>
+          New: {rows.flatMap((c) => c.names.map((nm) => (
+            <button type="button" class="ad-pill" key={c.tag + nm} onClick={() => open(nm)}>{nm}</button>
+          )))}
+        </p>
+      )}
+      <p class="ad-muted" style={{ marginTop: "6px" }}>Clicks are visits that opened a tagged link. Came back: later visits on the same device within 30 days. A new player counts when their account was made after their first tagged visit.</p>
+    </>
+  );
+}
+
 /* ---------- page ---------- */
 
 const PERIODS = [7, 30, 90];
 const SECTIONS: [string, string][] = [
-  ["overview", "Overview"], ["leagues", "Leagues"], ["funnel", "Funnel"], ["usage", "Usage"], ["pages", "Pages"], ["speed", "Speed"],
+  ["overview", "Overview"], ["leagues", "Leagues"], ["funnel", "Funnel"], ["campaigns", "Campaigns"], ["usage", "Usage"], ["pages", "Pages"], ["speed", "Speed"],
   ["players", "Players"], ["retention", "Retention"], ["asks", "Reidog"], ["words", "Words"], ["errors", "Errors"], ["activity", "Activity"],
 ];
 const LENGTHS: [string, string][] = [["under_1m", "under 1 min"], ["1_3m", "1–3 min"], ["3_10m", "3–10 min"], ["10_30m", "10–30 min"], ["over_30m", "30+ min"]];
@@ -797,6 +837,10 @@ export default function Admin({ data }: PageProps<AdminData>) {
 
       <Card id="funnel" title="Funnel" note={`people who signed up in the last ${span} days`}>
         <Funnels g={data.growth} open={setPlayer} />
+      </Card>
+
+      <Card id="campaigns" title="Campaigns" note={`links tagged ?utm_source=…, last ${span} days`}>
+        <Campaigns rows={data.campaigns ?? []} open={setPlayer} />
       </Card>
 
       <div id="usage" class="ad-grid">

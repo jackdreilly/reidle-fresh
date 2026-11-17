@@ -24,6 +24,16 @@
           document.documentElement.style.background = "#0d1117";
         }
       } catch (e) {}
+      // ad/referral tags (?utm_source=...) from the landing URL, before the router can rewrite it. The first tagged
+      // visit is also kept for 30 days so a sign-up on a later, untagged visit still counts (src/lib/telemetry.ts)
+      try {
+        var q = new URLSearchParams(location.search);
+        if (q.get("utm_source")) {
+          window.__utm = { s: q.get("utm_source"), m: q.get("utm_medium"), c: q.get("utm_campaign"), t: Date.now() };
+          var f = JSON.parse(localStorage.getItem("reidle:utm") || "null");
+          if (!f || Date.now() - f.t > 2592e6) localStorage.setItem("reidle:utm", JSON.stringify(window.__utm));
+        }
+      } catch (e) {}
       // errors queue here until src/lib/telemetry.ts loads and reports them
       addEventListener("error", function (e) { (window.__errs = window.__errs || []).push(e.error || e.message); });
       addEventListener("unhandledrejection", function (e) { (window.__errs = window.__errs || []).push(e.reason); });
