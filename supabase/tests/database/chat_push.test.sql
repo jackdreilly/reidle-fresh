@@ -3,8 +3,8 @@ select plan(8);
 
 truncate messages, push_subscriptions restart identity cascade;
 insert into auth.users (id, instance_id, aud, role, email, raw_user_meta_data) values
-  ('00000000-0000-0000-0000-0000000000b1', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'pa@t.t', '{"name":"pusha"}'),
-  ('00000000-0000-0000-0000-0000000000b2', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'pb@t.t', '{"name":"pushb"}');
+  ('00000000-0000-0000-0000-0000000000b1', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'pa@players.reidle.app', '{"name":"pusha"}'),
+  ('00000000-0000-0000-0000-0000000000b2', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'pb@players.reidle.app', '{"name":"pushb"}');
 -- name-only sign-ups start in Reidle Global; these tests are about the founding league
 update league_members set league_id = 1 where league_id = 2;
 

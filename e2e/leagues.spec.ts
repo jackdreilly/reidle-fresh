@@ -47,10 +47,7 @@ test("create a league, invite by link, join, commissioner scoring", async ({ pag
   await expect(friend.getByRole("button", { name: "Play as a guest in Reidle Global" })).toBeVisible();
   await friend.screenshot({ path: "test-results/invite-signed-out.png", fullPage: true });
   // back from signing in, it joins by itself
-  await friend.getByRole("link", { name: "Played before leagues? Sign in with your name" }).click();
-  await friend.getByText("Played before leagues?").click();
-  await friend.getByPlaceholder("Your name").fill("omar");
-  await friend.locator('input[type="submit"]').click();
+  await signIn(friend, "omar", `${new URL(link).pathname}?join=1`, { fresh: true });
   await expect(friend).toHaveURL(/\/stats\/daily\//);
   await expect.poll(() => sql("select string_agg(l.name, ',' order by l.name) from league_members m join leagues l using (league_id) where m.name = 'omar'"))
     .toBe("Nina Pals,Reidle Global");

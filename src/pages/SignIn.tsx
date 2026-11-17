@@ -1,11 +1,8 @@
 import type { ComponentChildren } from "preact";
-import { useEffect, useState } from "preact/hooks";
+import { useState } from "preact/hooks";
 import StagingTag from "@/components/StagingTag";
 import { DemoTiles } from "@/components/Tour";
-import Input from "@/components/Input";
 import LoginOptions from "@/components/LoginOptions";
-import { signIn } from "@/lib/auth";
-import { rpc } from "@/lib/supabase";
 import { playAsGuest as startGuest, savedGuest } from "@/lib/guest";
 import { refreshSession } from "@/lib/session";
 import { setSignedIn } from "@/boot";
@@ -17,9 +14,6 @@ export default function SignIn({ query }: { query: URLSearchParams }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [guest] = useState(savedGuest);
-  // the name-only form goes once name-only sign-in has ended (app_flags.legacy_until)
-  const [nameOpen, setNameOpen] = useState(true);
-  useEffect(() => { void rpc<boolean>("name_sign_in_open").then(setNameOpen, () => {}); }, []);
   const to = (() => { const r = query.get("redirect"); return r && r.startsWith("/") ? r : "/"; })();
 
   const done = async (askNickname: boolean) => {
@@ -68,17 +62,6 @@ export default function SignIn({ query }: { query: URLSearchParams }) {
           <Step n={2} title="Beat the clock">Your time is your score, so the fastest solve wins the day.</Step>
           <Step n={3} title="Play with friends">Start a league, share the invite link, and see who takes the week.</Step>
         </ol>
-        {nameOpen && <details class={card}>
-          <summary class="cursor-pointer text-sm font-medium text-gray-700">Played before leagues? Sign in with your name</summary>
-          <form class="mt-3 flex gap-2" onSubmit={(e) => {
-            e.preventDefault();
-            const name = new FormData(e.currentTarget as HTMLFormElement).get("name") as string;
-            void attempt(() => signIn(name), false);
-          }}>
-            <Input class="min-w-0 flex-1" type="text" placeholder="Your name" name="name" required />
-            <Input type="submit" disabled={busy} />
-          </form>
-        </details>}
         {error && <div class="m-2 text-sm text-rose-600">{error}</div>}
       </main>
       <p class="mt-6 text-center text-xs text-gray-500">

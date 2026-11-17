@@ -4,9 +4,9 @@ select plan(14);
 truncate messages, push_subscriptions, push_outbox, push_jobs, notify_prefs restart identity cascade;
 delete from submissions where day >= current_date - 1;
 insert into auth.users (id, instance_id, aud, role, email, raw_user_meta_data) values
-  ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'na@t.t', '{"name":"nota"}'),
-  ('00000000-0000-0000-0000-0000000000c2', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'nb@t.t', '{"name":"notb"}'),
-  ('00000000-0000-0000-0000-0000000000c3', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'nc@t.t', '{"name":"notc"}');
+  ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'na@players.reidle.app', '{"name":"nota"}'),
+  ('00000000-0000-0000-0000-0000000000c2', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'nb@players.reidle.app', '{"name":"notb"}'),
+  ('00000000-0000-0000-0000-0000000000c3', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'nc@players.reidle.app', '{"name":"notc"}');
 -- name-only sign-ups start in Reidle Global; these tests are about the founding league
 update league_members set league_id = 1 where league_id = 2;
 insert into push_subscriptions (endpoint, name, subscription) values

@@ -23,7 +23,7 @@ test("new players get a tour once; closing it sticks to the player, not the devi
   await expect(page.getByRole("link", { name: /League Reidle Global/ })).toBeVisible();
   await expect(page.getByRole("dialog")).toHaveCount(0);
 
-  // another device: a fresh name-only sign-up sees it, skips it, and it stays gone there too
+  // another device: a fresh sign-up sees it, skips it, and it stays gone there too
   const other = await (await browser.newContext()).newPage();
   await signIn(other, "tina", "/", { fresh: true });
   await expect(other.getByRole("dialog")).toBeVisible();

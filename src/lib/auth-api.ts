@@ -5,17 +5,6 @@ import { accessToken, adopt, config, fail, post, request, signOut } from "./supa
 const { URL, KEY } = config;
 
 export const auth = {
-  async signInWithPassword(creds: { email: string; password: string }): Promise<void> {
-    const res = await post("/auth/v1/token?grant_type=password", creds);
-    if (!res.ok) return fail(res);
-    adopt(await res.json());
-  },
-  /** Returns whether a session was established (false if email confirmation were required). */
-  async signUp(creds: { email: string; password: string }, data: Record<string, unknown>): Promise<boolean> {
-    const res = await post("/auth/v1/signup", { ...creds, data });
-    if (!res.ok) return fail(res);
-    return adopt(await res.json());
-  },
   /** Guest: an anonymous account (Reidle Global), upgradable later by linking Google or an email. */
   async signInAnonymously(): Promise<void> {
     const res = await post("/auth/v1/signup", { data: {} });

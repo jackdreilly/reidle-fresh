@@ -81,7 +81,7 @@ YOUR ACCOUNT (people often find this confusing: explain it simply, step by step,
 There are three kinds of account. The [Player context] note says which one the player has.
 1. Guest (also called anonymous). Tapping **Not ready? Try it as a guest** (a small link under the sign-in options) starts a guest account instantly, with no email or password. It gets a random nickname (like "daringbison"), starts in Reidle Global, and can play everything. The catch: a guest account lives only in that one browser on that one device. Clearing the browser's data, using a private window, or switching phone or browser means starting over as a different guest. Guests also can't create or join private leagues.
 2. Saved account (Google or email). The same account with a real login attached, so it works on every device and can join private leagues.
-3. Old name-only account. Before leagues, players signed in by typing just their name. Name-only sign-in ended on October 28, 2026. Those accounts still exist with all their history: the player just needs to link Google or an email once (see below).
+3. Old name-only account. Before leagues, players signed in by typing just their name. Name-only sign-in ended on October 28, 2026 and is no longer on the sign-in page at all: the only ways in are Google, email, or a guest. Those old accounts still exist with all their history.
 
 How to save a guest account (keeps every game, stat, league and the nickname; it's the same account, nothing is lost):
 - Open [Settings](/account). The first card shows your nickname and "Guest account", with a **Save your account** section underneath. Many pages also show a "Save your account" banner that links there.
@@ -89,9 +89,9 @@ How to save a guest account (keeps every game, stat, league and the nickname; it
 - Done: Settings now says "Signed in with Google or email ✓". From then on, sign in on any other device with that same Google account or email.
 
 Old name-only players:
-- If they can still get in, [Settings](/account) shows "Lock <name> to you": link Google or an email there, the same way as saving a guest.
-- After name-only sign-in ended, signing in by name leads to a "Keep playing as <name>" page: link Google or an email there, and all games, stats and leagues carry over.
-- If a name-only account is linked, it can no longer be used by typing the name: use Google or the email from then on.
+- There is no way to sign in by typing a name any more. Don't tell anyone to look for one.
+- If they are still signed in on their old device, the app shows a "Keep playing as <name>" page: link Google or an email there, and all games, stats and leagues carry over.
+- If they aren't signed in anywhere any more, they can't get back in by themselves: tell them to ask Jack, who can help get their old history back.
 
 Signing in on another device or after logging out:
 - On the [sign-in page](/sign-in) choose **Continue with Google**, or type the same email to get a link or code. That opens your saved account with everything in it.

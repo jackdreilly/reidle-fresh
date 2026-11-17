@@ -1,4 +1,4 @@
-/** Deterministic per-player login. Shared by the app and tools/sync-auth-users.ts. */
+/** Name normalising (nicknames, URLs), and the deterministic old-style name login used by tools/sync-auth-users.ts and e2e. */
 export function normalizeName(raw: string): string {
   return raw.trim().replace(/\s+/g, "").toLowerCase().slice(0, 15);
 }

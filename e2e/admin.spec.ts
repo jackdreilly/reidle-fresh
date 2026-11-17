@@ -63,7 +63,7 @@ test("visits, errors and the owner dashboard (admins with a saved login only)", 
   await expect(sheet).toContainText("/stats/daily/:date");
   await page.screenshot({ path: "test-results/admin-player.png" });
 
-  // a name-only admin (anyone typing the name) and a non-admin both get nothing
+  // a name-only admin (no verified login) and a non-admin both get nothing
   sql("delete from auth.identities where provider_id = 'g-alice'");
   await page.goto("/admin");
   await expect(page.getByRole("heading", { name: "Day by day" })).toHaveCount(0);

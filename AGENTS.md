@@ -33,9 +33,11 @@ tools/                 clone-db.sh, sync-auth-users.ts, gen-words-seed.mjs, chec
   All reads/writes go through `security definer` RPCs in `supabase/migrations/*_rpc.sql`.
 - One RPC per page returns ready-to-render `jsonb` → one round trip per page. Add new
   pages the same way: SQL function + entry in `src/routes.ts` + page component.
-- Identity: `me()` resolves the player from `auth.uid()`. Auth is **name-only by design**
-  (same trust model as the legacy app): `src/lib/credentials.ts` derives a deterministic
-  email/password per name; sign-in tries login then signs up; a trigger links `players`.
+- Identity: `me()` resolves the player from `auth.uid()`. Sign-in is Google, email (magic link / code) or
+  guest (anonymous); a trigger (`handle_new_user`) makes the `players` row. Name-only sign-in was removed
+  2026-11-17. Old-style name accounts (`src/lib/credentials.ts`: a made-up `@players.reidle.app` email/password
+  per name) are still made by `tools/sync-auth-users.ts` and the test helpers (`e2e/helpers.ts` signIn), and
+  only those may pick a player by `name` metadata at sign-up.
 - **Function privileges are an allowlist** (`20260101000300_harden.sql`): everything is revoked from
   PUBLIC/anon/authenticated and only the page/action RPCs are granted. A new function is private
   by default; if it is part of the API, `grant execute ... to authenticated` in its migration. Helpers
@@ -62,7 +64,7 @@ tools/                 clone-db.sh, sync-auth-users.ts, gen-words-seed.mjs, chec
 Every group plays in a league (`leagues`, `league_members`, migration `*_leagues.sql`): its own daily word,
 reset time (`tz` + `reset_hour`), scoring (`scoring` jsonb, set by a commissioner), weekly winners, challenges
 and chat. Battles stay global. League 1 "Reidle OG" holds everyone from before leagues; league 2 "Reidle Global"
-is public (invite code `global`) and is where guests and brand-new name-only players start.
+is public (invite code `global`) and is where guests start.
 
 - **Which league**: the client sends `x-league: <id>` on every RPC (`src/lib/league.ts`, `rpc()` in supabase.ts).
   `lg()` honours it only for a league you're in, else your first league; `bootstrap()` returns the league it
@@ -139,8 +141,8 @@ Docker daemon may need `dockerd &` first in the sandbox.
 ## Logins
 
 Sign-in page (also the signed-out landing page: dog, what Reidle is, 3 steps): sign-in is the main path (Google's button, then
-email), with a quieter "Not ready? Try it as a guest" link (Supabase anonymous sign-in, starts in Reidle Global) and the old
-name-only form (folded away). **Invite links** (`/join/:code`, `Join.tsx`) carry the same login options inline: private leagues
+email), with a quieter "Not ready? Try it as a guest" link (Supabase anonymous sign-in, starts in Reidle Global). There is
+no name-only form any more (removed 2026-11-17). **Invite links** (`/join/:code`, `Join.tsx`) carry the same login options inline: private leagues
 need a login (guests see "Save your account to join", which links), and a returning `?join=1` joins by itself; anyone not
 signing in gets a quiet "play as a guest in Reidle Global" link. Guest helpers live in `src/lib/guest.ts`. Guests and name-only players **link** Google or an email from
 Settings (same auth user, same history); after linking, `finishLink()` replaces the name-derived password so the
@@ -150,11 +152,12 @@ to `/nickname` once. Hosted auth settings (guests, linking, confirm email ON, em
 applied by `tools/auth-config.mjs` from CI (db.yml -> staging; GitHub secrets GOOGLE_CLIENT_ID/SECRET).
 Confirm email ON means new name-only sign-ups no longer work on hosted projects; existing name-only accounts are
 already confirmed. Before switching prod over, run `npm run sync-auth` so every legacy player has an account.
-Locally confirmations stay off (config.toml) so E2E can still create name-only players.
+Locally confirmations stay off (config.toml) so E2E's signIn helper can make name-only test players straight through
+the auth API (there is no UI for it).
 **Name-only sunset**: `app_flags.legacy_until` (2026-10-28 07:00Z, midnight Pacific) ends name-only sign-in with no
 deploy: `require_me()` refuses name-only accounts (the app sends them to `/save-account` to link Google/email,
-keeping their history), `confirm_legacy_claim` stops confirming name claims, the sign-in page hides the name form
-(`name_sign_in_open()`). Until then the banner (`AccountBanner.tsx`) shows the date. Seed sets it to `infinity`
+keeping their history). The name form, `name_sign_in_open()` and `confirm_legacy_claim` were removed 2026-11-17
+(migration `*_remove_name_sign_in.sql`); the lockout and `/save-account` stay for old accounts still signed in. Until then the banner (`AccountBanner.tsx`) shows the date. Seed sets it to `infinity`
 so local/CI keep name-only test players; move the date with one `update app_flags`.
 
 ## Auth note ("email")
@@ -256,7 +259,7 @@ landed on legacy (append-only, idempotent).
 - **/admin** (owner page, not in the menu): `admin_stats(days)` (KPIs, daily chart, play-time heatmap, visit lengths,
   pages, funnel, retention cohorts, leagues, players, grouped errors, activity) and `admin_player(name)` (drill-down).
   Needs a name in `admins` (prod/staging: `jack`; local seed: `alice`) AND a verified login (`is_admin()`), so the
-  name-only form never opens it. Styled by `src/pages/admin.css` only: Admin.tsx is excluded from the Tailwind scan
+  a name-only account never opens it. Styled by `src/pages/admin.css` only: Admin.tsx is excluded from the Tailwind scan
   (`@source not` in index.css), so the dashboard adds nothing to the first-load CSS.
 - **Growth** (migration `*_growth.sql`, Jack 2026-10-25): `admin_growth(days)` feeds the Leagues and Funnel sections of
   /admin (`admin_page(days)` = `admin_stats` + `growth` in one call): player-made leagues (not OG/Global) week by week (new, names, cumulative, joins,
@@ -306,7 +309,7 @@ landed on legacy (append-only, idempotent).
   **That workflow is the only way to release prod**: an agent asked to deploy prod triggers it on `main`
   (GitHub MCP `actions_run_trigger`, workflow `deploy-prod.yml`); never `wrangler deploy` prod by hand, so every
   release is tested, migrated, verified and tagged the same way. Supabase cannot host the SPA.
-  Staging site is public with fake data + open name-only signup: put it behind Cloudflare Access before
+  Staging site is public with fake data + open guest/email signup: put it behind Cloudflare Access before
   loading cloned prod data.
 - Staging is live: Supabase project `reidle-staging` (`noxissvouravthzvoapw`) with schema, RPCs and fixture
   data (migrations now via CI, see Data access rules; Confirm email is OFF) + the Worker above. Verified end to end

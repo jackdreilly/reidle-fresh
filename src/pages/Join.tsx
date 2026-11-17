@@ -22,7 +22,6 @@ export default function Join({ params, query, data }: PageProps<Preview>) {
   const { account } = useSession();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [nameOpen, setNameOpen] = useState(false);
   const here = `/join/${params.code}`;
   const back = `${here}?join=1`; // where a login returns to
   // counted for the owner's invite funnel; the tab's visit id (shared with src/lib/telemetry.ts) ties a signed-out
@@ -36,8 +35,6 @@ export default function Join({ params, query, data }: PageProps<Preview>) {
     } catch { /* storage unavailable */ }
     void rpc("log_invite", { p_code: params.code, p_sid: sid }).catch(() => {});
   }, [params.code, !!data]);
-  // the name-only form lives on the sign-in page until name-only sign-in ends (app_flags.legacy_until)
-  useEffect(() => { if (!signedIn()) void rpc<boolean>("name_sign_in_open").then(setNameOpen, () => {}); }, []);
 
   const run = async (f: () => Promise<void>) => {
     setBusy(true);
@@ -102,7 +99,6 @@ export default function Join({ params, query, data }: PageProps<Preview>) {
                         New here? This makes your account, and your stats follow you to any device.
                       </p>
                       <LoginOptions after={back} onDone={() => loggedIn(false)} />
-                      {nameOpen && <a href={`/sign-in?redirect=${encodeURIComponent(back)}`} class="block text-xs text-gray-500 underline">Played before leagues? Sign in with your name</a>}
                     </div>
                     <p class="border-t border-gray-200 pt-3 text-center text-sm text-gray-500">
                       <span class="mb-2 block">Not ready to sign in?</span>
