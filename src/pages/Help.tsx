@@ -57,7 +57,7 @@ export default function Help() {
       </Section>
 
       <Section id="daily" title="The daily">
-        <p>Each league has one word a day, the same for everyone in it. Tap <A href="/play">Play</A>, then <b>Start</b> when you're ready: the clock doesn't run until you do. You get one go per day, and you can pick up where you left off if you close the page mid-game.</p>
+        <p>Each league has one word a day, the same for everyone in it. Tap <A href="/play">Play</A>, then <b>Start</b> when you're ready: the clock doesn't run until you do. You get one go per day, and if you close the page mid-game, the Play button turns into <b>Resume</b> and picks up where you left off.</p>
         <p>The day resets at the league's reset time{league ? ` (${league.reset_hour}:00 ${league.tz.replace(/_/g, " ")} for ${league.name})` : ""}. Until you've played, other people's guesses stay hidden. Afterwards the <A href="/stats/today">Leaderboard</A> shows everyone's time, their guesses and a replay of how they got there.</p>
       </Section>
 

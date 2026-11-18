@@ -18,6 +18,7 @@ function readCache(): Bootstrap {
         ...anon, name: c.name, account: c.account, legacy_until: c.legacy_until, nickname_set: c.nickname_set, tour_seen: c.tour_seen,
         league: fresh ? c.league : null, leagues: c.leagues ?? [],
         played_today: fresh && c.day === dayIn(c.league.tz, c.league.reset_hour) && c.played_today,
+        started_today: fresh && c.day === dayIn(c.league.tz, c.league.reset_hour) && c.started_today,
       };
     }
   } catch { /* storage unavailable */ }
@@ -57,7 +58,7 @@ export async function refreshSession(): Promise<Bootstrap> {
 
 /** Show another league: the shell refetches, pages load with the new header. */
 export async function switchLeague(id: number): Promise<void> {
-  if (setLeagueId(id)) set({ ...state, league: null, played_today: false, unread: false, pending_challenges: 0 });
+  if (setLeagueId(id)) set({ ...state, league: null, played_today: false, started_today: false, unread: false, pending_challenges: 0 });
   await refreshSession();
 }
 

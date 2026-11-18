@@ -159,3 +159,20 @@ test("a double Enter or held Enter on a rejected guess shows one message, one sh
   await page.keyboard.press("Enter");
   await expect(page.getByText("Need 5 letters")).toBeVisible();
 });
+
+test("a started but unfinished daily shows Resume instead of Play, on any device", async ({ page, browser }) => {
+  await signIn(page, "quinn", "/stats/today");
+  await expect(page.getByRole("link", { name: "▶ Play today's word" })).toBeVisible();
+  await page.goto("/play");
+  await page.getByRole("button", { name: "Start" }).click();
+  await expect(page.getByTestId("board")).toBeVisible();
+  await page.goto("/stats/today");
+  await expect(page.getByRole("link", { name: "▶ Resume today's word" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Resume", exact: true }).first()).toBeVisible();
+  await expect(page.getByRole("link", { name: "Play", exact: true })).toHaveCount(0);
+
+  const other = await browser.newPage(); // nothing cached: the server says it's started
+  await signIn(other, "quinn", "/stats/today");
+  await expect(other.getByRole("link", { name: "▶ Resume today's word" })).toBeVisible();
+  await other.close();
+});

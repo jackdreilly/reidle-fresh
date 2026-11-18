@@ -1,5 +1,5 @@
 begin;
-select plan(105);
+select plan(110);
 
 -- Fixture: isolated players, no seed dependence.
 truncate submissions, checkpoints, messages, message_reads, winners, week_snapshots, challenges, players restart identity cascade;
@@ -144,11 +144,14 @@ delete from submissions; delete from checkpoints;
 select act_as('eve');
 select is((play_state() ->> 'started')::boolean, false, 'play_state before start: not started');
 select is(play_state() ->> 'word', null, 'play_state never reveals the word before start');
+select is((bootstrap() ->> 'started_today')::boolean, false, 'not started yet: the button says Play');
 select is(play_state() ->> 'word', null, 'repeated reads (prefetch/reload) still reveal nothing');
 select reset_role();
 select is((select count(*)::int from checkpoints), 0, 'reading play_state creates no checkpoint');
 select act_as('eve');
 select ok(start_play() ->> 'word' is not null, 'start_play reveals the word');
+select is((bootstrap() ->> 'started_today')::boolean, true, 'started, not finished: the button says Resume');
+select is((select bool_or((r ->> 'started')::boolean) from jsonb_array_elements(leagues_page()) r), true, 'the leagues dashboard says Resume too');
 select reset_role();
 select is((select count(*)::int from checkpoints where name = 'eve'), 1, 'start_play records the start');
 select act_as('eve');
@@ -223,6 +226,8 @@ select act_in('ann', (select id from pals));
 select is((bootstrap() -> 'league' ->> 'id')::bigint, (select id from pals), 'x-league selects the league');
 select ok(start_play() ->> 'word' is not null, 'start a game in the new league');
 select submit_daily(30, 0, '{"events":[]}', 'x', 'p');
+select is((bootstrap() ->> 'started_today')::boolean, false, 'finished: no Resume');
+select is((select bool_or((r ->> 'started')::boolean) from jsonb_array_elements(leagues_page()) r), false, 'finished: no Resume on the dashboard');
 select reset_role();
 select is((select count(*)::int from daily_words where league_id = (select id from pals)), 1, 'the league has its own daily word');
 select act_in('ann', 1);

@@ -1,10 +1,11 @@
-import { useState } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import type { PageProps } from "@/router";
 import { navigate } from "@/router";
 import Game from "@/components/Game";
 import TimerText from "@/components/TimerText";
 import { rpc } from "@/lib/supabase";
 import { resumeFrom } from "@/lib/checkpoint";
+import { patchSession } from "@/lib/session";
 import type { Checkpoint } from "@/lib/types";
 
 type Data = {
@@ -30,6 +31,7 @@ export default function Play({ data }: PageProps<Data>) {
     () => (data.started ? resumed(data) : null),
   );
   const [busy, setBusy] = useState(false);
+  useEffect(() => { if (data.started) patchSession({ started_today: true }); }, [data.started]); // e.g. started on another device
   const [error, setError] = useState("");
 
   // The ONLY thing that starts the daily clock: an explicit tap -> POST rpc/start_play.
@@ -38,6 +40,7 @@ export default function Play({ data }: PageProps<Data>) {
     setError("");
     try {
       const d = await rpc<Data>("start_play");
+      patchSession({ started_today: true });
       setGame(resumed(d));
     } catch (e) {
       if (/already played/i.test((e as Error).message)) return void navigate("/", { replace: true });

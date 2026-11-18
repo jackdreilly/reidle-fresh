@@ -7,7 +7,7 @@ import { useState } from "preact/hooks";
 
 type Row = {
   id: number; name: string; role: string; is_public: boolean; today: string; reset_at: string; members: number;
-  played: boolean; players_today: number; my_rank_today: number | null;
+  played: boolean; started?: boolean; players_today: number; my_rank_today: number | null;
   leader_today: { name: string; time: number } | null;
   yesterday: { winner: string; players: number; my_rank: number | null } | null;
   open_challenges: number;
@@ -86,7 +86,7 @@ export default function Leagues({ data }: PageProps<Row[]>) {
           <div class="mt-3 flex flex-wrap gap-2 empty:hidden">
             {!r.played && (
               <button type="button" onClick={() => void openLeague(r.id, "/play")}
-                class="rounded-lg bg-gradient-to-r from-pink-500 to-pink-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition active:scale-95 focus:outline-none focus:ring-4 focus:ring-pink-300">▶ Play</button>
+                class="rounded-lg bg-gradient-to-r from-pink-500 to-pink-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition active:scale-95 focus:outline-none focus:ring-4 focus:ring-pink-300">{r.started ? "▶ Resume" : "▶ Play"}</button>
             )}
             {r.is_public && data.length > 1 && (
               <button type="button" disabled={busy} class="ml-auto px-2 py-2 text-xs text-gray-500 underline"

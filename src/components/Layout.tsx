@@ -58,7 +58,7 @@ export default function Layout(
     fullPage?: boolean;
   },
 ) {
-  const { played_today: playedToday, name, unread, pending_challenges: pending = 0, league, leagues, account, tour_seen, reminder_prompt } = useSession();
+  const { played_today: playedToday, started_today: startedToday, name, unread, pending_challenges: pending = 0, league, leagues, account, tour_seen, reminder_prompt } = useSession();
   const [open, setOpen] = useState(false);
   // never over a game in progress, nor before they've picked a league
   const Tour = useLazy(tour_seen === false && !fullPage && !!league, () => import("@/components/Tour"));
@@ -128,7 +128,7 @@ export default function Layout(
                     </TopPill>
                   )
                   : (
-                    <TopPill href="/play" active={route === "/play"} color="from-pink-500 to-pink-600 focus:ring-pink-300" label="Play">
+                    <TopPill href="/play" active={route === "/play"} color="from-pink-500 to-pink-600 focus:ring-pink-300" label={startedToday ? "Resume" : "Play"}>
                       <PlaySVG fill="#ffffff" />
                     </TopPill>
                   )}
@@ -176,7 +176,7 @@ export default function Layout(
                 </li>
               )}
               <NavItem href="/stats/today" bg="bg-[#b68c0021] hover:bg-[#b68c0060]" bold={route === "/stats"} icon={<Icon fill="#D4A65D" d={TROPHY} />}>Leaderboard</NavItem>
-              {!playedToday && <NavItem href="/play" bg="bg-[#ff00001c] hover:bg-[#ff000050]" bold={route === "/play"} icon={<PlaySVG fill="#db2777" />}>Play</NavItem>}
+              {!playedToday && <NavItem href="/play" bg="bg-[#ff00001c] hover:bg-[#ff000050]" bold={route === "/play"} icon={<PlaySVG fill="#db2777" />}>{startedToday ? "Resume" : "Play"}</NavItem>}
               <NavItem href="/challenges" bg="bg-[#00ff3c1f] hover:bg-[#00ff3c60]" bold={route === "/challenges"} icon={<ChallengeSVG fill="#059669" />}
                 end={pending ? <CountBadge n={pending} /> : null}>Challenges</NavItem>
               <NavItem href="/battles" bg="bg-[#5b73ff21] hover:bg-[#5b73ff60]" bold={route === "/battles"} icon={<BattleSvg fill="#6d28d9" />} end={null}>Battles</NavItem>

@@ -42,7 +42,7 @@ type Step = { title: string; body: ComponentChildren };
 
 /** First-visit walkthrough: five short cards, skippable at any point. */
 export default function Tour() {
-  const { name, league, played_today: played, account } = useSession();
+  const { name, league, played_today: played, started_today: started, account } = useSession();
   const [i, setI] = useState(0);
   const box = useRef<HTMLDivElement>(null);
   useEffect(() => box.current?.focus(), [i]);
@@ -144,7 +144,7 @@ export default function Tour() {
               if (!played) void navigate("/play");
             }}
           >
-            {!last ? "Next" : played ? "Done" : "Play today's word"}
+            {!last ? "Next" : played ? "Done" : started ? "Resume today's word" : "Play today's word"}
           </button>
         </div>
       </div>

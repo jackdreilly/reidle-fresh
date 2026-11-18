@@ -9,7 +9,7 @@ import { resetClock } from "@/lib/time";
 type Data = { submissions: DailySubmission[]; is_today: boolean; winner?: string };
 
 export default function Daily({ params, data: { submissions, is_today, winner } }: PageProps<Data>) {
-  const { name, played_today } = useSession();
+  const { name, played_today, started_today } = useSession();
   return (
     <StatsTabs route="today">
       <header class="mb-3 flex items-baseline justify-between px-1">
@@ -22,7 +22,7 @@ export default function Daily({ params, data: { submissions, is_today, winner } 
       </header>
       {!played_today && is_today && (
         <a href="/play" class="mb-3 flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-br from-pink-500 to-pink-600 px-4 py-4 text-lg font-bold text-white shadow-sm transition-shadow hover:shadow-md">
-          ▶ Play today's word
+          ▶ {started_today ? "Resume today's word" : "Play today's word"}
         </a>
       )}
       <DailyTable name={name ?? ""} submissions={submissions} hide={!played_today && is_today} />

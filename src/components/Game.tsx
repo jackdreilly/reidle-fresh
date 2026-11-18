@@ -411,7 +411,7 @@ export default function Game(
         clearPrefetch();
         if (challenge_id === undefined) {
           clearProgress();
-          patchSession({ played_today: true });
+          patchSession({ played_today: true, started_today: false });
         }
         if (res) patchSession({ pending_challenges: res.pending_challenges });
         flushPush();
