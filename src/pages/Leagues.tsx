@@ -7,7 +7,7 @@ import { useState } from "preact/hooks";
 
 type Who = { name: string; time: number } | null;
 type Row = {
-  id: number; name: string; role: string; is_public: boolean; today: string; reset_at: string; members: number;
+  id: number; name: string; role: string; is_public: boolean; today: string; reset_at: string; members: number; active?: number;
   played: boolean; started?: boolean; players_today: number; my_rank_today: number | null; my_time_today?: number | null;
   leader_today: Who; best_other_today?: Who;
   yesterday: { winner: string; winner_time?: number; players: number; my_rank: number | null; my_time?: number | null } | null;
@@ -37,10 +37,14 @@ function Fact({ k, v, n, accent }: FactProps) {
   );
 }
 
-const played = (r: Row): FactProps => ({
-  k: "Played", v: `${r.players_today} / ${r.members}`,
-  n: r.played ? (r.members > r.players_today ? `${r.members - r.players_today} to go` : "everyone's in") : "so far",
-});
+/** Today's players out of the league's active ones (played in the last 3 weeks), not every member ever. */
+const played = (r: Row): FactProps => {
+  const of = Math.max(r.active ?? r.members, r.players_today);
+  return {
+    k: "Played", v: `${r.players_today} / ${of}`,
+    n: r.played ? (of > r.players_today ? `${of - r.players_today} to go` : "everyone's in") : "so far",
+  };
+};
 
 /** Week standing in a few words: "12 pts behind dad", "+9 pts on olga". */
 function weekGap(w: Row["week"]): string {

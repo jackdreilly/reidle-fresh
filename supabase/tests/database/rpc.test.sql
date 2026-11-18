@@ -1,5 +1,5 @@
 begin;
-select plan(112);
+select plan(114);
 
 -- Fixture: isolated players, no seed dependence.
 truncate submissions, checkpoints, messages, message_reads, winners, week_snapshots, challenges, players restart identity cascade;
@@ -271,6 +271,16 @@ select update_league('{"open_invite":true}');
 select is(jsonb_array_length(leagues_page()), 2, 'dashboard lists every league');
 select is((select (j ->> 'played')::boolean from jsonb_array_elements(leagues_page()) j where (j ->> 'id')::bigint = 1),
   false, 'dashboard: still to play in the founding league');
+select is((select (j ->> 'active')::int from jsonb_array_elements(leagues_page()) j where (j ->> 'id')::bigint = (select id from pals)),
+  2, 'dashboard: Played counts the recent players');
+select reset_role();
+update submissions set day = day - 30 where name = 'ben' and league_id = (select id from pals);
+select act_in('ann', (select id from pals));
+select is((select (j ->> 'active')::int from jsonb_array_elements(leagues_page()) j where (j ->> 'id')::bigint = (select id from pals)),
+  1, 'dashboard: someone who last played a month ago isn''t counted');
+select reset_role();
+update submissions set day = day + 30 where name = 'ben' and league_id = (select id from pals);
+select act_in('ann', (select id from pals));
 
 -- guests: auto nickname, start in Global, can't join private leagues
 select reset_role();
