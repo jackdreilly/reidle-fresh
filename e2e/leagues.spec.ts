@@ -14,7 +14,7 @@ test("several leagues: a dashboard, and playing one leaves the others to play", 
   await expect(page.getByRole("heading", { name: "Reidle OG" })).toBeVisible();
   await page.screenshot({ path: "test-results/leagues-dashboard.png" });
   // open Book Club's daily
-  await page.locator("section").filter({ hasText: "Book Club" }).getByRole("button", { name: "▶ Play" }).click();
+  await page.locator("section").filter({ hasText: "Book Club" }).getByRole("button", { name: "Play Book Club" }).click();
   await expect(page).toHaveURL(/\/play$/);
   await page.getByRole("button", { name: /start/i }).click();
   await expect.poll(() => sql("select league_id from checkpoints where name = 'kim'")).toBe("3");

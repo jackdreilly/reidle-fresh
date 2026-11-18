@@ -1,5 +1,5 @@
 begin;
-select plan(110);
+select plan(112);
 
 -- Fixture: isolated players, no seed dependence.
 truncate submissions, checkpoints, messages, message_reads, winners, week_snapshots, challenges, players restart identity cascade;
@@ -228,6 +228,10 @@ select ok(start_play() ->> 'word' is not null, 'start a game in the new league')
 select submit_daily(30, 0, '{"events":[]}', 'x', 'p');
 select is((bootstrap() ->> 'started_today')::boolean, false, 'finished: no Resume');
 select is((select bool_or((r ->> 'started')::boolean) from jsonb_array_elements(leagues_page()) r), false, 'finished: no Resume on the dashboard');
+select is((select (r ->> 'my_time_today')::numeric from jsonb_array_elements(leagues_page()) r
+  where (r ->> 'id')::bigint = (select id from pals)), 30::numeric, 'dashboard: your time today');
+select is((select (r #>> '{week,my_place}')::int from jsonb_array_elements(leagues_page()) r
+  where (r ->> 'id')::bigint = (select id from pals)), 1, 'dashboard: your week place');
 select reset_role();
 select is((select count(*)::int from daily_words where league_id = (select id from pals)), 1, 'the league has its own daily word');
 select act_in('ann', 1);
