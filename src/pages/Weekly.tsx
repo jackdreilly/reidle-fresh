@@ -34,6 +34,24 @@ function pointsColor(v: number): Chip {
   return rose(Math.max(0, 7 - v));
 }
 
+/** Each day's finishing place per player (1 = fastest), matching the server's ranking: time, then name. */
+function dailyPlaces(players: WeekOutput) {
+  const places = new Map<string, number>();
+  const numDays = players[0]?.results.days.length ?? 0;
+  for (let d = 0; d < numDays; d++) {
+    players
+      .filter((p) => p.results.days[d].submission_id)
+      .sort((a, b) => a.results.days[d].time - b.results.days[d].time || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))
+      .forEach((p, i) => places.set(`${d}:${p.name}`, i + 1));
+  }
+  return places;
+}
+
+const VIEW_KEY = "reidle.weekView";
+function savedView(): "place" | "points" {
+  try { return localStorage.getItem(VIEW_KEY) === "points" ? "points" : "place"; } catch { return "place"; }
+}
+
 function compact(score: number) {
   return score < 1000 ? `${score}` : score.toString().slice(0, 1) + "e" + Math.floor(Math.log10(score));
 }
@@ -45,14 +63,35 @@ export default function Weekly({ params, data: { players, additive } }: PageProp
   const cell = wide ? { padding: "4px 3px" } : undefined;
   const chipSize = wide ? { width: "46px", height: "34px", fontSize: "15px" } : {};
   const isNewWeek = additive; // fixed cutover (server-side): weeks from 2026-10-05 use additive points
-  const getColor = isNewWeek ? pointsColor : legacyColor;
+  // Additive weeks show each day's place by default; "Points" flips the chips to the points earned.
+  const [view, setView] = useState(savedView);
+  const showPlace = isNewWeek && view === "place";
+  const places = showPlace ? dailyPlaces(players) : null;
+  const pickView = (v: "place" | "points") => {
+    setView(v);
+    try { localStorage.setItem(VIEW_KEY, v); } catch { /* ignore */ }
+  };
   const today = leagueToday();
   const monday = new Date(params.date.slice(0, 10) + "T00:00:00Z");
   monday.setUTCDate(monday.getUTCDate() - (monday.getUTCDay() + 6) % 7);
   return (
     <StatsTabs route="this_week">
-      <header class="mb-3 px-1">
+      <header class="mb-3 flex items-center justify-between gap-3 px-1">
         <h1 class="text-lg font-semibold text-gray-900">Week of {prettyDay(isoDay(monday), { month: "short", day: "numeric" })}</h1>
+        {isNewWeek && players.length > 0 && (
+          <div class="flex items-center gap-1 text-xs" role="group" aria-label="Show each day as">
+            {([["place", "Place"], ["points", "Points"]] as const).map(([v, label]) => (
+              <button
+                type="button"
+                aria-pressed={view === v}
+                onClick={() => pickView(v)}
+                class={"rounded-full px-2 py-0.5 font-medium " + (view === v ? "bg-gray-900 text-white" : "text-gray-500 hover:bg-gray-100")}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
       </header>
       {players.length
         ? (
@@ -100,20 +139,23 @@ export default function Weekly({ params, data: { players, additive } }: PageProp
                           </div>
                         </div>
                       </th>
-                      {days.map(({ score, submission_id, day }) => {
-                        const [bg, fg] = getColor(score);
+                      {days.map(({ score, submission_id, day }, d) => {
+                        const place = places?.get(`${d}:${name}`);
+                        const [bg, fg] = places ? (place ? legacyColor(Math.min(place, 9)) : GRAY) : isNewWeek ? pointsColor(score) : legacyColor(score);
+                        const label = places ? (place ?? "–") : score;
                         const chip = "mx-auto flex h-6 w-6 sm:w-7 items-center justify-center rounded-md text-xs font-semibold tabular-nums";
                         return (
                           <td class="px-px py-0.5 text-center" style={cell}>
                             {!submission_id
-                              ? <span class={chip} style={{ backgroundColor: bg, color: fg, ...chipSize }}>{score}</span>
+                              ? <span class={chip} style={{ backgroundColor: bg, color: fg, ...chipSize }}>{label}</span>
                               : (
                                 <a
                                   class={chip + " transition-transform hover:scale-110"}
                                   style={{ backgroundColor: bg, color: fg, ...chipSize }}
                                   href={!played_today && day === today ? undefined : `/submissions/${submission_id}/playback`}
+                                  title={places ? `${score} pts` : undefined}
                                 >
-                                  {score}
+                                  {label}
                                 </a>
                               )}
                           </td>

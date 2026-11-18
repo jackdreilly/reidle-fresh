@@ -9,14 +9,25 @@ test("current week uses additive points (Σ), prior week legacy product (Π)", a
   await expect(page.getByRole("columnheader", { name: "Σ" })).toBeVisible();
   // total (Σ) must equal the sum of the daily points shown
   const days = Number(sql("select (current_date - date_trunc('week', current_date)::date) + 1"));
-  const cells = await page.getByRole("row").filter({ hasText: "alice" }).getByRole("cell").allInnerTexts();
+  const alice = page.getByRole("row").filter({ hasText: "alice" });
+  const view = page.getByRole("group", { name: "Show each day as" });
+  // places by default (1st, 2nd, ... or – for a no-show), points behind the toggle (remembered)
+  await expect(view.getByRole("button", { name: "Place", pressed: true })).toBeVisible();
+  const placeCells = (await alice.getByRole("cell").allInnerTexts()).slice(0, days);
+  expect(placeCells.every((c) => c === "–" || (Number.isInteger(Number(c)) && Number(c) >= 1))).toBe(true);
+  await view.getByRole("button", { name: "Points" }).click();
+  await expect(view.getByRole("button", { name: "Points", pressed: true })).toBeVisible();
+  const cells = await alice.getByRole("cell").allInnerTexts();
   const points = cells.slice(0, days).map(Number);
   expect(points.every((p) => Number.isInteger(p) && p >= 0 && p <= 40)).toBe(true);
   expect(Number(cells[days])).toBe(points.reduce((a, b) => a + b, 0));
+  await page.reload();
+  await expect(view.getByRole("button", { name: "Points", pressed: true })).toBeVisible();
 
   // a fixed pre-cutover week (2026-10-05): always legacy scoring, whatever today's date is
   await page.goto("/stats/weekly/2026-09-14");
   await expect(page.getByRole("columnheader", { name: "Π" })).toBeVisible();
+  await expect(page.getByRole("group", { name: "Show each day as" })).toHaveCount(0);
   await expect(page.getByRole("row").filter({ hasText: "alice" })).toBeVisible();
 });
 
