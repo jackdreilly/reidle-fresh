@@ -76,8 +76,8 @@ export default function Weekly({ params, data: { players, additive } }: PageProp
   monday.setUTCDate(monday.getUTCDate() - (monday.getUTCDay() + 6) % 7);
   return (
     <StatsTabs route="this_week">
-      {/* Place/Points toggle floats right on the title row, inset like the race card's buttons below. */}
-      <header class="mb-3 flex items-center justify-between gap-4 pl-1 pr-3">
+      {/* Place/Points toggle sits just after the title, on the left. */}
+      <header class="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 px-1">
         <h1 class="text-lg font-semibold text-gray-900">Week of {prettyDay(isoDay(monday), { month: "short", day: "numeric" })}</h1>
         {isNewWeek && players.length > 0 && (
           <div class="flex shrink-0 items-center gap-1 text-xs" role="group" aria-label="Show each day as">
