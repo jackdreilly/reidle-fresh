@@ -9,8 +9,10 @@ import { DECLARATIONS, label, runTool, type ToolLog } from "./tools.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const GEMINI_KEY = Deno.env.get("GEMINI_API_KEY") ?? "";
-const MODEL = Deno.env.get("GEMINI_MODEL") || "gemini-flash-lite-latest";
-const ROUND_MS = 15000;
+const MODEL = Deno.env.get("GEMINI_MODEL") || "gemini-4-hydrogen";
+// When the main model keeps failing (free-tier quota, outage), a round falls back to Flash-Lite so Reidog still answers.
+const FALLBACK = "gemini-flash-lite-latest";
+const ROUND_MS = 20000;
 // Gemini now and then answers 503 "high demand" (or 429/500): try again after these pauses before giving up.
 const RETRY_MS = [400, 1200, 2500];
 const CORS = {
@@ -99,7 +101,8 @@ Deno.serve(async (req) => {
   }));
   const started = Date.now();
   const tools: ToolLog[] = [];
-  const request = (final: boolean) => fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:streamGenerateContent?alt=sse`, {
+  let used = MODEL;
+  const request = (model: string, final: boolean) => fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`, {
     signal: AbortSignal.timeout(ROUND_MS),
     method: "POST",
     headers: { "x-goog-api-key": GEMINI_KEY, "content-type": "application/json" },
@@ -109,19 +112,28 @@ Deno.serve(async (req) => {
       tools: [{ functionDeclarations: DECLARATIONS }],
       // after a few rounds of lookups, answer with what it has
       toolConfig: { functionCallingConfig: { mode: final ? "NONE" : "AUTO" } },
-      generationConfig: { temperature: 0.4, maxOutputTokens: 700 },
+      // Hydrogen thinks at "high" by default and counts thinking against maxOutputTokens: keep it quick and leave room
+      generationConfig: model === FALLBACK
+        ? { temperature: 0.4, maxOutputTokens: 700 }
+        : { maxOutputTokens: 4096, thinkingConfig: { thinkingLevel: "low" } },
     }),
   });
   /** One round, retried while Gemini is busy. null = it never answered. */
-  const ask = async (final: boolean): Promise<Response | null> => {
+  const attempt = async (model: string, final: boolean): Promise<Response | null> => {
     for (let i = 0; ; i++) {
-      const res = await request(final).catch((e) => { console.error("gemini", e); return null; });
+      const res = await request(model, final).catch((e) => { console.error("gemini", model, e); return null; });
       if (res?.ok && res.body) return res;
       const status = res?.status ?? 0;
-      console.error("gemini", status, await res?.text().catch(() => ""));
+      console.error("gemini", model, status, await res?.text().catch(() => ""));
       if (i >= RETRY_MS.length || (status && status !== 429 && status < 500)) return null;
       await new Promise((r) => setTimeout(r, RETRY_MS[i]));
     }
+  };
+  const ask = async (final: boolean): Promise<Response | null> => {
+    const res = await attempt(MODEL, final);
+    if (res || MODEL === FALLBACK) return res;
+    used = FALLBACK;
+    return attempt(FALLBACK, final);
   };
   let answer = "";
   const first = await ask(false);
@@ -181,7 +193,7 @@ Deno.serve(async (req) => {
       } finally {
         if (!answer) out.enqueue(enc.encode("Woof, I lost my train of thought. Could you ask that again?"));
         out.close();
-        await rpc(req, "ask_finish", { p_id: who.id, p_answer: answer || "(no answer)", p_ms: Date.now() - started, p_model: MODEL, p_tools: tools })
+        await rpc(req, "ask_finish", { p_id: who.id, p_answer: answer || "(no answer)", p_ms: Date.now() - started, p_model: used, p_tools: tools })
           .catch((e) => console.error("ask_finish", e));
       }
     },
