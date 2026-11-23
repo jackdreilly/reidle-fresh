@@ -483,6 +483,23 @@ export default function Game(
   const behind = !won && !!challenge_id && !!winnersTime && totalSeconds > winnersTime;
   const [revealed, setRevealed] = useState(false);
   const [keepPlaying, setKeepPlaying] = useState(false);
+  // The moment the time to beat runs out, the whole board shakes once (and the phone buzzes where
+  // supported), a strong cue that the round is lost before the player decides to reveal or keep going.
+  const [timeUpShake, setTimeUpShake] = useState(false);
+  const timeUpShown = useRef(false);
+  useEffect(() => {
+    if (!behind || timeUpShown.current) return;
+    timeUpShown.current = true;
+    setTimeUpShake(true);
+    try {
+      navigator.vibrate?.([120, 60, 120]);
+    } catch { /* not supported */ }
+    const t = setTimeout(() => setTimeUpShake(false), 700);
+    return () => {
+      clearTimeout(t);
+      setTimeUpShake(false);
+    };
+  }, [behind]);
   useEffect(() => {
     if (revealed && !won) setCurrentWord(word);
   }, [revealed]);
@@ -722,7 +739,7 @@ export default function Game(
         >
           <div
             data-testid="board"
-            class="relative"
+            class={"relative" + (timeUpShake ? " board-time-up" : "")}
             style={{
               "--w": "min(100cqw, calc(100cqh * 5 / 6), 20.8rem)",
               "--h": `min(100cqh, calc(var(--w) * ${numRows} / 5))`,

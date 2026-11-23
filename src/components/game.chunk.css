@@ -19,12 +19,25 @@
     animation-delay: calc(var(--i) * 25ms), calc(200ms + var(--i) * 45ms);
   }
   .row-shake { animation: row-shake 180ms ease-in-out; }
+  /* challenge time ran out: the whole board, bigger and longer than a rejected guess */
+  .board-time-up { animation: board-time-up 650ms ease-in-out, time-up-glow 650ms ease-out; }
   .key { transition: background-color 150ms ease-out, transform 60ms ease-out; }
   .key:active { transform: scale(.93); }
 }
 @keyframes tile-pop { 50% { transform: scale(1.1); } }
 @keyframes tile-reveal { from { transform: scaleY(0); } }
 @keyframes tile-win { 40% { transform: translateY(-22%) scale(1.06); } }
+/* Reduced motion still gets the red flash, just no movement. */
+@media (prefers-reduced-motion: reduce) {
+  .board-time-up { animation: time-up-glow 650ms ease-out; }
+}
+@keyframes board-time-up {
+  10%, 50%, 90% { transform: translateX(-6%) rotate(-1deg); }
+  30%, 70% { transform: translateX(6%) rotate(1deg); }
+}
+@keyframes time-up-glow {
+  20% { filter: drop-shadow(0 0 10px rgb(220 38 38 / .8)); }
+}
 @keyframes row-shake {
   20%, 60% { transform: translateX(-4%); }
   40%, 80% { transform: translateX(4%); }

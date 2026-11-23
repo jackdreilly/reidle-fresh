@@ -66,6 +66,9 @@ test("losing a challenge offers to show the answer", async ({ page }) => {
   await signIn(page, "ivy", `/challenges/challenge/${id}/play`);
   await page.getByRole("button", { name: "Start" }).click();
   await expect(page.getByText("alice wins this one")).toBeVisible();
+  // the board shakes once as the time runs out, then settles
+  await expect(page.getByTestId("board")).toHaveClass(/board-time-up/);
+  await expect(page.getByTestId("board")).not.toHaveClass(/board-time-up/);
   await page.getByRole("button", { name: "Show answer" }).click();
   await expect(page.getByText("answer shown")).toBeVisible();
   await expect.poll(() => sql(`select count(*) from submissions where challenge_id=${id} and name='ivy'`)).toBe("1");
