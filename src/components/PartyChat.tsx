@@ -32,12 +32,13 @@ export function PartyChatToast(
 
   const type = toast.type ?? "chat";
   const icon = type === "win" ? "🏆" : type === "penalty" ? "🛑" : type === "event" ? "🎯" : "💬";
+  // Fixed hex, not bg-black: dark.css remaps the palette's black to white, which put the white text on white.
   const borderColor = type === "win"
-    ? "border-amber-400 bg-black/90 shadow-[0_10px_25px_-3px_rgba(245,158,11,0.4)]"
+    ? "border-amber-400 bg-[#18181b] shadow-[0_10px_25px_-3px_rgba(245,158,11,0.4)]"
     : type === "penalty"
-    ? "border-red-500 bg-black/90 shadow-[0_10px_25px_-3px_rgba(239,68,68,0.4)]"
+    ? "border-red-500 bg-[#18181b] shadow-[0_10px_25px_-3px_rgba(239,68,68,0.4)]"
     : type === "event"
-    ? "border-cyan-400 bg-black/90 shadow-[0_10px_25px_-3px_rgba(6,182,212,0.3)]"
+    ? "border-cyan-400 bg-[#18181b] shadow-[0_10px_25px_-3px_rgba(6,182,212,0.3)]"
     : "border-[#3f3f46] bg-[#18181b] shadow-[0_10px_25px_-3px_rgba(0,0,0,0.6)]";
 
   const nameColor = type === "win"
@@ -80,7 +81,7 @@ export function PartyChatToast(
       </style>
       <div
         key={toast.id}
-        class={`fixed top-2 sm:top-3 left-1/2 -translate-x-1/2 z-[100] max-w-[94vw] sm:max-w-md pointer-events-none ${
+        class={`fixed top-2 sm:top-3 left-1/2 z-[100] max-w-[94vw] sm:max-w-md pointer-events-none ${
           type === "win" ? "animate-chat-toast-win" : "animate-chat-toast"
         }`}
       >

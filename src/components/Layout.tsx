@@ -153,7 +153,7 @@ export default function Layout(
 
         {open && (
           <div
-            class="fixed inset-0 z-30 bg-black/20 md:hidden"
+            class="fixed inset-0 z-30 bg-[#000]/20 md:hidden"
             aria-hidden="true"
             onClick={() => setOpen(false)}
           />

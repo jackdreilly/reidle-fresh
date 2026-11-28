@@ -111,7 +111,7 @@ export default function Tour() {
   const step = steps[i];
 
   return (
-    <div class="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 p-3 sm:items-center" onClick={(e) => { if (e.target === e.currentTarget) dismissTour(); }}>
+    <div class="fixed inset-0 z-[60] flex items-end justify-center bg-[#000]/40 p-3 sm:items-center" onClick={(e) => { if (e.target === e.currentTarget) dismissTour(); }}>
       <div
         ref={box}
         role="dialog"
