@@ -60,6 +60,9 @@ export default function Page(
     wordScore: ScoredWord;
     isWin: boolean;
   }) => {
+    // Every board scores the starting word on its own: that's setup, not a move, so it gets no message or toast.
+    const isStartingWord = (w: string, curr: BattleState) =>
+      !!curr.game?.starting_word && w.toUpperCase() === curr.game.starting_word.toUpperCase();
     setState((curr) => {
       if (curr.round_id && payload.round_id && curr.round_id !== payload.round_id) {
         return curr;
@@ -69,6 +72,7 @@ export default function Page(
         w.map((x) => x.letter).join("") === moveWord
       );
       if (alreadyExists) return curr;
+      const quiet = !payload.isWin && curr.history.length === 0 && isStartingWord(moveWord, curr);
 
       const newHistory = [...curr.history, payload.wordScore];
       const newVersion = (curr.version ?? 0) + 1;
@@ -96,8 +100,8 @@ export default function Page(
       const nextState: BattleState = {
         ...curr,
         history: newHistory,
-        last_player: payload.player,
-        message: msg,
+        last_player: quiet ? curr.last_player : payload.player,
+        message: quiet ? "" : msg,
         version: newVersion,
         leaderboard: newLeaderboard,
         battle_history: newBattleHistory,
@@ -111,6 +115,7 @@ export default function Page(
       return nextState;
     });
 
+    if (!payload.isWin && isStartingWord(payload.word, stateRef.current)) return;
     addToast({
       id: payload.id || crypto.randomUUID(),
       name: payload.player,
