@@ -8,6 +8,7 @@ import {
 import { patchRow, realtime } from "@/lib/realtime";
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { ScoredWord } from "@/lib/wordle";
+import { longer, mergeLeaderboards } from "@/lib/battle";
 
 export default function Page(
   { battle_id, initial_state, name, url }: {
@@ -34,6 +35,8 @@ export default function Page(
   stateRef.current = state;
 
   const [users, setUsers] = useState<string[]>([name]);
+  const usersRef = useRef(users);
+  usersRef.current = users;
   const [toastQueue, setToastQueue] = useState<ChatMessage[]>([]);
   const [penaltiesMap, setPenaltiesMap] = useState<Record<string, number>>({});
   const [hasEverJoined, setHasEverJoined] = useState(
@@ -254,8 +257,8 @@ export default function Page(
               ...incoming,
               history: merged,
               version: Math.max(curr.version ?? 0, incoming.version ?? 0),
-              leaderboard: incoming.leaderboard ?? curr.leaderboard ?? {},
-              battle_history: incoming.battle_history ?? curr.battle_history ?? [],
+              leaderboard: mergeLeaderboards(curr.leaderboard, incoming.leaderboard),
+              battle_history: longer(curr.battle_history, incoming.battle_history),
             };
           });
         },
@@ -320,15 +323,6 @@ export default function Page(
       if (Object.keys(penaltyUpdates).length > 0) {
         setPenaltiesMap((prev) => ({ ...prev, ...penaltyUpdates }));
       }
-
-      // Reset leaderboard and battle history when no players remain
-      if (currentUsers.length === 0) {
-        setState((curr) => ({
-          ...curr,
-          leaderboard: {},
-          battle_history: [],
-        }));
-      }
     });
 
     channel.subscribe(async (status) => {
@@ -337,16 +331,13 @@ export default function Page(
       }
     });
 
+    // Leaving never touches the scores. The server starts a fresh leaderboard by itself once a room
+    // has been empty for a while (battle_get / battle_restart), so a reload mid-session keeps them.
     const handleBeforeUnload = () => {
-      if (users.length <= 1) {
+      if (usersRef.current.filter((u) => u !== name).length === 0) {
         patchRow("battles", { battle_id }, {
           users: [],
           updated_at: new Date(0).toISOString(),
-          state: {
-            ...stateRef.current,
-            leaderboard: {},
-            battle_history: [],
-          },
         }).catch(() => null);
       }
     };

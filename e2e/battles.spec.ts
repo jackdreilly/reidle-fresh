@@ -26,6 +26,11 @@ test("two players share a private battle room and a win syncs live", async ({ br
   await expect(bob.getByText(/alice Won|Won the game/i).first()).toBeVisible({ timeout: 15_000 });
   await expect.poll(() => sql(`select state->>'last_player' from battles where battle_id = ${id}`), { timeout: 15_000 }).toBe("alice");
   expect(sql(`select state->'leaderboard'->>'alice' from battles where battle_id = ${id}`)).toBe("1");
+
+  // bob reloading (or leaving) while alice is still there must not wipe the room's scores
+  await bob.reload();
+  await bob.waitForTimeout(1500);
+  expect(sql(`select state->'leaderboard'->>'alice' from battles where battle_id = ${id}`)).toBe("1");
 });
 
 test("battle lobby lists the party room and active rooms", async ({ page }) => {
